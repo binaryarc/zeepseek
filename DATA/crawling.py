@@ -102,6 +102,8 @@ def get_random_user_agent():
     return random.choice(user_agents)
 
 allowed_dongs = [
+    "서울특별시 도봉구 쌍문동",
+    "서울특별시 도봉구 방학동"
 ]
 
 for location in locations:
