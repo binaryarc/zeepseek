@@ -21,6 +21,8 @@ services:
       - "8000:8000"
     environment:
       - MYSQL_HOST=host.docker.internal
+      - MONGO_HOST=host.docker.internal
+      - ES_HOST=host.docker.internal
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: always
