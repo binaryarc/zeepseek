@@ -7,6 +7,7 @@ services:
       - "8081:8081"
     environment:
       - MYSQL_HOST=host.docker.internal
+      - MONGO_HOST=host.docker.internal
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: always
