@@ -1,5 +1,10 @@
 pipeline {
     agent any
+    environment {
+        MYSQL_HOST = "host.docker.internal"
+        MONGO_HOST = "host.docker.internal"
+        ES_HOST = "host.docker.internal"
+    }
     stages {
         stage('Checkout') {
             steps {

@@ -1,22 +1,26 @@
 from fastapi import FastAPI
 import mysql.connector
 import time
+import os
+import warnings
 from pymongo import MongoClient
 from elasticsearch import Elasticsearch
 
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 app = FastAPI()
 
 # EC2 내부의 DB 주소
-MYSQL_HOST = "host.docker.internal"
+# 환경 변수에서 값을 읽고, 없으면 기본값으로 로컬을 사용
+MYSQL_HOST = os.getenv("MYSQL_HOST", "localhost")
 MYSQL_USER = "ssafy"
 MYSQL_PASSWORD = "ssafyssafy"
 MYSQL_DATABASE = "ssafy"
 
-MONGO_HOST = "host.docker.internal"
+MONGO_HOST = os.getenv("MONGO_HOST", "localhost")
 MONGO_PORT = 27017
 MONGO_DATABASE = "test_db"
 
-ES_HOST = "host.docker.internal"
+ES_HOST = os.getenv("ES_HOST", "localhost")
 ES_PORT = 9200
 ES_INDEX = "test_index"
 
