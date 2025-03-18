@@ -12,4 +12,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY jenkins-test.py .
 
 # FastAPI 실행
-CMD ["uvicorn", "test:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "jenkins-test:app", "--host", "0.0.0.0", "--port", "8000"]
