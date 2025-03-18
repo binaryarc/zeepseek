@@ -3,7 +3,9 @@ FROM gradle:8.2-jdk17 AS builder
 WORKDIR /home/gradle/project
 # 소스 전체 복사 (build context가 BE/zeepseek이라 가정)
 COPY --chown=gradle:gradle . .
-# Gradle Wrapper를 사용하여 빌드 (빌드 캐시 관련 문제를 줄이기 위해 --no-build-cache 옵션을 추가할 수도 있음)
+# gradlew 파일에 실행 권한 부여
+RUN chmod +x gradlew
+# Gradle Wrapper를 사용하여 빌드 (bootJar 태스크 실행)
 RUN ./gradlew clean bootJar --no-daemon
 
 # Run stage: 경량 OpenJDK 이미지에서 애플리케이션 실행
