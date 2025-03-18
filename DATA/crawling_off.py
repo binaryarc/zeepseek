@@ -148,12 +148,6 @@ JSON_FILENAME = "off_gangnam.json"
 
 
 allowed_dongs = [
-    "서울특별시 동대문구 신설동",
-    "서울특별시 동대문구 용두동",
-    "서울특별시 동대문구 제기동",
-    "서울특별시 동대문구 전농동",
-    "서울특별시 동대문구 답십리동",
-    "서울특별시 동대문구 장안동",
 ]
 
 
@@ -162,7 +156,7 @@ def get_random_user_agent():
     return random.choice(user_agents)
 
 for location in locations:
-    if location['법정동명'][:10] != "서울특별시 동대문구" or (location['법정동명'] in allowed_dongs):
+    if location['법정동명'][:9] != "서울특별시 도봉구" or (location['법정동명'] in allowed_dongs):
         continue
     print(f"📌 크롤링 중: {location['법정동명']}")
 
