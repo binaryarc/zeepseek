@@ -9,7 +9,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # FastAPI 서버 코드 복사
-COPY test.py .
+COPY jenkins-test.py .
 
 # FastAPI 실행
 CMD ["uvicorn", "test:app", "--host", "0.0.0.0", "--port", "8000"]
