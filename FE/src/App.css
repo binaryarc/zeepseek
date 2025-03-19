@@ -1,4 +1,4 @@
-body {
+/* body {
   margin: 0;
   height: 100vh;
   display: flex;
@@ -13,7 +13,7 @@ body {
   align-items: center;
   width: 100%;
   height: 100%;
-}
+} */
 
 .logo {
   max-width: 800px; 

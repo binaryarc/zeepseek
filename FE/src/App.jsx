@@ -1,3 +1,4 @@
+import React from 'react';
 import zeepseek from './assets/logo/zeepseek.png'
 import './App.css'
 import { useNavigate } from 'react-router-dom';
