@@ -1,0 +1,97 @@
+package com.zeepseek.backend.domain.auth.service;
+
+import com.zeepseek.backend.domain.auth.entity.User;
+import com.zeepseek.backend.domain.auth.repository.UserRepository;
+import com.zeepseek.backend.domain.auth.dto.request.TokenRefreshRequest;
+import com.zeepseek.backend.domain.auth.dto.response.AuthResponse;
+import com.zeepseek.backend.domain.auth.exception.CustomException;
+import com.zeepseek.backend.domain.auth.exception.ErrorCode;
+import com.zeepseek.backend.domain.auth.security.jwt.JwtTokenProvider;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class AuthService {
+
+    private final JwtTokenProvider tokenProvider;
+    private final UserRepository userRepository;
+
+    /**
+     * 리프레시 토큰을 사용하여 새 액세스 토큰 발급
+     */
+    @Transactional
+    public AuthResponse refreshToken(TokenRefreshRequest request) {
+        // 리프레시 토큰 유효성 검증
+        if (!tokenProvider.validateToken(request.getRefreshToken())) {
+            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        // 리프레시 토큰으로 사용자 조회
+        User user = userRepository.findByRefreshToken(request.getRefreshToken())
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
+
+        // 인증 객체 생성
+        Authentication authentication = createAuthentication(user);
+
+        // 새 액세스 토큰 발급
+        String newAccessToken = tokenProvider.createAccessToken(authentication, user.getIdx());
+
+        // 응답 생성
+        return AuthResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(request.getRefreshToken())
+                .tokenType("Bearer")
+                .expiresIn(tokenProvider.getExpiryDuration())
+                .isFirstLogin(user.getIsFirst() == 1)
+                .build();
+    }
+
+    /**
+     * 로그아웃 처리
+     */
+    @Transactional
+    public void logout(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        // 리프레시 토큰 제거
+        user.updateRefreshToken(null);
+        userRepository.save(user);
+
+        // 인증 정보 제거
+        SecurityContextHolder.clearContext();
+    }
+
+    /**
+     * 사용자 정보로 인증 객체 생성
+     */
+    private Authentication createAuthentication(User user) {
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+
+        if (user.getIsSeller() == 1) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_SELLER"));
+        }
+
+        // 사용자 식별자를 Principal 객체로 사용
+        String principal = user.getProvider() + "_" + user.getProviderId();
+
+        // 인증 객체 생성
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(principal, null, authorities);
+
+        return authenticationToken;
+    }
+}
