@@ -1,11 +1,19 @@
 import zeepseek from './assets/logo/zeepseek.png'
 import './App.css'
+import { useNavigate } from 'react-router-dom';
 
 function App() {
+  const navigate = useNavigate();
+  
   return (
     <>
       <div className="container">
-      <img src={zeepseek} alt="zeepseek 로고" className="logo" />
+      <img
+        src={zeepseek}
+        alt="zeepseek 로고"
+        className="logo"
+        onClick={() => navigate("/main")}
+      />
     </div>
     </>
   )
