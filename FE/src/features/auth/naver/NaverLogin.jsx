@@ -1,5 +1,5 @@
 import React from "react";
-import naver from "../../assets/button/naver.png"
+import naver from "../../../assets/images/naver.png"
 import './NaverLogin.css'
 const NaverLogin = () => {
 
