@@ -19,8 +19,8 @@ function App() {
   const sendTestPost = async () => {
     try {
       const response = await axios.post('/api/test', {
-        name: "test",
-        age: 25
+        name: "web",
+        age: 111
       });
       console.log('Response:', response.data);
     } catch (error) {
@@ -37,8 +37,8 @@ function App() {
         className="logo"
         onClick={() => navigate("/main")}
       />
-      <button onClick={sendTestRequest}>Send Test Request</button>
-      <button onClick={sendTestPost}>Send Test Request</button>
+      <button onClick={sendTestRequest}>get test</button>
+      <button onClick={sendTestPost}>post test</button>
     </div>
     </>
   )
