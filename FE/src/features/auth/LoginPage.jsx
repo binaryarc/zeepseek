@@ -2,8 +2,8 @@ import React from "react";
 import './LoginPage.css'
 import { useNavigate } from 'react-router-dom';
 import zeeplogin from '../../assets/logo/zeep_login.png'
-import KakaoLogin from "./KakaoLogin";
-import NaverLogin from "./NaverLogin";
+import KakaoLogin from "./kakao/KakaoLogin";
+import NaverLogin from "./naver/NaverLogin";
 
 const LoginPage = () => {    
     const navigate = useNavigate();
