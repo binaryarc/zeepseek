@@ -4,37 +4,11 @@
     text-align: center;
     width: 100%;
   }
-  
-  /* 네비게이션 바 */
-  .main-navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    /* padding: 10px 20px; */
-    background-color: #fff;
-    /* box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); */
-  }
-  
-  /* 로고 */
+
   .main-logo {
-   width: 200px;
-   height: auto;
-  }
-  
-  /* 로그인 버튼 */
-  .main-login-btn {
-    padding: 8px 16px;
-    margin-right: 2%;
-    background-color: #f5c16c;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: bold;
-  }
-  
-  .main-login-btn:hover {
-    background-color: #e0a751;
+    margin-top: 3%;
+    width: 28%;
+    height: auto;
   }
   
   /* 헤더 섹션 */
@@ -63,6 +37,7 @@
   }
 
   .main-button-section-bottom {
+
     display: flex;
     justify-content: center;
     gap: 15px;
@@ -78,8 +53,8 @@
     background: #F1FAD3;
     cursor: pointer;
     font-weight: bold;
-    width: 18rem;
-    height: 8.8125rem;
+    width: 12rem;
+    height: 7.8125rem;
     flex-shrink: 0;
     text-align: center;
     transition: background 0.3s;
@@ -92,8 +67,8 @@
     background: #F1FAD3;
     cursor: pointer;
     font-weight: bold;
-    width: 18rem;
-    height: 8.8125rem;
+    width: 20rem;
+    height: 7.8125rem;
     flex-shrink: 0;
     text-align: center;
     transition: background 0.3s;
@@ -138,11 +113,23 @@
   }
   
   .main-button-text {
-    margin-right: 40%;
     color: #412A0B;
     text-align: left;
     font-family: GangwonEduAll;
-    font-size: 2rem;
-    font-style: normal;
-    font-weight: 400;
+    font-size: 1.7rem;
+    margin: 8px;
+  }
+
+  .main-png-top{
+    width: 30%;
+    height: auto;
+    margin-left: 70%;
+    margin-top: 10%
+  }
+
+  .main-png-bottom{
+    width: 25%;
+    height: auto;
+    margin-left: 70%;
+    
   }
