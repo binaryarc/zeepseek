@@ -56,4 +56,4 @@ services:
 
 networks:
   e203:
-    driver: bridge
+    external: true
