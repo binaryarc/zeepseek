@@ -1,36 +1,59 @@
 version: '3'
 services:
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
-    container_name: elasticsearch
+  be:
+    build: ./BE/zeepseek
+    container_name: backend_container
+    ports:
+      - "8081:8081"
     environment:
-      - node.name=es-single
-      - cluster.name=my-cluster
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - MYSQL_HOST=host.docker.internal
+      - MONGO_HOST=host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: always
+    networks:
+      - e203
+
+  fe:
+    build: ./FE
+    container_name: frontend_container
+    # fe 서비스는 내부에서 5173 포트를 사용 (Vite 빌드 결과물을 serve 명령으로 서빙)
+    expose:
+      - "5173"
+    restart: always
+    networks:
+      - e203
+
+  recommend:
+    build: ./ML
+    container_name: recommend_container
+    ports:
+      - "8000:8000"
+    environment:
+      - MYSQL_HOST=host.docker.internal
+      - MONGO_HOST=host.docker.internal
+      - ES_HOST=host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: always
+    networks:
+      - e203
+  
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_proxy
+    ports:
+      - "80:80"
     volumes:
-      - es_single_data:/usr/share/elasticsearch/data
-    ports:
-      - "9200:9200"
-    networks:
-      - elastic_network
-
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.12.0
-    container_name: kibana
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    ports:
-      - "5601:5601"
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
-      - elasticsearch
+      - fe
+      - be
+      - recommend
+    restart: always
     networks:
-      - elastic_network
-
-volumes:
-  es_single_data:
+      - e203
 
 networks:
-  elastic_network:
+  e203:
     driver: bridge
