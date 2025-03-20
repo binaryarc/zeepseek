@@ -18,8 +18,7 @@ function App() {
   
   return (
     <>
-      <div className="container">
-
+      <div className="app-container">
       <img
         src={zeepseek}
         alt="zeepseek 로고"

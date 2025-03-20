@@ -9,13 +9,14 @@ import {
 import './index.css'
 import App from './App.jsx'
 import MainPage from './features/main/MainPage.jsx';
+import LoginPage from './features/auth/LoginPage.jsx'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <>
         <Route path="/" element={<App />} />
         <Route path="/main" element={<MainPage />} />
-    </>
+        <Route path="/login" element={<LoginPage />} />    </>
   )
 )
 
