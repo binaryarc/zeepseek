@@ -15,6 +15,18 @@ function App() {
       console.error('Error:', error);
     }
   };
+
+  const sendTestPost = async () => {
+    try {
+      const response = await axios.post('/api/test', {
+        name: "test",
+        age: 25
+      });
+      console.log('Response:', response.data);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
   
   return (
     <>
@@ -26,6 +38,7 @@ function App() {
         onClick={() => navigate("/main")}
       />
       <button onClick={sendTestRequest}>Send Test Request</button>
+      <button onClick={sendTestPost}>Send Test Request</button>
     </div>
     </>
   )
