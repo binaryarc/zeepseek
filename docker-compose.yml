@@ -11,6 +11,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: always
+    networks:
+      - e203
 
   fe:
     build: ./FE
@@ -19,6 +21,8 @@ services:
     expose:
       - "5173"
     restart: always
+    networks:
+      - e203
 
   recommend:
     build: ./ML
@@ -32,6 +36,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: always
+    networks:
+      - e203
   
   nginx:
     image: nginx:alpine
@@ -45,3 +51,9 @@ services:
       - be
       - recommend
     restart: always
+    networks:
+      - e203
+
+networks:
+  e203:
+    driver: bridge
