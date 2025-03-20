@@ -12,6 +12,7 @@ import java.util.Map;
 public class OAuthAttributes {
     private Map<String, Object> attributes;
     private String nameAttributeKey;
+    private String provider;
     private String providerId;
     private String name;
     private String profileImage;
@@ -23,9 +24,9 @@ public class OAuthAttributes {
         log.info("OAuth Provider: {}", registrationId);
 
         if ("kakao".equals(registrationId)) {
-            return ofKakao("id", attributes);
+            return ofKakao(registrationId, "id", attributes);
         } else if ("naver".equals(registrationId)) {
-            return ofNaver("id", attributes);
+            return ofNaver(registrationId, "id", attributes);
         }
 
         throw new IllegalArgumentException("지원하지 않는 소셜 로그인입니다.");
@@ -34,7 +35,7 @@ public class OAuthAttributes {
     /**
      * 카카오 로그인 정보 파싱
      */
-    private static OAuthAttributes ofKakao(String userNameAttributeName, Map<String, Object> attributes) {
+    private static OAuthAttributes ofKakao(String provider, String userNameAttributeName, Map<String, Object> attributes) {
         log.info("Kakao OAuth attributes: {}", attributes);
 
         // ID 추출
@@ -59,6 +60,7 @@ public class OAuthAttributes {
 
         return OAuthAttributes.builder()
                 .providerId(providerId)
+                .provider(provider)
                 .name(nickname)
                 .profileImage(profileImageUrl)
                 .attributes(attributes)
@@ -69,7 +71,7 @@ public class OAuthAttributes {
     /**
      * 네이버 로그인 정보 파싱
      */
-    private static OAuthAttributes ofNaver(String userNameAttributeName, Map<String, Object> attributes) {
+    private static OAuthAttributes ofNaver(String provider, String userNameAttributeName, Map<String, Object> attributes) {
         log.info("Naver OAuth attributes: {}", attributes);
 
         // 네이버는 response 안에 사용자 정보가 있음
@@ -85,6 +87,7 @@ public class OAuthAttributes {
 
         return OAuthAttributes.builder()
                 .providerId(providerId)
+                .provider(provider)
                 .name(nickname)
                 .profileImage(profileImageUrl)
                 .attributes(response)

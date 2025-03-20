@@ -30,7 +30,7 @@ public class User extends BaseTimeEntity {
     @Column(name = "age", columnDefinition = "INT DEFAULT 0")
     private Integer age = 0;
 
-    @Column(name = "refreshToken", columnDefinition = "TEXT")
+    @Column(name = "refresh_token", columnDefinition = "TEXT")
     private String refreshToken;
 
     @Column(name = "nickname", length = 50)
@@ -39,7 +39,7 @@ public class User extends BaseTimeEntity {
     @Column(name = "provider", length = 20)
     private String provider;
 
-    @Column(name = "providerId", length = 100)
+    @Column(name = "provider_id", length = 100)
     private String providerId;
 
     @Builder
@@ -69,6 +69,9 @@ public class User extends BaseTimeEntity {
 
     public void markAsFirstLogin() {
         this.isFirst = 1;
+    }
+    public void markAsNotFirstLogin() {
+        this.isFirst = 0;
     }
 
     public void toggleSellerStatus() {

@@ -59,8 +59,16 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 provider, attributes.getProviderId());
 
         if (userOptional.isPresent()) {
+            User existingUser = userOptional.get();
+
+            // 두 번째 로그인인 경우 isFirst 값을 0으로 업데이트
+            if (existingUser.getIsFirst() == 1) {
+                existingUser.markAsNotFirstLogin();
+                return userRepository.save(existingUser);
+            }
+
             // 기존 사용자 반환
-            return userOptional.get();
+            return existingUser;
         } else {
             // 새 사용자 생성
             User user = User.builder()
