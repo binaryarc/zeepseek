@@ -57,7 +57,7 @@ def save_data_to_json(filename, new_data):
         json.dump(existing_data, f, ensure_ascii=False, indent=4)
     print(f"✅ JSON 파일 업데이트 완료: {filename} (총 {len(existing_data)}개)")
 
-def scroll_down_with_check(driver, scroll_container, max_scrolls=100):
+def scroll_down_with_check(driver, scroll_container, max_scrolls=10000000):
     last_count = 0
     scroll_attempts = 0
     
@@ -103,7 +103,7 @@ def get_random_user_agent():
     return random.choice(user_agents)
 
 for location in locations:
-    if location['법정동명'][:9] != "서울특별시 강남구":
+    if location['법정동명'] != "서울특별시 관악구 신림동":
         continue
     print(f"📌 크롤링 중: {location['법정동명']}")
 
