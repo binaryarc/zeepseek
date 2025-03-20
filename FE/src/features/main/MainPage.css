@@ -10,25 +10,26 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
+    /* padding: 10px 20px; */
     background-color: #fff;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    /* box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); */
   }
   
   /* 로고 */
   .main-logo {
-   width: 100px;
+   width: 200px;
    height: auto;
   }
   
   /* 로그인 버튼 */
   .main-login-btn {
     padding: 8px 16px;
+    margin-right: 2%;
     background-color: #f5c16c;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 1rem;
     font-weight: bold;
   }
   
@@ -48,30 +49,56 @@
     margin-top: 20px;
     border-radius: 20px;
     border: 1px solid #ccc;
-    font-size: 16px;
+    font-size: 1rem;
     text-align: center;
   }
   
   /* 버튼 섹션 */
-  .main-button-section {
+  .main-button-section-top {
     display: flex;
     justify-content: center;
     gap: 15px;
     margin: 30px 0;
     flex-wrap: wrap;
   }
+
+  .main-button-section-bottom {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 30px 0;
+    flex-wrap: wrap;
+
+  }
   
-  .main-button {
+  .main-button-top {
     padding: 15px 20px;
-    background-color: #EAF9C9;
-    border-radius: 10px;
+    border-radius: 1.25rem;
+    border: 3px solid rgba(135, 205, 108, 0.60);
+    background: #F1FAD3;
     cursor: pointer;
     font-weight: bold;
-    width: 150px;
+    width: 18rem;
+    height: 8.8125rem;
+    flex-shrink: 0;
     text-align: center;
     transition: background 0.3s;
   }
   
+  .main-button-bottom {
+    padding: 15px 20px;
+    border-radius: 1.25rem;
+    border: 3px solid rgba(135, 205, 108, 0.60);
+    background: #F1FAD3;
+    cursor: pointer;
+    font-weight: bold;
+    width: 18rem;
+    height: 8.8125rem;
+    flex-shrink: 0;
+    text-align: center;
+    transition: background 0.3s;
+  }
+
   .main-button:hover {
     background-color: #D4E9B2;
   }
@@ -110,3 +137,12 @@
     background: #ccc;
   }
   
+  .main-button-text {
+    margin-right: 40%;
+    color: #412A0B;
+    text-align: left;
+    font-family: GangwonEduAll;
+    font-size: 2rem;
+    font-style: normal;
+    font-weight: 400;
+  }
