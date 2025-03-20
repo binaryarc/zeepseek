@@ -7,17 +7,17 @@ pipeline {
                 checkout scm
             }
         }
-        stage('Build & Deploy Frontend') {
+        stage('Build & Deploy Frontend & Nginx') {
             steps {
-                echo "Rebuilding and deploying Frontend service using docker-compose..."
-                // docker-compose.yml에 정의된 'fe' 서비스만 재빌드 및 재시작합니다.
-                sh 'docker-compose up -d --no-deps --build fe'
+                echo "Rebuilding and deploying Frontend and Nginx proxy using docker-compose..."
+                // fe와 nginx 서비스만 재빌드 및 재시작합니다.
+                sh 'docker-compose up -d --no-deps --build fe nginx'
             }
         }
     }
     post {
         always {
-            echo "Frontend Pipeline completed."
+            echo "Frontend & Nginx Pipeline completed."
         }
     }
 }
