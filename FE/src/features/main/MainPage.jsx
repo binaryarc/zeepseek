@@ -1,25 +1,22 @@
 // import { useNavigate } from "react-router-dom";
-import zeepseek from "../../assets/logo/zeepseek.png";
+import React from "react";
+import title from "../../assets/logo/zeeptitle.png";
+// import zeepseek from "../../assets/logo/zeepseek.png";
 import "./MainPage.css";
 
 function MainPage() {
-//   const navigate = useNavigate();
+  //   const navigate = useNavigate();
 
   return (
     <div className="main-container">
       {/* 네비게이션 바 */}
       <nav className="main-navbar">
-        <img
-          src={zeepseek}
-          alt="zeepseek 로고"
-          className="main-logo"
-        />
+        <img src={title} alt="zeepseek 로고" className="main-logo" />
         <button className="main-login-btn">로그인</button>
       </nav>
 
       {/* 메인 헤더 */}
       <header className="main-header">
-        
         <input
           type="text"
           placeholder="지역, 단지, 매물번호를 검색하세요!"
@@ -28,12 +25,26 @@ function MainPage() {
       </header>
 
       {/* 버튼 섹션 */}
-      <section className="main-button-section">
-        <div className="main-button">원룸 / 투룸</div>
-        <div className="main-button">오피스텔</div>
-        <div className="main-button">주택 / 빌라</div>
-        <div className="main-button">매물 추천 받기</div>
-        <div className="main-button">동네 비교</div>
+
+      <section className="main-button-section-top">
+        <div className="main-button-top">
+          <p className="main-button-text">원룸 / 투룸</p>
+        </div>
+        <div className="main-button-top">
+          <p className="main-button-text">오피스텔</p>
+        </div>
+        <div className="main-button-top">
+          <p className="main-button-text">주택 / 빌라</p>
+        </div>
+      </section>
+
+      <section className="main-button-section-bottom">
+        <div className="main-button-bottom">
+          <p className="main-button-text">매물 추천 받기</p>
+        </div>
+        <div className="main-button-bottom">
+          <p className="main-button-text">동네 비교</p>
+        </div>
       </section>
 
       {/* 추천 매물 섹션 */}
