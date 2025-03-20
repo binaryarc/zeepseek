@@ -8,6 +8,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api")
 public class TestController {
 
     private final TestService testService;
