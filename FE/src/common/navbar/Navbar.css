@@ -1,0 +1,32 @@
+  /* 네비게이션 바 */
+  .nav-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
+    background-color: #fff;
+    /* box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); */
+  }
+  
+  /* 로고 */
+  .nav-logo {
+   width: 250px;
+   height: auto;
+   margin: 0;
+  }
+
+  /* 로그인 버튼 */
+  .nav-login-btn {
+    padding: 10px 30px;
+    margin-right: 2%;
+    background-color: #f5c16c;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: KOROAD;
+    font-size: 1rem;
+  }
+
+  .nav-login-btn:hover {
+    background-color: #e0a751;
+  }
