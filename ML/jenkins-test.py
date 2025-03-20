@@ -12,7 +12,7 @@ mongo_client = None
 mongo_db = None
 mongo_collection = None
 es = None
-ES_INDEX = "test_index"
+ES_INDEX = "test-index"
 
 async def lifespan(app: FastAPI):
     global mysql_conn, mysql_cursor, mongo_client, mongo_db, mongo_collection, es
