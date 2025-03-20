@@ -1,7 +1,5 @@
 // import { useNavigate } from "react-router-dom";
-import React from "react";
-import title from "../../assets/logo/zeeptitle.png"
-// import zeepseek from "../../assets/logo/zeepseek.png";
+import zeepseek from "../../assets/logo/zeepseek.png";
 import "./MainPage.css";
 
 function MainPage() {
@@ -12,7 +10,7 @@ function MainPage() {
       {/* 네비게이션 바 */}
       <nav className="main-navbar">
         <img
-          src={title}
+          src={zeepseek}
           alt="zeepseek 로고"
           className="main-logo"
         />
