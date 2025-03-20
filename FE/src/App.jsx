@@ -9,7 +9,7 @@ function App() {
 
   const sendTestRequest = async () => {
     try {
-      const response = await axios.get('http://j12e203.p.ssafy.io:8081/test');
+      const response = await axios.get('http://j12e203.p.ssafy.io:8081/api/test');
       console.log('Response:', response.data);
     } catch (error) {
       console.error('Error:', error);
