@@ -39,7 +39,7 @@ const MainMap = () => {
   return (
     <div>
       <h2>카카오 지도</h2>
-      <div id="map" style={{ width: "100%", height: "400px" }} />
+      <div id="map" style={{ width: "100%", height: "1800px" }} />
     </div>
   );
 };
