@@ -7,6 +7,22 @@ pipeline {
                 checkout scm
             }
         }
+
+        // 환경 변수 설정 -> OAuth용 credentials 추가
+        stage('Setup Environment Variables') {
+            steps {
+                echo "OAuth 환경 변수 설정 중..."
+                withCredentials([file(credentialsId: 'oauth2_env', variable: 'ENV_FILE')]) {
+                    // FE 디렉토리에 .env 파일 복사
+                    sh 'cp $ENV_FILE ${WORKSPACE}/FE/.env'
+            
+                    // 복사 확인
+                    sh 'echo "환경 변수 파일이 복사되었습니다."'
+                    sh 'ls -la ${WORKSPACE}/FE/'
+                }
+            }
+        }
+
         stage('Prepare Environment') {
             steps {
                 echo "네트워크 e203 확인 및 생성..."
