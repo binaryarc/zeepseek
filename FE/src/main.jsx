@@ -6,7 +6,7 @@ import {
   Route,
   RouterProvider,
 } from "react-router-dom";
-import store from './store/store.js'
+// import store from './store/store.js'
 import './index.css'
 import App from "./App.jsx";
 import MainPage from "./features/main/MainPage.jsx";
@@ -24,6 +24,6 @@ const router = createBrowserRouter(
   )
 );
 
-createRoot(document.getElementById("root")).render(
+ReactDOM.createRoot(document.getElementById("root")).render(
   <RouterProvider router={router} />
 );
