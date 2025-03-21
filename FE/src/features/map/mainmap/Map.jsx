@@ -1,7 +1,7 @@
-// 📁 src/components/MapComponent.jsx
 import { useEffect } from "react";
+import "./Map.css"; // CSS 파일 분리
 
-const MainMap = () => {
+const Map = () => {
   useEffect(() => {
     const kakaoMapScript = document.createElement("script");
     kakaoMapScript.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${
@@ -9,7 +9,6 @@ const MainMap = () => {
     }&libraries=services&autoload=false`;
     kakaoMapScript.async = true;
 
-    
     console.log("카카오 API 스크립트 추가 시도:", kakaoMapScript.src);
 
     document.head.appendChild(kakaoMapScript);
@@ -17,7 +16,7 @@ const MainMap = () => {
     console.log("카카오 API 키:", import.meta.env.VITE_APP_KAKAO_MAP_API_KEY);
 
     kakaoMapScript.onload = () => {
-        console.log("카카오 SDK 로드됨!");
+      console.log("카카오 SDK 로드됨!");
       window.kakao.maps.load(() => {
         const container = document.getElementById("map");
         const options = {
@@ -37,11 +36,10 @@ const MainMap = () => {
   }, []);
 
   return (
-    <div>
-      <h2>카카오 지도</h2>
-      <div id="map" style={{ width: "100%", height: "1800px" }} />
+    <div className="map-container">
+      <div id="map" className="map-box" />
     </div>
   );
 };
 
-export default MainMap;
+export default Map;
