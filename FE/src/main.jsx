@@ -1,5 +1,5 @@
 import * as ReactDOM from "react-dom/client";
-import React, { StrictMode } from 'react';
+import React, { StrictMode } from "react";
 import {
   createBrowserRouter,
   createRoutesFromElements,
@@ -7,7 +7,7 @@ import {
   RouterProvider,
 } from "react-router-dom";
 // import store from './store/store.js'
-import './index.css'
+import "./index.css";
 import App from "./App.jsx";
 import MainPage from "./features/main/MainPage.jsx";
 import LoginPage from "./features/auth/LoginPage.jsx";

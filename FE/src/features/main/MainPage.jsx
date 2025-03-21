@@ -1,4 +1,4 @@
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import React from "react";
 import Navbar from "../../common/navbar/Navbar";
 import zeepseek from "../../assets/logo/zeep_login.png";
@@ -10,7 +10,7 @@ import villa from "../../assets/images/main_png/villa.png";
 import "./MainPage.css";
 
 function MainPage() {
-  //   const navigate = useNavigate();
+  const navigate = useNavigate();
 
   return (
     <div className="main-container">
@@ -28,28 +28,36 @@ function MainPage() {
       {/* 버튼 섹션 */}
 
       <section className="main-button-section-top">
-        <div className="main-button-top">
+        <div className="main-button-top" onClick={() => navigate("/map")}>
           <p className="main-button-text">원룸 / 투룸</p>
-          <img src={oneroom} alt="원룸" className="main-png-top"/>
+          <img src={oneroom} alt="원룸" className="main-png-top" />
         </div>
-        <div className="main-button-top">
+        <div className="main-button-top" onClick={() => navigate("/map")}>
           <p className="main-button-text">오피스텔</p>
-          <img src={officetel} alt="오피스텔" className="main-png-top"/>
+          <img src={officetel} alt="오피스텔" className="main-png-top" />
         </div>
-        <div className="main-button-top">
+        <div className="main-button-top" onClick={() => navigate("/map")}>
           <p className="main-button-text">주택 / 빌라</p>
-          <img src={villa} alt="주택/빌라" className="main-png-top"/>
+          <img src={villa} alt="주택/빌라" className="main-png-top" />
         </div>
       </section>
 
       <section className="main-button-section-bottom">
-        <div className="main-button-bottom">
+        <div className="main-button-bottom" onClick={() => navigate("/map")}>
           <p className="main-button-text">매물 추천 받기</p>
-          <img src={recommend_estate} alt="매물 추천" className="main-png-bottom"/>
+          <img
+            src={recommend_estate}
+            alt="매물 추천"
+            className="main-png-bottom"
+          />
         </div>
         <div className="main-button-bottom">
           <p className="main-button-text">동네 비교</p>
-          <img src={compare_estate} alt="동네 비교" className="main-png-bottom"/>
+          <img
+            src={compare_estate}
+            alt="동네 비교"
+            className="main-png-bottom"
+          />
         </div>
       </section>
 
