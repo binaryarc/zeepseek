@@ -32,5 +32,4 @@ class PropertyScore(Base):
     leisure_count = Column(Integer, default=0)
     leisure_score = Column(Float, default=0)
     
-    overall_score = Column(Float, default=0)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
