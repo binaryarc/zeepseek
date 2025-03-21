@@ -11,7 +11,7 @@ import './index.css'
 import App from "./App.jsx";
 import MainPage from "./features/main/MainPage.jsx";
 import LoginPage from "./features/auth/LoginPage.jsx";
-import MainMap from "./features/map/mainmap/MainMap.jsx";
+import MainMapPage from "./features/map/MainMapPage.jsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -19,17 +19,11 @@ const router = createBrowserRouter(
       <Route path="/" element={<App />} />
       <Route path="/main" element={<MainPage />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/map" element={<MainMap />} />
+      <Route path="/map" element={<MainMapPage />} />
     </>
   )
 );
 
-
-
-ReactDOM.createRoot(document.getElementById("root")).render(
-    //  <Provider store={store}>
-        // <AuthInitializer>
-            <RouterProvider router={router} />
-        // </AuthInitializer>
-    // </Provider>
+createRoot(document.getElementById("root")).render(
+  <RouterProvider router={router} />
 );
