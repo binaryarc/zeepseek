@@ -14,7 +14,7 @@ pipeline {
                 echo "OAuth 환경 변수 설정 중..."
                 withCredentials([file(credentialsId: 'oauth2_env', variable: 'ENV_FILE')]) {
                     // FE 디렉토리에 .env 파일 복사
-                    sh 'cp $ENV_FILE ${WORKSPACE}/FE/.env'
+                    sh 'sudo cp $ENV_FILE ${WORKSPACE}/FE/.env'
             
                     // 복사 확인
                     sh 'echo "환경 변수 파일이 복사되었습니다."'
