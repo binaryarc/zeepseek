@@ -8,19 +8,19 @@ const RoomList = () => {
       id: 1,
       title: "전세 3억 2,000",
       description: "신용산역 역세권, 저렴한 전세",
-      img: "https://via.placeholder.com/100",
+      img: "https://picsum.photos/200/300?random=1",
     },
     {
       id: 2,
       title: "전세 1억 8,000",
       description: "용산역 역세권, 저렴한 전세",
-      img: "https://via.placeholder.com/100",
+      img: "https://picsum.photos/200/300?random=1",
     },
     {
       id: 3,
       title: "월세 5000/150",
       description: "카페거리 근처, 용산역 접근성",
-      img: "https://via.placeholder.com/100",
+      img: "https://picsum.photos/200/300?random=1",
     },
   ];
 

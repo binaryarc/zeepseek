@@ -7,7 +7,7 @@ function Navbar() {
     const navigate = useNavigate();
   return (
     <nav className="nav-navbar">
-      <img src={title} alt="zeepseek 로고" className="nav-logo" />
+      <img src={title} alt="zeepseek 로고" className="nav-logo" onClick={() => navigate('/main')}/>
       <button className="nav-login-btn" onClick={() => navigate('/login')}>로그인</button>
     </nav>
   );
