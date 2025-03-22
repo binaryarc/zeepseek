@@ -4,7 +4,6 @@ import numpy as np
 from sqlalchemy import text
 from app.config.database import SessionLocal
 from app.utils.haversine import haversine
-from sklearn.metrics.pairwise import cosine_similarity
 
 def distance_score(distance):
     """
@@ -158,8 +157,6 @@ def process_property(row):
     except Exception as e:
         print(f"Error processing property_id {row._mapping['property_id']}: {e}")
 
-# === 검증을 위한 세 가지 방식 ===
-
 def recalculate_all_scores_no_batch():
     """
     [비배치 방식] 전체 데이터를 한 번에 로드한 후 단일 스레드로 순차 처리합니다.
@@ -246,7 +243,3 @@ def recalculate_all_scores_batch(batch_size=1000, max_workers=8, limit=None):
     finally:
         session.close()
     return total_processed
-
-
-# 이 함수들은 FastAPI 엔드포인트나 백그라운드 작업으로 호출하여 성능 테스트에 활용할 수 있습니다.
-# 예시: 엔드포인트에서 각 방식을 호출하고, 소요 시간을 비교해 결과를 반환할 수 있습니다.

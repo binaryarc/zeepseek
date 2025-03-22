@@ -5,9 +5,9 @@ from app.services.scoring_service import (
     update_property_score,
     recalculate_all_scores_no_batch,
     recalculate_all_scores_single,
-    recalculate_all_scores_batch,
-    recommend_properties
+    recalculate_all_scores_batch
 )
+from app.services.recommend_service import recommend_properties  # 추천 함수는 별도 모듈에서 임포트
 
 router = APIRouter()
 
