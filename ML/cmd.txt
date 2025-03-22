@@ -2,10 +2,45 @@ docker stop $(docker ps -q)
 docker rm $(docker ps -a -q)
 docker rmi $(docker images -q)
 
-
 docker build -t fastapi-app .
 docker run -d -p 8000:8000 fastapi-app
-curl -X POST "http://localhost:8000/recalculate"
+
+
+curl http://localhost:8000/
+curl -X POST "http://localhost:8000/calculate" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "property_id": 1,
+           "latitude": 37.55,
+           "longitude": 126.97
+         }'
+curl -X POST "http://localhost:8000/recalculate/batch" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "batch_size": 1000,
+           "max_workers": 8
+         }'
+
+
+고려 x : 0.2
+보통 : 3.0
+중요 : 6.0
+
+curl -X POST "http://localhost:8000/recommend" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "transport_score": 1.0,
+           "restaurant_score": 1.0,
+           "health_score": 1.0,
+           "convenience_score": 1.0,
+           "cafe_score": 1.0,
+           "chicken_score": 1.0,
+           "leisure_score": 1.0
+         }'
+
+
+
+
 
 docker-compose down -v --rmi all --remove-orphans
 docker-compose up -d mysql mongodb redis

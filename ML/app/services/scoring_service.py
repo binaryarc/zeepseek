@@ -1,4 +1,5 @@
-import math
+import time
+import concurrent.futures
 import numpy as np
 from sqlalchemy import text
 from app.config.database import SessionLocal
@@ -8,45 +9,50 @@ from sklearn.metrics.pairwise import cosine_similarity
 def distance_score(distance):
     """
     두 지점 사이의 거리를 기반으로 점수를 계산합니다.
-    가까울수록 점수가 높아지며, 공식은 1 / (1 + distance) 입니다.
-    (예: 거리가 0이면 1, 멀어질수록 0에 가까워짐)
+    공식: 1 / (1 + distance)
     """
     return 1 / (1 + distance)
 
 def get_poi_by_category(category: str):
     """
-    카테고리별 POI 데이터를 조회합니다.
-    실제 환경에서는 DB나 API에서 데이터를 가져오지만, 여기서는 예시 데이터를 사용합니다.
-    
-    예시 데이터는 각 카테고리마다 하나 이상의 POI 정보를 포함합니다.
+    각 카테고리별 POI 데이터를 DB에서 조회합니다.
+    반환 예시: [{"latitude": float, "longitude": float}, ...]
     """
-    sample_data = {
-        "transport": [{"latitude": 37.55, "longitude": 126.97}],
-        "restaurant": [{"latitude": 37.551, "longitude": 126.971}],
-        "health": [{"latitude": 37.552, "longitude": 126.972}],
-        "convenience": [{"latitude": 37.553, "longitude": 126.973}],
-        "cafe": [{"latitude": 37.554, "longitude": 126.974}],
-        "chicken": [{"latitude": 37.555, "longitude": 126.975}],
-        "leisure": [{"latitude": 37.556, "longitude": 126.976}],
-    }
-    return sample_data.get(category, [])
+    session = SessionLocal()
+    try:
+        if category == "transport":
+            query = text("SELECT latitude, longitude FROM transport")
+        elif category == "restaurant":
+            query = text("SELECT latitude, longitude FROM restaurant")
+        elif category == "health":
+            query = text("SELECT latitude, longitude FROM health")
+        elif category == "convenience":
+            query = text("SELECT latitude, longitude FROM convenience")
+        elif category == "cafe":
+            query = text("SELECT latitude, longitude FROM cafe")
+        elif category == "chicken":
+            query = text("SELECT latitude, longitude FROM chicken")
+        elif category == "leisure":
+            query = text("SELECT latitude, longitude FROM leisure")
+        else:
+            return []
+        
+        result = session.execute(query).fetchall()
+        poi_list = [
+            {"latitude": float(row._mapping["latitude"]), "longitude": float(row._mapping["longitude"])}
+            for row in result
+        ]
+        return poi_list
+    finally:
+        session.close()
 
 def calculate_category_score(property_lat, property_lon, poi_list, radius=1.0, alpha=0.5, beta=0.5):
     """
     주어진 POI 리스트에 대해 카테고리 점수를 계산합니다.
-    
-    - radius: 매물과 POI 사이의 최대 고려 반경 (1km)
-    - alpha: 반경 내 POI 개수(개수 점수)에 적용할 가중치
-    - beta: 가장 가까운 POI와의 거리(거리 기반 점수)에 적용할 가중치
-    
-    처리 과정:
-      1. 모든 POI에 대해 haversine 공식을 사용하여 매물과의 거리를 계산.
-      2. 거리가 radius 이하인 경우, POI 개수를 증가시키고, 가장 짧은 거리를 기록.
-      3. 반경 내 POI가 없으면 min_distance를 radius 값으로 설정합니다.
-      4. 개수 점수는 단순 count 값이며, 거리 기반 점수는 distance_score(min_distance)를 사용합니다.
-      5. 최종 카테고리 점수는: alpha * (개수 점수) + beta * (거리 기반 점수)
-    
-    반환값: (개수, 거리 기반 점수, 최종 카테고리 점수)
+      - radius: 고려 반경 (1km)
+      - alpha: POI 개수에 적용할 가중치
+      - beta: 가장 가까운 POI 거리 기반 점수에 적용할 가중치
+    반환값: (POI 개수, 거리 기반 점수, 최종 카테고리 점수)
     """
     count = 0
     min_distance = float('inf')
@@ -58,28 +64,23 @@ def calculate_category_score(property_lat, property_lon, poi_list, radius=1.0, a
                 min_distance = d
     if count == 0:
         min_distance = radius
-    count_score = count
     dist_score = distance_score(min_distance)
-    category_score = alpha * count_score + beta * dist_score
+    category_score = alpha * count + beta * dist_score
     return count, dist_score, category_score
 
 def compute_property_score(property_data: dict):
     """
-    매물 데이터(property_data에 'latitude'와 'longitude'가 포함됨)를 받아,
-    각 POI 카테고리(transport, restaurant, health, convenience, cafe, chicken, leisure)에 대한 점수를 계산합니다.
-    
-    반환값은 각 카테고리의 개수와 점수를 포함하는 dict입니다.
-      - transport_count, transport_score
-      - restaurant_count, restaurant_score
-      - health_count, health_score
-      - convenience_count, convenience_score
-      - cafe_count, cafe_score
-      - chicken_count, chicken_score
-      - leisure_count, leisure_score
+    매물(property_data: latitude, longitude 포함)에 대해 각 카테고리별 점수를 계산합니다.
+    반환 예시:
+      {
+          "transport_count": 3, "transport_score": 1.5,
+          "restaurant_count": 2, "restaurant_score": 1.2,
+          ...
+      }
     """
     lat = property_data["latitude"]
     lon = property_data["longitude"]
-    
+
     results = {}
     categories = {
         "transport": {"alpha": 0.5, "beta": 0.5},
@@ -105,7 +106,7 @@ def compute_property_score(property_data: dict):
 
 def update_property_score(property_id: int, score_data: dict):
     """
-    매물 ID에 해당하는 property_score 테이블의 점수를 업데이트합니다.
+    property_score 테이블에서 해당 매물(property_id)의 점수를 업데이트합니다.
     기록이 없으면 새로 삽입합니다.
     """
     session = SessionLocal()
@@ -144,91 +145,108 @@ def update_property_score(property_id: int, score_data: dict):
     finally:
         session.close()
 
-def recalculate_all_scores():
+def process_property(row):
     """
-    property 테이블의 모든 매물에 대해 점수를 재계산하여 property_score 테이블을 업데이트합니다.
+    단일 매물(row)에 대해 점수를 계산하고 DB에 업데이트합니다.
     """
-    session = SessionLocal()
     try:
-        properties = session.execute(text("SELECT property_id, latitude, longitude FROM property")).fetchall()
-        count = 0
-        for row in properties:
-            prop_id = row._mapping["property_id"]
-            lat = row._mapping["latitude"]
-            lon = row._mapping["longitude"]
-            score_data = compute_property_score({"latitude": lat, "longitude": lon})
-            update_property_score(prop_id, score_data)
-            count += 1
-        return count
-    finally:
-        session.close()
+        prop_id = row._mapping["property_id"]
+        lat = row._mapping["latitude"]
+        lon = row._mapping["longitude"]
+        score_data = compute_property_score({"latitude": lat, "longitude": lon})
+        update_property_score(prop_id, score_data)
+    except Exception as e:
+        print(f"Error processing property_id {row._mapping['property_id']}: {e}")
 
-def recommend_properties(user_scores: dict, top_n=5):
+# === 검증을 위한 세 가지 방식 ===
+
+def recalculate_all_scores_no_batch():
     """
-    사용자의 카테고리 점수와 property_score 테이블의 각 매물의 카테고리 점수 간 코사인 유사도를 계산하여,
-    상위 top_n 매물 리스트를 반환합니다.
-    
-    양쪽 벡터 구성 순서는:
-      [transport_score, restaurant_score, health_score, convenience_score, cafe_score, chicken_score, leisure_score]
+    [비배치 방식] 전체 데이터를 한 번에 로드한 후 단일 스레드로 순차 처리합니다.
+    메모리 사용은 높지만, 배치 처리 미도입 시 처리 시간을 측정할 수 있습니다.
     """
     session = SessionLocal()
     try:
-        query = text(
-            "SELECT property_id, transport_score, restaurant_score, health_score, "
-            "convenience_score, cafe_score, chicken_score, leisure_score "
-            "FROM property_score"
-        )
-        results = session.execute(query).fetchall()
-        if not results:
-            return []
-        
-        properties = []
-        for row in results:
-            properties.append({
-                "property_id": row._mapping["property_id"],
-                "transport_score": row._mapping["transport_score"],
-                "restaurant_score": row._mapping["restaurant_score"],
-                "health_score": row._mapping["health_score"],
-                "convenience_score": row._mapping["convenience_score"],
-                "cafe_score": row._mapping["cafe_score"],
-                "chicken_score": row._mapping["chicken_score"],
-                "leisure_score": row._mapping["leisure_score"],
-            })
-        
-        # 사용자 점수 벡터 구성
-        user_vector = np.array([
-            user_scores.get("transport_score", 0),
-            user_scores.get("restaurant_score", 0),
-            user_scores.get("health_score", 0),
-            user_scores.get("convenience_score", 0),
-            user_scores.get("cafe_score", 0),
-            user_scores.get("chicken_score", 0),
-            user_scores.get("leisure_score", 0)
-        ]).reshape(1, -1)
-        
-        # 각 매물의 점수 벡터 구성
-        property_vectors = np.array([
-            [
-                p["transport_score"],
-                p["restaurant_score"],
-                p["health_score"],
-                p["convenience_score"],
-                p["cafe_score"],
-                p["chicken_score"],
-                p["leisure_score"],
-            ]
-            for p in properties
-        ])
-        
-        # 코사인 유사도 계산
-        similarities = cosine_similarity(property_vectors, user_vector).flatten()
-        
-        # 각 매물에 유사도 첨부
-        for i, p in enumerate(properties):
-            p["similarity"] = float(similarities[i])
-        
-        # 유사도 높은 순으로 정렬하여 상위 top_n 매물 선택
-        top_properties = sorted(properties, key=lambda x: x["similarity"], reverse=True)[:top_n]
-        return top_properties
+        rows = session.execute(
+            text("SELECT property_id, latitude, longitude FROM property ORDER BY property_id")
+        ).fetchall()
     finally:
         session.close()
+    total_processed = 0
+    for row in rows:
+        process_property(row)
+        total_processed += 1
+        if total_processed % 1000 == 0:
+            print(f"No-batch: Processed {total_processed} properties...")
+    return total_processed
+
+def recalculate_all_scores_single(limit=20000, batch_size=1000):
+    """
+    [단일 스레드 배치 방식] 데이터를 배치로 조회하여 단일 스레드로 처리합니다.
+    테스트용으로 limit만큼 처리합니다.
+    """
+    session = SessionLocal()
+    total_processed = 0
+    try:
+        offset = 0
+        while total_processed < limit:
+            query = text(
+                "SELECT property_id, latitude, longitude FROM property "
+                "ORDER BY property_id LIMIT :limit OFFSET :offset"
+            )
+            rows = session.execute(query, {"limit": batch_size, "offset": offset}).fetchall()
+            if not rows:
+                break
+            for row in rows:
+                process_property(row)
+            processed_count = len(rows)
+            total_processed += processed_count
+            offset += batch_size
+            print(f"Single-threaded batch: Processed {total_processed} properties...")
+    except Exception as e:
+        print("Error in single-threaded processing:", e)
+    finally:
+        session.close()
+    return total_processed
+
+def recalculate_all_scores_batch(batch_size=1000, max_workers=8, limit=None):
+    """
+    [멀티스레드 배치 방식] 데이터를 배치로 조회하여 각 배치를 ThreadPoolExecutor를 사용해 병렬 처리합니다.
+    limit 파라미터가 None이면 property 테이블의 전체 데이터를 처리합니다.
+    """
+    session = SessionLocal()
+    total_processed = 0
+    try:
+        # limit이 지정되지 않은 경우, 전체 row 수를 가져옵니다.
+        if limit is None:
+            total_count = session.execute(text("SELECT COUNT(*) FROM property")).scalar()
+            limit = total_count
+            print(f"Total properties to process: {limit}")
+        
+        offset = 0
+        while total_processed < limit:
+            query = text(
+                "SELECT property_id, latitude, longitude FROM property "
+                "ORDER BY property_id LIMIT :batch_size OFFSET :offset"
+            )
+            rows = session.execute(query, {"batch_size": batch_size, "offset": offset}).fetchall()
+            if not rows:
+                break
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = [executor.submit(process_property, row) for row in rows]
+                concurrent.futures.wait(futures)
+
+            processed_count = len(rows)
+            total_processed += processed_count
+            offset += batch_size
+            print(f"Multi-threaded batch: Processed {total_processed} properties...")
+    except Exception as e:
+        print("Error in batch processing:", e)
+    finally:
+        session.close()
+    return total_processed
+
+
+# 이 함수들은 FastAPI 엔드포인트나 백그라운드 작업으로 호출하여 성능 테스트에 활용할 수 있습니다.
+# 예시: 엔드포인트에서 각 방식을 호출하고, 소요 시간을 비교해 결과를 반환할 수 있습니다.
