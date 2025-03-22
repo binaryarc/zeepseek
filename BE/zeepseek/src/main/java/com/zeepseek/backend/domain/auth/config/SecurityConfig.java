@@ -53,7 +53,7 @@ public class SecurityConfig {
                 // OAuth2 로그인 설정 (그대로 유지)
                 .oauth2Login(oauth2 -> oauth2
                         .redirectionEndpoint(redirection -> redirection
-                                .baseUri("/v1/redirect"))
+                                .baseUri("/api/v1/redirect"))
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService))
                         .successHandler(oAuth2AuthenticationSuccessHandler)

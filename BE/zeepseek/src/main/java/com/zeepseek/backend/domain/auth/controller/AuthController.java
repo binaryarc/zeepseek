@@ -1,5 +1,6 @@
 package com.zeepseek.backend.domain.auth.controller;
 
+import com.zeepseek.backend.domain.auth.dto.request.OAuthLoginRequest;
 import com.zeepseek.backend.domain.auth.dto.request.TokenRefreshRequest;
 import com.zeepseek.backend.domain.auth.dto.response.ApiResponse;
 import com.zeepseek.backend.domain.auth.dto.response.AuthResponse;
@@ -45,12 +46,13 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(null, "로그아웃되었습니다."));
     }
 
-    /**
-     * OAuth2 리다이렉트 처리 (OAuth2 인증 완료 후 호출됨)
-     * GET /api/v1/auth/oauth2/redirect
-     * 참고: 이 엔드포인트는 OAuth2AuthenticationSuccessHandler에서 처리되므로
-     * 여기서는 구현하지 않음
-     */
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<AuthResponse>> login(
+            @Valid @RequestBody OAuthLoginRequest request) {
+        log.info("OAuth 로그인 요청: provider={}", request.getProvider());
+        AuthResponse response = authService.oauthLogin(request.getProviderId(), request.getProvider());
+        return ResponseEntity.ok(ApiResponse.success(response, "로그인에 성공했습니다."));
+    }
 
     /**
      * 인증 상태 확인 엔드포인트

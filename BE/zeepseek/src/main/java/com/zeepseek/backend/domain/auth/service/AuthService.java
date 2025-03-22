@@ -29,6 +29,59 @@ public class AuthService {
     private final UserRepository userRepository;
 
     /**
+     * OAuth 로그인 처리
+     */
+    @Transactional
+    public AuthResponse oauthLogin(String providerId, String provider) {
+        log.info("OAuth 로그인 처리: provider={}, providerId={}", provider, providerId);
+
+        // 유효한 provider 확인
+        if (!("kakao".equals(provider) || "naver".equals(provider))) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "지원하지 않는 소셜 로그인입니다.");
+        }
+
+        // 사용자 조회 또는 생성
+        User user = userRepository.findByProviderAndProviderId(provider, providerId)
+                .orElseGet(() -> {
+                    // 새 사용자 생성
+                    User newUser = User.builder()
+                            .provider(provider)
+                            .providerId(providerId)
+                            .nickname(provider + "_user_" + providerId.substring(0, Math.min(8, providerId.length())))
+                            .isFirst(1) // 첫 로그인
+                            .build();
+                    return userRepository.save(newUser);
+                });
+
+        // 인증 객체 생성
+        Authentication authentication = createAuthentication(user);
+
+        // 토큰 발급
+        String accessToken = tokenProvider.createAccessToken(authentication, user.getIdx());
+        String refreshToken = tokenProvider.createRefreshToken();
+
+        // 리프레시 토큰 저장
+        user.updateRefreshToken(refreshToken);
+        userRepository.save(user);
+
+        // 첫 로그인이 아닌 경우 isFirst 값 업데이트
+        boolean isFirstLogin = user.getIsFirst() == 1;
+        if (isFirstLogin) {
+            user.markAsNotFirstLogin();
+            userRepository.save(user);
+        }
+
+        // 응답 생성
+        return AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .tokenType("Bearer")
+                .expiresIn(tokenProvider.getExpiryDuration())
+                .isFirstLogin(isFirstLogin)
+                .build();
+    }
+
+    /**
      * 리프레시 토큰을 사용하여 새 액세스 토큰 발급
      */
     @Transactional
