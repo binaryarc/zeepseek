@@ -31,14 +31,20 @@ public class AuthService {
     /**
      * OAuth 로그인 처리
      */
+    /**
+     * OAuth 로그인 처리
+     */
     @Transactional
-    public AuthResponse oauthLogin(String providerId, String provider) {
-        log.info("OAuth 로그인 처리: provider={}, providerId={}", provider, providerId);
+    public AuthResponse oauthLogin(String authorizationCode, String provider) {
+        log.info("OAuth 로그인 처리: provider={}, authorizationCode={}", provider, authorizationCode);
 
         // 유효한 provider 확인
         if (!("kakao".equals(provider) || "naver".equals(provider))) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "지원하지 않는 소셜 로그인입니다.");
         }
+
+        // 인증 코드를 providerId로 사용
+        String providerId = authorizationCode;
 
         // 사용자 조회 또는 생성
         User user = userRepository.findByProviderAndProviderId(provider, providerId)

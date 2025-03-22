@@ -1,5 +1,9 @@
 package com.zeepseek.backend.domain.auth.controller;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.util.UriComponentsBuilder;
+
 import com.zeepseek.backend.domain.auth.dto.request.OAuthLoginRequest;
 import com.zeepseek.backend.domain.auth.dto.request.TokenRefreshRequest;
 import com.zeepseek.backend.domain.auth.dto.response.ApiResponse;
@@ -33,6 +37,27 @@ public class AuthController {
         AuthResponse response = authService.refreshToken(request);
         return ResponseEntity.ok(ApiResponse.success(response, "토큰이 성공적으로 갱신되었습니다."));
     }
+    /**
+     * OAuth2 리다이렉트 처리 엔드포인트
+     * GET /api/v1/redirect
+     */
+    @GetMapping("/redirect")
+    public ResponseEntity<Void> redirect(
+            @RequestParam("provider") String provider,
+            @RequestParam("code") String code) {
+        log.info("OAuth2 리다이렉트: provider={}, code={}", provider, code);
+
+        // 프론트엔드로 리다이렉트
+        String frontendRedirectUri = "https://j12e203.p.ssafy.io/oauth/callback";
+
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header(HttpHeaders.LOCATION,
+                        UriComponentsBuilder.fromUriString(frontendRedirectUri)
+                                .queryParam("provider", provider)
+                                .queryParam("code", code)
+                                .build().toUriString())
+                .build();
+    }
 
     /**
      * 로그아웃 엔드포인트
@@ -50,7 +75,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> login(
             @Valid @RequestBody OAuthLoginRequest request) {
         log.info("OAuth 로그인 요청: provider={}", request.getProvider());
-        AuthResponse response = authService.oauthLogin(request.getProviderId(), request.getProvider());
+        AuthResponse response = authService.oauthLogin(request.getAuthorizationCode(), request.getProvider());
         return ResponseEntity.ok(ApiResponse.success(response, "로그인에 성공했습니다."));
     }
 
