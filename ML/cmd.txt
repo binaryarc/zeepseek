@@ -17,8 +17,12 @@ curl -X POST "http://localhost:8000/recalculate/batch" \
      -H "Content-Type: application/json" \
      -d '{
            "batch_size": 1000,
-           "max_workers": 8
+           "max_workers": 8,
+           "limit": 50000 #(생략가능)
          }'
+curl -X POST "http://localhost:8000/recalculate/incomplete"
+
+
 curl -X POST "http://localhost:8000/recalculate/no_batch"
 curl -X POST "http://localhost:8000/recalculate/single"
 curl -X POST "http://localhost:8000/recalculate/batch"
