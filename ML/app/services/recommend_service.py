@@ -13,69 +13,80 @@ if not logger.handlers:
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-# 전역 캐시: 각 카테고리별 최소, 최대값과 캐시 타임스탬프 설정
-CATEGORY_MIN_MAX_CACHE = {}
-CATEGORY_MIN_MAX_CACHE_TIMESTAMP = 0
+# 전역 캐시: 각 카테고리별 robust(min, max) 값과 캐시 타임스탬프 설정
+CATEGORY_ROBUST_CACHE = {}
+CATEGORY_ROBUST_CACHE_TIMESTAMP = 0
 CACHE_TTL = 3600  # 1시간
 
-def get_category_min_max_values():
+def get_category_robust_values():
     """
-    property_score 테이블에서 각 카테고리별 최소, 최대값을 조회하고 캐싱합니다.
+    property_score 테이블에서 각 카테고리별 5번째 및 95번째 백분위수를 계산하여
+    robust 최소/최대값으로 캐싱 후 반환합니다.
+    반환 예시:
+      {
+         "transport_score": (robust_min, robust_max),
+         "restaurant_score": (robust_min, robust_max),
+         ...
+      }
     """
-    global CATEGORY_MIN_MAX_CACHE, CATEGORY_MIN_MAX_CACHE_TIMESTAMP, CACHE_TTL
+    global CATEGORY_ROBUST_CACHE, CATEGORY_ROBUST_CACHE_TIMESTAMP, CACHE_TTL
     current_time = time.time()
-    if CATEGORY_MIN_MAX_CACHE and (current_time - CATEGORY_MIN_MAX_CACHE_TIMESTAMP < CACHE_TTL):
-        logger.info("Using cached category min-max values.")
-        return CATEGORY_MIN_MAX_CACHE
+    if CATEGORY_ROBUST_CACHE and (current_time - CATEGORY_ROBUST_CACHE_TIMESTAMP < CACHE_TTL):
+        logger.info("Using cached robust min-max values.")
+        return CATEGORY_ROBUST_CACHE
 
     session = SessionLocal()
-    min_max_values = {}
     try:
-        # 한 번의 쿼리로 모든 카테고리의 최소, 최대값을 조회하는 방법:
         query = text("""
-            SELECT 
-                MAX(transport_score) AS max_transport,
-                MIN(transport_score) AS min_transport,
-                MAX(restaurant_score) AS max_restaurant,
-                MIN(restaurant_score) AS min_restaurant,
-                MAX(health_score) AS max_health,
-                MIN(health_score) AS min_health,
-                MAX(convenience_score) AS max_convenience,
-                MIN(convenience_score) AS min_convenience,
-                MAX(cafe_score) AS max_cafe,
-                MIN(cafe_score) AS min_cafe,
-                MAX(chicken_score) AS max_chicken,
-                MIN(chicken_score) AS min_chicken,
-                MAX(leisure_score) AS max_leisure,
-                MIN(leisure_score) AS min_leisure
+            SELECT transport_score, restaurant_score, health_score,
+                   convenience_score, cafe_score, chicken_score, leisure_score
             FROM property_score
         """)
-        row = session.execute(query).fetchone()
-        # 각 카테고리의 min, max 값 저장 (0~1 범위로 정규화 시, 분모가 0이 되지 않도록 기본값 1 사용)
-        min_max_values["transport_score"] = (row._mapping["min_transport"] or 0, row._mapping["max_transport"] or 1)
-        min_max_values["restaurant_score"] = (row._mapping["min_restaurant"] or 0, row._mapping["max_restaurant"] or 1)
-        min_max_values["health_score"] = (row._mapping["min_health"] or 0, row._mapping["max_health"] or 1)
-        min_max_values["convenience_score"] = (row._mapping["min_convenience"] or 0, row._mapping["max_convenience"] or 1)
-        min_max_values["cafe_score"] = (row._mapping["min_cafe"] or 0, row._mapping["max_cafe"] or 1)
-        min_max_values["chicken_score"] = (row._mapping["min_chicken"] or 0, row._mapping["max_chicken"] or 1)
-        min_max_values["leisure_score"] = (row._mapping["min_leisure"] or 0, row._mapping["max_leisure"] or 1)
-
-        logger.info("Fetched min-max values: %s", min_max_values)
-        CATEGORY_MIN_MAX_CACHE = min_max_values
-        CATEGORY_MIN_MAX_CACHE_TIMESTAMP = current_time
-        return min_max_values
+        results = session.execute(query).fetchall()
+        if not results:
+            logger.warning("No property score data found for robust computation.")
+            return {}
+        data = []
+        for row in results:
+            data.append([
+                row._mapping["transport_score"],
+                row._mapping["restaurant_score"],
+                row._mapping["health_score"],
+                row._mapping["convenience_score"],
+                row._mapping["cafe_score"],
+                row._mapping["chicken_score"],
+                row._mapping["leisure_score"]
+            ])
+        data = np.array(data, dtype=float)
+        robust_min = np.percentile(data, 5, axis=0)
+        robust_max = np.percentile(data, 95, axis=0)
+        robust_values = {
+            "transport_score": (robust_min[0], robust_max[0]),
+            "restaurant_score": (robust_min[1], robust_max[1]),
+            "health_score": (robust_min[2], robust_max[2]),
+            "convenience_score": (robust_min[3], robust_max[3]),
+            "cafe_score": (robust_min[4], robust_max[4]),
+            "chicken_score": (robust_min[5], robust_max[5]),
+            "leisure_score": (robust_min[6], robust_max[6])
+        }
+        logger.info("Computed robust min-max values: %s", robust_values)
+        CATEGORY_ROBUST_CACHE = robust_values
+        CATEGORY_ROBUST_CACHE_TIMESTAMP = current_time
+        return robust_values
     except Exception as e:
-        logger.error("Error fetching min-max values: %s", e)
+        logger.error("Error computing robust min-max values: %s", e)
         return {}
     finally:
         session.close()
 
 def recommend_properties(user_scores: dict, top_n=5):
     """
-    사용자의 카테고리 점수와 property_score 테이블의 각 매물의 카테고리 점수 간 
+    사용자의 카테고리 점수와 property_score 테이블의 각 매물의 카테고리 점수 간
     코사인 유사도를 계산합니다.
     
-    점수들은 DB에서 조회한 각 카테고리별 최소/최대값으로 min–max 정규화(0~1)되어 비교됩니다.
+    각 점수는 DB에서 조회한 각 카테고리별 5번째/95번째 백분위수를 이용한 robust min–max 정규화(0~1)되어 비교됩니다.
+    벡터 구성 순서는:
+      [transport_score, restaurant_score, health_score, convenience_score, cafe_score, chicken_score, leisure_score]
     """
     session = SessionLocal()
     try:
@@ -89,7 +100,7 @@ def recommend_properties(user_scores: dict, top_n=5):
             logger.info("No property scores found.")
             return []
 
-        # 컬럼 이름 순서 고정
+        # 컬럼 순서를 고정
         cols = ["property_id", "transport_score", "restaurant_score", "health_score", 
                 "convenience_score", "cafe_score", "chicken_score", "leisure_score"]
         data = []
@@ -99,51 +110,66 @@ def recommend_properties(user_scores: dict, top_n=5):
             property_ids.append(row_data[0])
             data.append(row_data[1:])  # 점수 데이터
 
-        # NumPy 배열로 변환
         property_array = np.array(data, dtype=float)  # shape: (n_properties, 7)
-
         logger.info("Fetched %d properties.", property_array.shape[0])
 
-        # 최소/최대값 조회 (캐시 활용)
-        min_max_values = get_category_min_max_values()
-        logger.info("Min-max values: %s", min_max_values)
+        # robust min-max 값 조회
+        robust_values = get_category_robust_values()
+        logger.info("Robust min-max values: %s", robust_values)
 
-        # 정규화: 각 컬럼별로 min-max 정규화
-        # 각 열에 대해: (x - min) / (max - min)
-        norm_array = np.empty_like(property_array)
-        for i, cat in enumerate(["transport_score", "restaurant_score", "health_score", 
-                                 "convenience_score", "cafe_score", "chicken_score", "leisure_score"]):
-            cat_min, cat_max = min_max_values[cat]
-            # 분모가 0이 되지 않도록 기본값 1 사용
-            denom = cat_max - cat_min if (cat_max - cat_min) != 0 else 1
-            norm_array[:, i] = (property_array[:, i] - cat_min) / denom
+        # 배열 벡터화: 각 열에 대해 robust 정규화: (x - min) / (max - min)
+        robust_mins = np.array([
+            robust_values["transport_score"][0],
+            robust_values["restaurant_score"][0],
+            robust_values["health_score"][0],
+            robust_values["convenience_score"][0],
+            robust_values["cafe_score"][0],
+            robust_values["chicken_score"][0],
+            robust_values["leisure_score"][0],
+        ])
+        robust_maxs = np.array([
+            robust_values["transport_score"][1],
+            robust_values["restaurant_score"][1],
+            robust_values["health_score"][1],
+            robust_values["convenience_score"][1],
+            robust_values["cafe_score"][1],
+            robust_values["chicken_score"][1],
+            robust_values["leisure_score"][1],
+        ])
+        denom = robust_maxs - robust_mins
+        # prevent division by zero
+        denom[denom == 0] = 1
+        norm_array = (property_array - robust_mins) / denom
+        norm_array = np.clip(norm_array, 0, 1)
+        logger.info("First property vector (robust normalized): %s", norm_array[0])
 
-        # 사용자 점수 정규화 (min-max normalization)
-        user_vector = np.array([
-            (user_scores.get("transport_score", 0) - min_max_values["transport_score"][0]) / (min_max_values["transport_score"][1] - min_max_values["transport_score"][0] or 1),
-            (user_scores.get("restaurant_score", 0) - min_max_values["restaurant_score"][0]) / (min_max_values["restaurant_score"][1] - min_max_values["restaurant_score"][0] or 1),
-            (user_scores.get("health_score", 0) - min_max_values["health_score"][0]) / (min_max_values["health_score"][1] - min_max_values["health_score"][0] or 1),
-            (user_scores.get("convenience_score", 0) - min_max_values["convenience_score"][0]) / (min_max_values["convenience_score"][1] - min_max_values["convenience_score"][0] or 1),
-            (user_scores.get("cafe_score", 0) - min_max_values["cafe_score"][0]) / (min_max_values["cafe_score"][1] - min_max_values["cafe_score"][0] or 1),
-            (user_scores.get("chicken_score", 0) - min_max_values["chicken_score"][0]) / (min_max_values["chicken_score"][1] - min_max_values["chicken_score"][0] or 1),
-            (user_scores.get("leisure_score", 0) - min_max_values["leisure_score"][0]) / (min_max_values["leisure_score"][1] - min_max_values["leisure_score"][0] or 1),
-        ]).reshape(1, -1)
-        logger.info("User vector (normalized): %s", user_vector)
+        # 사용자 벡터 정규화
+        user_vals = np.array([
+            user_scores.get("transport_score", 0),
+            user_scores.get("restaurant_score", 0),
+            user_scores.get("health_score", 0),
+            user_scores.get("convenience_score", 0),
+            user_scores.get("cafe_score", 0),
+            user_scores.get("chicken_score", 0),
+            user_scores.get("leisure_score", 0),
+        ])
+        user_vector = (user_vals - robust_mins) / denom
+        user_vector = np.clip(user_vector, 0, 1).reshape(1, -1)
+        logger.info("User vector (robust normalized): %s", user_vector)
 
         # 코사인 유사도 계산
         similarities = cosine_similarity(norm_array, user_vector).flatten()
         logger.info("Calculated similarities for %d properties.", len(similarities))
 
-        # 결과를 property_id와 유사도로 매핑
-        properties = []
+        # 결과 매핑
+        properties_rec = []
         for i, pid in enumerate(property_ids):
-            properties.append({
+            properties_rec.append({
                 "property_id": pid,
                 "similarity": float(similarities[i])
             })
 
-        # 유사도 높은 순으로 상위 top_n 선택
-        top_properties = sorted(properties, key=lambda x: x["similarity"], reverse=True)[:top_n]
+        top_properties = sorted(properties_rec, key=lambda x: x["similarity"], reverse=True)[:top_n]
         logger.info("Top %d recommended properties: %s", top_n, [p["property_id"] for p in top_properties])
         return top_properties
 
