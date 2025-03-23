@@ -1,7 +1,9 @@
 # app/routers/property_score_router.py
 
+from typing import Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+
 # 배치 처리 로직이 scoring_batch.py 라는 파일에 있다고 가정
 from app.services.scoring_batch import (
     recalculate_all_scores_no_batch,
@@ -10,12 +12,15 @@ from app.services.scoring_batch import (
     recalculate_incomplete_scores_batch,
     update_property_score_optimized  # 만약 이 함수도 scoring_batch 쪽에 있다면 이렇게 임포트
 )
+
 # 점수 계산은 scoring_service에서 한다면 (예: compute_property_score)
 from app.services.scoring_service import compute_property_score
+
 # 추천 로직은 recommend_service에서
 from app.services.recommend_service import recommend_properties
 
 router = APIRouter()
+
 
 class NewPropertyData(BaseModel):
     property_id: int
@@ -57,7 +62,7 @@ def recalculate_single():
 class BatchRecalcParams(BaseModel):
     batch_size: int = 1000
     max_workers: int = 8
-    limit: int | None = None  # Python 3.10 이상이면 int | None, 이하 버전이면 Optional[int]
+    limit: Optional[int] = None  # Python 3.9 이하에서는 Optional[int]
 
 
 @router.post("/recalculate/batch", summary="Recalculate scores for all properties (multi-threaded batch)")
