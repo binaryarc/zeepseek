@@ -37,6 +37,7 @@ public class AuthController {
         AuthResponse response = authService.refreshToken(request);
         return ResponseEntity.ok(ApiResponse.success(response, "토큰이 성공적으로 갱신되었습니다."));
     }
+
     /**
      * OAuth2 리다이렉트 처리 엔드포인트
      * GET /api/v1/redirect
@@ -47,13 +48,19 @@ public class AuthController {
             @RequestParam("code") String code) {
         log.info("OAuth2 리다이렉트: provider={}, code={}", provider, code);
 
-        // 프론트엔드로 리다이렉트
-        String frontendRedirectUri = "https://j12e203.p.ssafy.io/oauth/callback";
+        // 제공자별 프론트엔드 리다이렉트 경로 설정
+        String frontendRedirectUri;
+        if ("kakao".equals(provider)) {
+            frontendRedirectUri = "https://j12e203.p.ssafy.io/kakao/callback";
+        } else if ("naver".equals(provider)) {
+            frontendRedirectUri = "https://j12e203.p.ssafy.io/naver/callback";
+        } else {
+            frontendRedirectUri = "https://j12e203.p.ssafy.io/login"; // 기본 경로
+        }
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.LOCATION,
                         UriComponentsBuilder.fromUriString(frontendRedirectUri)
-                                .queryParam("provider", provider)
                                 .queryParam("code", code)
                                 .build().toUriString())
                 .build();
