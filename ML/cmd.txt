@@ -2,6 +2,8 @@ docker stop $(docker ps -q)
 docker rm $(docker ps -a -q)
 docker rmi $(docker images -q)
 
+docker stop fastapi_app
+docker rm fastapi_app
 docker build -t fastapi-app .
 docker run -d --name fastapi_app -p 8000:8000 fastapi-app
 
@@ -13,13 +15,25 @@ curl -X POST "http://localhost:8000/calculate" \
            "latitude": 37.55,
            "longitude": 126.97
          }'
+
+
+#limit 생략가능, 생략시 전체조회
 curl -X POST "http://localhost:8000/recalculate/batch" \
      -H "Content-Type: application/json" \
      -d '{
-           "batch_size": 1000,
-           "max_workers": 8,
-           "limit": 50000 #(생략가능)
+           "batch_size": 10000,
+           "max_workers": 15,
+           "limit": 20000
          }'
+
+curl -X POST "http://localhost:8000/recalculate/batch" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "batch_size": 20000,
+           "max_workers": 20
+         }'
+
+
 curl -X POST "http://localhost:8000/recalculate/incomplete"
 
 

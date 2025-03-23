@@ -112,52 +112,64 @@ def compute_property_score(property_data: dict):
         results[f"{cat}_score"] = cat_score
     return results
 
-def update_property_score_optimized(property_id: int, score_data: dict, session=None):
+def update_property_score_optimized(property_id: int, score_data: dict, session=None, max_retries=3):
     """
     외부 세션(session)이 전달되면 이를 사용하여 업데이트하고, 그렇지 않으면 새 세션을 생성합니다.
-    여러 건을 한 세션에서 처리할 경우 배치 커밋을 통해 오버헤드를 줄일 수 있습니다.
+    데드락 발생 시 최대 max_retries번 재시도합니다.
     """
-    close_session = False
-    if session is None:
-        session = SessionLocal()
-        close_session = True
-
-    try:
-        stmt = text(
-            "UPDATE property_score SET "
-            "transport_count = :transport_count, transport_score = :transport_score, "
-            "restaurant_count = :restaurant_count, restaurant_score = :restaurant_score, "
-            "health_count = :health_count, health_score = :health_score, "
-            "convenience_count = :convenience_count, convenience_score = :convenience_score, "
-            "cafe_count = :cafe_count, cafe_score = :cafe_score, "
-            "chicken_count = :chicken_count, chicken_score = :chicken_score, "
-            "leisure_count = :leisure_count, leisure_score = :leisure_score "
-            "WHERE property_id = :property_id"
-        )
-        params = {"property_id": property_id, **score_data}
-        result = session.execute(stmt, params)
-        if result.rowcount == 0:
-            insert_stmt = text(
-                "INSERT INTO property_score (property_id, transport_count, transport_score, "
-                "restaurant_count, restaurant_score, health_count, health_score, "
-                "convenience_count, convenience_score, cafe_count, cafe_score, "
-                "chicken_count, chicken_score, leisure_count, leisure_score) "
-                "VALUES (:property_id, :transport_count, :transport_score, "
-                ":restaurant_count, :restaurant_score, :health_count, :health_score, "
-                ":convenience_count, :convenience_score, :cafe_count, :cafe_score, "
-                ":chicken_count, :chicken_score, :leisure_count, :leisure_score)"
+    retries = 0
+    while retries < max_retries:
+        close_session = False
+        if session is None:
+            session = SessionLocal()
+            close_session = True
+        try:
+            stmt = text(
+                "UPDATE property_score SET "
+                "transport_count = :transport_count, transport_score = :transport_score, "
+                "restaurant_count = :restaurant_count, restaurant_score = :restaurant_score, "
+                "health_count = :health_count, health_score = :health_score, "
+                "convenience_count = :convenience_count, convenience_score = :convenience_score, "
+                "cafe_count = :cafe_count, cafe_score = :cafe_score, "
+                "chicken_count = :chicken_count, chicken_score = :chicken_score, "
+                "leisure_count = :leisure_count, leisure_score = :leisure_score "
+                "WHERE property_id = :property_id"
             )
-            session.execute(insert_stmt, params)
-        if close_session:
-            session.commit()
-        return True
-    except Exception as e:
-        session.rollback()
-        print("Error updating property score:", e)
-        return False
-    finally:
-        if close_session:
-            session.close()
+            params = {"property_id": property_id, **score_data}
+            result = session.execute(stmt, params)
+            if result.rowcount == 0:
+                insert_stmt = text(
+                    "INSERT INTO property_score (property_id, transport_count, transport_score, "
+                    "restaurant_count, restaurant_score, health_count, health_score, "
+                    "convenience_count, convenience_score, cafe_count, cafe_score, "
+                    "chicken_count, chicken_score, leisure_count, leisure_score) "
+                    "VALUES (:property_id, :transport_count, :transport_score, "
+                    ":restaurant_count, :restaurant_score, :health_count, :health_score, "
+                    ":convenience_count, :convenience_score, :cafe_count, :cafe_score, "
+                    ":chicken_count, :chicken_score, :leisure_count, :leisure_score)"
+                )
+                session.execute(insert_stmt, params)
+            if close_session:
+                session.commit()
+            return True
+        except Exception as e:
+            session.rollback()
+            if "Deadlock found" in str(e):
+                retries += 1
+                print(f"Deadlock encountered for property_id {property_id}, retry {retries}/{max_retries}")
+                time.sleep(1)  # 잠시 대기 후 재시도
+                if close_session:
+                    session.close()
+                continue
+            else:
+                print("Error updating property score:", e)
+                return False
+        finally:
+            if close_session:
+                session.close()
+    print(f"Max retries reached for property_id {property_id}")
+    return False
+
 
 def process_property(row):
     """
@@ -263,10 +275,12 @@ def recalculate_all_scores_batch(batch_size=1000, max_workers=10, limit=None):
 
 def recalculate_incomplete_scores_batch(batch_size=1000, max_workers=10):
     """
-    계산이 누락되었거나 transport_count가 0인 매물에 대해,
+    계산이 누락되었거나, 모든 카테고리 중 하나라도 count 값이 0인 매물에 대해,
     배치 및 멀티스레드 방식으로 점수를 재계산합니다.
     
-    1. property와 property_score를 LEFT JOIN하여, property_score가 없거나 transport_count가 0인 매물을 조회합니다.
+    1. property와 property_score를 LEFT JOIN하여, property_score가 없거나,
+       transport_count, restaurant_count, health_count, convenience_count,
+       cafe_count, chicken_count, leisure_count 중 하나라도 0인 매물을 조회합니다.
     2. 조회된 결과를 batch_size 단위로 나누고, 각 배치를 max_workers 개의 스레드로 병렬 처리합니다.
     
     반환: 처리한 매물 수
@@ -277,7 +291,14 @@ def recalculate_incomplete_scores_batch(batch_size=1000, max_workers=10):
             SELECT p.property_id, p.latitude, p.longitude
             FROM property p
             LEFT JOIN property_score ps ON p.property_id = ps.property_id
-            WHERE ps.property_id IS NULL OR ps.transport_count = 0
+            WHERE ps.property_id IS NULL
+               OR ps.transport_count = 0
+               OR ps.restaurant_count = 0
+               OR ps.health_count = 0
+               OR ps.convenience_count = 0
+               OR ps.cafe_count = 0
+               OR ps.chicken_count = 0
+               OR ps.leisure_count = 0
             ORDER BY p.property_id
         """)
         rows = session.execute(query).fetchall()
@@ -301,3 +322,4 @@ def recalculate_incomplete_scores_batch(batch_size=1000, max_workers=10):
     
     print(f"Recalculated scores for {total_processed} properties.")
     return total_processed
+
