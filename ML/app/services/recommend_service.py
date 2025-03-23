@@ -1,28 +1,32 @@
+import time
 import numpy as np
 from sqlalchemy import text
 from app.config.database import SessionLocal
 from sklearn.metrics.pairwise import cosine_similarity
 
-# 전역 캐시: 각 카테고리별 최대값을 한 번만 로드하여 재사용
+# 전역 캐시 및 캐시 타임스탬프 설정
 CATEGORY_MAX_CACHE = {}
+CATEGORY_MAX_CACHE_TIMESTAMP = 0
+CACHE_TTL = 3600  # 1시간 (3600초)
 
 def get_category_max_values():
     """
     property_score 테이블에서 각 카테고리별 최대값을 조회한 후, 캐시에 저장하여 반환합니다.
-    만약 해당 값이 없거나 0이면 기본값 1을 사용합니다.
+    만약 캐시가 존재하고 TTL(3600초) 이내이면 캐시된 값을 반환합니다.
     반환 예시:
       {
-         "transport_score": 56.9686,
-         "restaurant_score": 99.4626,
-         "health_score": 830.764,
-         "convenience_score": 92.4703,
-         "cafe_score": 162.164,
-         "chicken_score": 5.62449,
-         "leisure_score": 15.8658
+         "transport_score": ...,
+         "restaurant_score": ...,
+         "health_score": ...,
+         "convenience_score": ...,
+         "cafe_score": ...,
+         "chicken_score": ...,
+         "leisure_score": ...
       }
     """
-    global CATEGORY_MAX_CACHE
-    if CATEGORY_MAX_CACHE:
+    global CATEGORY_MAX_CACHE, CATEGORY_MAX_CACHE_TIMESTAMP, CACHE_TTL
+    current_time = time.time()
+    if CATEGORY_MAX_CACHE and (current_time - CATEGORY_MAX_CACHE_TIMESTAMP < CACHE_TTL):
         return CATEGORY_MAX_CACHE
 
     session = SessionLocal()
@@ -36,7 +40,9 @@ def get_category_max_values():
             query = text(f"SELECT MAX({cat}) as max_val FROM property_score")
             result = session.execute(query).scalar()
             max_values[cat] = result if result and result > 0 else 1
-        CATEGORY_MAX_CACHE = max_values  # 캐시에 저장
+        # 캐시 및 타임스탬프 갱신
+        CATEGORY_MAX_CACHE = max_values
+        CATEGORY_MAX_CACHE_TIMESTAMP = current_time
         return max_values
     finally:
         session.close()
