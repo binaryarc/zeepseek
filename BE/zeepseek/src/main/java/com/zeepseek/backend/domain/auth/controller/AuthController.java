@@ -48,14 +48,14 @@ public class AuthController {
             @RequestParam("code") String code) {
         log.info("OAuth2 리다이렉트: provider={}, code={}", provider, code);
 
-        // 제공자별 프론트엔드 리다이렉트 경로 설정
+        // 프론트엔드의 실제 라우트에 맞게 리다이렉트 경로 설정
         String frontendRedirectUri;
         if ("kakao".equals(provider)) {
             frontendRedirectUri = "https://j12e203.p.ssafy.io/kakao/callback";
         } else if ("naver".equals(provider)) {
             frontendRedirectUri = "https://j12e203.p.ssafy.io/naver/callback";
         } else {
-            frontendRedirectUri = "https://j12e203.p.ssafy.io/login"; // 기본 경로
+            frontendRedirectUri = "https://j12e203.p.ssafy.io/login";
         }
 
         return ResponseEntity.status(HttpStatus.FOUND)
