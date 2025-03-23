@@ -1,8 +1,17 @@
 import time
 import numpy as np
+import logging
 from sqlalchemy import text
 from app.config.database import SessionLocal
 from sklearn.metrics.pairwise import cosine_similarity
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+if not logger.handlers:
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
 # 전역 캐시 및 캐시 타임스탬프 설정
 CATEGORY_MAX_CACHE = {}
@@ -12,21 +21,12 @@ CACHE_TTL = 3600  # 1시간 (3600초)
 def get_category_max_values():
     """
     property_score 테이블에서 각 카테고리별 최대값을 조회한 후, 캐시에 저장하여 반환합니다.
-    만약 캐시가 존재하고 TTL(3600초) 이내이면 캐시된 값을 반환합니다.
-    반환 예시:
-      {
-         "transport_score": ...,
-         "restaurant_score": ...,
-         "health_score": ...,
-         "convenience_score": ...,
-         "cafe_score": ...,
-         "chicken_score": ...,
-         "leisure_score": ...
-      }
+    TTL 이내이면 캐시된 값을 반환합니다.
     """
     global CATEGORY_MAX_CACHE, CATEGORY_MAX_CACHE_TIMESTAMP, CACHE_TTL
     current_time = time.time()
     if CATEGORY_MAX_CACHE and (current_time - CATEGORY_MAX_CACHE_TIMESTAMP < CACHE_TTL):
+        logger.info("Using cached category max values.")
         return CATEGORY_MAX_CACHE
 
     session = SessionLocal()
@@ -40,16 +40,20 @@ def get_category_max_values():
             query = text(f"SELECT MAX({cat}) as max_val FROM property_score")
             result = session.execute(query).scalar()
             max_values[cat] = result if result and result > 0 else 1
-        # 캐시 및 타임스탬프 갱신
+            logger.info(f"Max value for {cat}: {max_values[cat]}")
         CATEGORY_MAX_CACHE = max_values
         CATEGORY_MAX_CACHE_TIMESTAMP = current_time
+        logger.info("Category max values cached.")
         return max_values
+    except Exception as e:
+        logger.error("Error fetching category max values: %s", e)
+        return {}
     finally:
         session.close()
 
 def recommend_properties(user_scores: dict, top_n=5):
     """
-    사용자의 카테고리 점수와 property_score 테이블의 각 매물의 카테고리 점수 간 
+    사용자의 카테고리 점수와 property_score 테이블의 각 매물의 카테고리 점수 간
     코사인 유사도를 계산합니다.
     
     점수들은 DB에서 조회한 각 카테고리별 최대값으로 정규화(0~1)되어 비교됩니다.
@@ -65,6 +69,7 @@ def recommend_properties(user_scores: dict, top_n=5):
         )
         results = session.execute(query).fetchall()
         if not results:
+            logger.info("No property scores found.")
             return []
         
         properties = []
@@ -79,9 +84,11 @@ def recommend_properties(user_scores: dict, top_n=5):
                 "chicken_score": row._mapping["chicken_score"],
                 "leisure_score": row._mapping["leisure_score"],
             })
+        logger.info("Fetched %d properties.", len(properties))
         
-        # DB에서 각 카테고리별 최대값을 캐시에서 조회 (없으면 DB에서 가져와 캐싱됨)
+        # DB에서 각 카테고리별 최대값 조회 (캐시 사용)
         max_values = get_category_max_values()
+        logger.info("Max values used for normalization: %s", max_values)
         
         # 사용자 점수 벡터 정규화 (0~1 범위)
         user_vector = np.array([
@@ -93,7 +100,8 @@ def recommend_properties(user_scores: dict, top_n=5):
             user_scores.get("chicken_score", 0) / max_values["chicken_score"],
             user_scores.get("leisure_score", 0) / max_values["leisure_score"],
         ]).reshape(1, -1)
-        
+        logger.info("User vector (normalized): %s", user_vector)
+
         # 각 매물의 점수 벡터 정규화
         property_vectors = np.array([
             [
@@ -107,9 +115,14 @@ def recommend_properties(user_scores: dict, top_n=5):
             ]
             for p in properties
         ])
+        if property_vectors.size == 0:
+            logger.warning("No property vectors found after normalization.")
+            return []
+        logger.info("First property vector (normalized): %s", property_vectors[0])
         
         # 코사인 유사도 계산 (정규화된 벡터 사용)
         similarities = cosine_similarity(property_vectors, user_vector).flatten()
+        logger.info("Calculated similarities for %d properties.", len(similarities))
         
         # 각 매물에 유사도 첨부
         for i, p in enumerate(properties):
@@ -117,6 +130,10 @@ def recommend_properties(user_scores: dict, top_n=5):
         
         # 유사도 높은 순으로 정렬하여 상위 top_n 매물 선택
         top_properties = sorted(properties, key=lambda x: x["similarity"], reverse=True)[:top_n]
+        logger.info("Top %d recommended properties: %s", top_n, [p["property_id"] for p in top_properties])
         return top_properties
+    except Exception as e:
+        logger.error("Error in recommend_properties: %s", e)
+        return []
     finally:
         session.close()
