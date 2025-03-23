@@ -2,49 +2,78 @@
 import time
 import concurrent.futures
 import numpy as np
+import threading
 from sqlalchemy import text
 from app.config.database import SessionLocal
 from app.utils.haversine import haversine
 
 # 전역 캐시: 각 카테고리별 POI 데이터를 한 번만 로드하여 재사용
 POI_CACHE = {}
+# 캐시 초기화 락
+CACHE_LOCK = threading.Lock()
 
-def get_poi_by_category(category: str):
+def get_poi_by_category(category: str, session=None):
     """
     각 카테고리별 POI 데이터를 DB에서 조회한 후 전역 캐시에 저장합니다.
     반환 예시: [{"latitude": float, "longitude": float}, ...]
+    스레드 안전을 위해 락 사용
     """
     global POI_CACHE
+    
+    # 캐시에 있으면 바로 반환
     if category in POI_CACHE:
         return POI_CACHE[category]
     
+    # 캐시에 없으면 락 획득 후 다시 확인 (Double-checked locking)
+    with CACHE_LOCK:
+        if category in POI_CACHE:  # 다른 스레드가 이미 캐시를 채웠는지 확인
+            return POI_CACHE[category]
+        
+        close_session = False
+        if session is None:
+            session = SessionLocal()
+            close_session = True
+        
+        try:
+            if category == "transport":
+                query = text("SELECT latitude, longitude FROM transport")
+            elif category == "restaurant":
+                query = text("SELECT latitude, longitude FROM restaurant")
+            elif category == "health":
+                query = text("SELECT latitude, longitude FROM health")
+            elif category == "convenience":
+                query = text("SELECT latitude, longitude FROM convenience")
+            elif category == "cafe":
+                query = text("SELECT latitude, longitude FROM cafe")
+            elif category == "chicken":
+                query = text("SELECT latitude, longitude FROM chicken")
+            elif category == "leisure":
+                query = text("SELECT latitude, longitude FROM leisure")
+            else:
+                POI_CACHE[category] = []
+                return []
+            
+            result = session.execute(query).fetchall()
+            poi_list = [
+                {"latitude": float(row._mapping["latitude"]), "longitude": float(row._mapping["longitude"])}
+                for row in result
+            ]
+            POI_CACHE[category] = poi_list
+            return poi_list
+        finally:
+            if close_session and session:
+                session.close()
+
+def initialize_poi_cache():
+    """
+    애플리케이션 시작 시 모든 카테고리에 대한 POI 캐시를 미리 초기화합니다.
+    """
+    categories = ["transport", "restaurant", "health", "convenience", "cafe", "chicken", "leisure"]
     session = SessionLocal()
     try:
-        if category == "transport":
-            query = text("SELECT latitude, longitude FROM transport")
-        elif category == "restaurant":
-            query = text("SELECT latitude, longitude FROM restaurant")
-        elif category == "health":
-            query = text("SELECT latitude, longitude FROM health")
-        elif category == "convenience":
-            query = text("SELECT latitude, longitude FROM convenience")
-        elif category == "cafe":
-            query = text("SELECT latitude, longitude FROM cafe")
-        elif category == "chicken":
-            query = text("SELECT latitude, longitude FROM chicken")
-        elif category == "leisure":
-            query = text("SELECT latitude, longitude FROM leisure")
-        else:
-            POI_CACHE[category] = []
-            return []
-        
-        result = session.execute(query).fetchall()
-        poi_list = [
-            {"latitude": float(row._mapping["latitude"]), "longitude": float(row._mapping["longitude"])}
-            for row in result
-        ]
-        POI_CACHE[category] = poi_list
-        return poi_list
+        for category in categories:
+            get_poi_by_category(category, session=session)
+        print("POI cache initialized for all categories.")
     finally:
         session.close()
 
@@ -77,15 +106,10 @@ def calculate_category_score(property_lat, property_lon, poi_list, radius=1.0, a
     category_score = alpha * count + beta * dist_score
     return count, dist_score, category_score
 
-def compute_property_score(property_data: dict):
+def compute_property_score(property_data: dict, session=None):
     """
     매물(property_data: latitude, longitude 포함)에 대해 각 카테고리별 점수를 계산합니다.
-    반환 예시:
-      {
-          "transport_count": 3, "transport_score": 1.5,
-          "restaurant_count": 2, "restaurant_score": 1.2,
-          ...
-      }
+    세션을 인자로 받아 POI 데이터 조회 시 재사용합니다.
     """
     lat = property_data["latitude"]
     lon = property_data["longitude"]
@@ -101,7 +125,7 @@ def compute_property_score(property_data: dict):
     }
     
     for cat, weight_params in categories.items():
-        poi_list = get_poi_by_category(cat)  # 캐시된 데이터를 사용하여 DB 호출 횟수 감소
+        poi_list = get_poi_by_category(cat, session=session)  # 세션 재사용
         count, _, cat_score = calculate_category_score(
             lat, lon, poi_list,
             radius=1.0,
@@ -118,12 +142,22 @@ def update_property_score_optimized(property_id: int, score_data: dict, session=
     데드락 발생 시 최대 max_retries번 재시도합니다.
     """
     retries = 0
+    local_session = None
+    
     while retries < max_retries:
         close_session = False
-        if session is None:
-            session = SessionLocal()
-            close_session = True
         try:
+            # 세션 관리 개선
+            if session is not None:
+                # 외부에서 전달받은 세션 사용
+                current_session = session
+            else:
+                # 내부에서 새 세션 생성
+                if local_session is None or local_session.is_active is False:
+                    local_session = SessionLocal()
+                current_session = local_session
+                close_session = True
+            
             stmt = text(
                 "UPDATE property_score SET "
                 "transport_count = :transport_count, transport_score = :transport_score, "
@@ -136,7 +170,7 @@ def update_property_score_optimized(property_id: int, score_data: dict, session=
                 "WHERE property_id = :property_id"
             )
             params = {"property_id": property_id, **score_data}
-            result = session.execute(stmt, params)
+            result = current_session.execute(stmt, params)
             if result.rowcount == 0:
                 insert_stmt = text(
                     "INSERT INTO property_score (property_id, transport_count, transport_score, "
@@ -148,41 +182,78 @@ def update_property_score_optimized(property_id: int, score_data: dict, session=
                     ":convenience_count, :convenience_score, :cafe_count, :cafe_score, "
                     ":chicken_count, :chicken_score, :leisure_count, :leisure_score)"
                 )
-                session.execute(insert_stmt, params)
+                current_session.execute(insert_stmt, params)
             if close_session:
-                session.commit()
+                current_session.commit()
             return True
         except Exception as e:
-            session.rollback()
+            if current_session.is_active:
+                current_session.rollback()
+            
             if "Deadlock found" in str(e):
                 retries += 1
                 print(f"Deadlock encountered for property_id {property_id}, retry {retries}/{max_retries}")
                 time.sleep(1)  # 잠시 대기 후 재시도
-                if close_session:
-                    session.close()
                 continue
             else:
-                print("Error updating property score:", e)
+                print(f"Error updating property score for ID {property_id}: {e}")
                 return False
         finally:
-            if close_session:
-                session.close()
+            # 내부에서 생성한 세션만 닫음
+            if close_session and current_session.is_active:
+                current_session.close()
+    
+    # 모든 재시도 실패 후 내부에서 생성한 세션 정리
+    if local_session and local_session.is_active:
+        local_session.close()
+    
     print(f"Max retries reached for property_id {property_id}")
     return False
 
-
-def process_property(row):
+def process_property(row, session=None):
     """
     단일 매물(row)에 대해 점수를 계산하고 DB에 업데이트합니다.
+    세션을 인자로 받아 재사용하도록 수정
     """
+    close_session = False
+    if session is None:
+        session = SessionLocal()
+        close_session = True
+    
     try:
         prop_id = row._mapping["property_id"]
         lat = row._mapping["latitude"]
         lon = row._mapping["longitude"]
-        score_data = compute_property_score({"latitude": lat, "longitude": lon})
-        update_property_score_optimized(prop_id, score_data)
+        score_data = compute_property_score({"latitude": lat, "longitude": lon}, session=session)
+        return update_property_score_optimized(prop_id, score_data, session=session)
     except Exception as e:
+        if session.is_active:
+            session.rollback()
         print(f"Error processing property_id {row._mapping['property_id']}: {e}")
+        return False
+    finally:
+        if close_session and session.is_active:
+            session.close()
+
+def process_property_batch(rows):
+    """
+    배치 단위로 처리하는 함수
+    하나의 세션으로 배치 내 모든 매물 처리
+    """
+    session = SessionLocal()
+    success_count = 0
+    try:
+        for row in rows:
+            if process_property(row, session=session):
+                success_count += 1
+        session.commit()
+        return success_count
+    except Exception as e:
+        session.rollback()
+        print(f"Error processing batch: {e}")
+        return success_count
+    finally:
+        session.close()
 
 def recalculate_all_scores_no_batch():
     """
@@ -190,6 +261,9 @@ def recalculate_all_scores_no_batch():
     전체 데이터를 한 번에 로드하여 단일 스레드로 순차 처리합니다.
     (메모리 사용량은 높으나, 배치 처리 미도입 시의 처리 시간을 측정할 수 있습니다.)
     """
+    # POI 캐시 미리 초기화
+    initialize_poi_cache()
+    
     session = SessionLocal()
     try:
         rows = session.execute(
@@ -197,12 +271,25 @@ def recalculate_all_scores_no_batch():
         ).fetchall()
     finally:
         session.close()
+    
     total_processed = 0
-    for row in rows:
-        process_property(row)
-        total_processed += 1
-        if total_processed % 1000 == 0:
-            print(f"No-batch: Processed {total_processed} properties...")
+    processing_session = SessionLocal()  # 처리용 세션 하나만 생성
+    
+    try:
+        for row in rows:
+            if process_property(row, session=processing_session):
+                total_processed += 1
+            if total_processed % 100 == 0:  # 커밋 주기 조정
+                processing_session.commit()
+            if total_processed % 1000 == 0:
+                print(f"No-batch: Processed {total_processed} properties...")
+        processing_session.commit()
+    except Exception as e:
+        processing_session.rollback()
+        print(f"Error in non-batch processing: {e}")
+    finally:
+        processing_session.close()
+    
     return total_processed
 
 def recalculate_all_scores_single(limit=20000, batch_size=1000):
@@ -211,36 +298,58 @@ def recalculate_all_scores_single(limit=20000, batch_size=1000):
     데이터를 배치로 조회하여 단일 스레드로 처리합니다.
     테스트용으로 limit만큼 처리합니다.
     """
+    # POI 캐시 미리 초기화
+    initialize_poi_cache()
+    
     session = SessionLocal()
     total_processed = 0
     try:
         offset = 0
-        while total_processed < limit:
-            query = text(
-                "SELECT property_id, latitude, longitude FROM property "
-                "ORDER BY property_id LIMIT :limit OFFSET :offset"
-            )
-            rows = session.execute(query, {"limit": batch_size, "offset": offset}).fetchall()
-            if not rows:
-                break
-            for row in rows:
-                process_property(row)
-            processed_count = len(rows)
-            total_processed += processed_count
-            offset += batch_size
-            print(f"Single-threaded batch: Processed {total_processed} properties...")
+        processing_session = SessionLocal()  # 처리용 세션 하나만 생성
+        
+        try:
+            while total_processed < limit:
+                query = text(
+                    "SELECT property_id, latitude, longitude FROM property "
+                    "ORDER BY property_id LIMIT :limit OFFSET :offset"
+                )
+                rows = session.execute(query, {"limit": batch_size, "offset": offset}).fetchall()
+                if not rows:
+                    break
+                
+                batch_processed = 0
+                for row in rows:
+                    if process_property(row, session=processing_session):
+                        batch_processed += 1
+                
+                processing_session.commit()  # 배치마다 커밋
+                total_processed += batch_processed
+                offset += batch_size
+                print(f"Single-threaded batch: Processed {total_processed} properties...")
+            
+            processing_session.commit()
+        except Exception as e:
+            processing_session.rollback()
+            print(f"Error in single-threaded batch processing: {e}")
+        finally:
+            processing_session.close()
     except Exception as e:
-        print("Error in single-threaded processing:", e)
+        print(f"Error in batch query: {e}")
     finally:
         session.close()
+    
     return total_processed
 
-def recalculate_all_scores_batch(batch_size=1000, max_workers=10, limit=None):
+def recalculate_all_scores_batch(batch_size=1000, max_workers=8, limit=None):
     """
     [멀티스레드 배치 방식]
     데이터를 배치로 조회하여 각 배치를 ThreadPoolExecutor를 사용해 병렬 처리합니다.
-    limit 파라미터가 None이면 property 테이블의 전체 데이터를 처리합니다.
+    각 워커(스레드)는 배치 전체를 하나의 세션으로 처리합니다.
+    max_workers는 풀 크기를 고려하여 조정했습니다.
     """
+    # POI 캐시 미리 초기화
+    initialize_poi_cache()
+    
     session = SessionLocal()
     total_processed = 0
     try:
@@ -258,22 +367,34 @@ def recalculate_all_scores_batch(batch_size=1000, max_workers=10, limit=None):
             rows = session.execute(query, {"batch_size": batch_size, "offset": offset}).fetchall()
             if not rows:
                 break
-
+            
+            # 각 작업자가 sub-batch를 처리하도록 함
+            sub_batches = []
+            sub_batch_size = len(rows) // max_workers
+            if sub_batch_size < 1:
+                sub_batch_size = 1
+            
+            for i in range(0, len(rows), sub_batch_size):
+                sub_batches.append(rows[i:i + sub_batch_size])
+            
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-                futures = [executor.submit(process_property, row) for row in rows]
-                concurrent.futures.wait(futures)
-
-            processed_count = len(rows)
-            total_processed += processed_count
+                futures = [executor.submit(process_property_batch, sub_batch) for sub_batch in sub_batches]
+                
+                batch_processed = 0
+                for future in concurrent.futures.as_completed(futures):
+                    batch_processed += future.result()
+            
+            total_processed += batch_processed
             offset += batch_size
-            print(f"Multi-threaded batch: Processed {total_processed} properties...")
+            print(f"Multi-threaded batch: Processed {total_processed}/{limit} properties...")
     except Exception as e:
-        print("Error in batch processing:", e)
+        print(f"Error in multi-threaded batch processing: {e}")
     finally:
         session.close()
+    
     return total_processed
 
-def recalculate_incomplete_scores_batch(batch_size=1000, max_workers=10):
+def recalculate_incomplete_scores_batch(batch_size=1000, max_workers=8):
     """
     계산이 누락되었거나, 모든 카테고리 중 하나라도 count 값이 0인 매물에 대해,
     배치 및 멀티스레드 방식으로 점수를 재계산합니다.
@@ -285,6 +406,9 @@ def recalculate_incomplete_scores_batch(batch_size=1000, max_workers=10):
     
     반환: 처리한 매물 수
     """
+    # POI 캐시 미리 초기화
+    initialize_poi_cache()
+    
     session = SessionLocal()
     try:
         query = text("""
@@ -303,7 +427,7 @@ def recalculate_incomplete_scores_batch(batch_size=1000, max_workers=10):
         """)
         rows = session.execute(query).fetchall()
     except Exception as e:
-        print("Error fetching incomplete score properties:", e)
+        print(f"Error fetching incomplete score properties: {e}")
         return 0
     finally:
         session.close()
@@ -312,14 +436,26 @@ def recalculate_incomplete_scores_batch(batch_size=1000, max_workers=10):
     print(f"Incomplete score properties found: {total}")
 
     total_processed = 0
+    # 큰 배치를 더 작은 서브 배치로 나누어 처리
     for i in range(0, total, batch_size):
         batch_rows = rows[i:i + batch_size]
+        sub_batches = []
+        sub_batch_size = len(batch_rows) // max_workers
+        if sub_batch_size < 1:
+            sub_batch_size = 1
+        
+        for j in range(0, len(batch_rows), sub_batch_size):
+            sub_batches.append(batch_rows[j:j + sub_batch_size])
+        
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(process_property, row) for row in batch_rows]
-            concurrent.futures.wait(futures)
-        total_processed += len(batch_rows)
+            futures = [executor.submit(process_property_batch, sub_batch) for sub_batch in sub_batches]
+            
+            batch_processed = 0
+            for future in concurrent.futures.as_completed(futures):
+                batch_processed += future.result()
+        
+        total_processed += batch_processed
         print(f"Processed {total_processed}/{total} incomplete properties...")
     
     print(f"Recalculated scores for {total_processed} properties.")
     return total_processed
-
