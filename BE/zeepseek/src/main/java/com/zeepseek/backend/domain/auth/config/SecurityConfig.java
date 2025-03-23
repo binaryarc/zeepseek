@@ -4,7 +4,9 @@ import com.zeepseek.backend.domain.auth.security.jwt.JwtAuthenticationFilter;
 import com.zeepseek.backend.domain.auth.security.oauth2.CustomOAuth2UserService;
 import com.zeepseek.backend.domain.auth.security.oauth2.OAuth2AuthenticationFailureHandler;
 import com.zeepseek.backend.domain.auth.security.oauth2.OAuth2AuthenticationSuccessHandler;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -14,6 +16,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -22,6 +26,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -81,5 +91,18 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    //URI 확인용 로그 작성할 메서드
+    @Autowired
+    private ClientRegistrationRepository clientRegistrationRepository;
+
+    @PostConstruct
+    public void logRedirectUris() {
+        ClientRegistration kakao = clientRegistrationRepository.findByRegistrationId("kakao");
+        log.info("카카오 리다이렉트 URI: {}", kakao.getRedirectUri());
+
+        ClientRegistration naver = clientRegistrationRepository.findByRegistrationId("naver");
+        log.info("네이버 리다이렉트 URI: {}", naver.getRedirectUri());
     }
 }
