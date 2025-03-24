@@ -29,7 +29,8 @@ const router = createBrowserRouter(
       <Route path="/kakao/callback" element={<KakaoRedirectHandler />} />
       <Route path="/naver/callback" element={<NaverRedirectHandler />} />
     </>
-  )
+  ),
+  { basename: "/"} // 라우트가 /api/경로 파일을 처리하지 않도록 선언
 );
 
 ReactDOM.createRoot(document.getElementById("root")).render(
