@@ -54,7 +54,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         int isFirst = userPrincipal.isFirst() ? 1 : 0;
 
         // 리다이렉트 URL 생성 (프론트엔드로 리다이렉트)
-        return UriComponentsBuilder.fromUriString("https://your-frontend-domain.com/auth/callback")
+        return UriComponentsBuilder.fromUriString("https://j12e203.p.ssafy.io/auth/callback")
                 .queryParam("token", tokenDto.getAccessToken())
                 .queryParam("refreshToken", tokenDto.getRefreshToken())
                 .queryParam("isFirst", isFirst)
