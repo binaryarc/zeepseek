@@ -45,8 +45,8 @@ pipeline {
         }
         stage('Build & Deploy Frontend & Nginx') {
             steps {
-                echo "Frontend 및 Nginx proxy를 재빌드 및 재배포합니다..."
-                sh 'docker-compose up -d --no-deps --build fe nginx'
+                echo "Frontend를 재빌드 및 재배포합니다..."
+                sh 'docker-compose up -d --no-deps --build fe'
             }
         }
     }
