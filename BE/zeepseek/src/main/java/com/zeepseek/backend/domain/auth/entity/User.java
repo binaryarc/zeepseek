@@ -1,36 +1,38 @@
 package com.zeepseek.backend.domain.auth.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import jakarta.persistence.*;
 
-@Getter
-@NoArgsConstructor
 @Entity
-@Table(name = "USER", uniqueConstraints = {
-        @UniqueConstraint(name = "unique_social_account", columnNames = {"email", "provider"})
+@Table(name = "user", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"provider", "providerid"})
 })
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idx")
-    private int idx;
+    private Integer idx;
 
-    @Column(name = "isFirst", columnDefinition = "INT DEFAULT 0")
-    private Integer isFirst = 0;
+    @Column(name = "isfirst", columnDefinition = "INT DEFAULT 0")
+    private Integer isFirst;
 
-    @Column(name = "isSeller", columnDefinition = "INT DEFAULT 0")
-    private Integer isSeller = 0;
+    @Column(name = "isseller", columnDefinition = "INT DEFAULT 0")
+    private Integer isSeller;
 
     @Column(name = "gender", columnDefinition = "INT DEFAULT 0")
-    private Integer gender = 0;
+    private Integer gender;
 
     @Column(name = "age", columnDefinition = "INT DEFAULT 0")
-    private Integer age = 0;
+    private Integer age;
 
-    @Column(name = "refresh_token", columnDefinition = "TEXT")
+    @Column(name = "refreshtoken", columnDefinition = "TEXT")
     private String refreshToken;
 
     @Column(name = "nickname", length = 50)
@@ -39,42 +41,6 @@ public class User {
     @Column(name = "provider", length = 20)
     private String provider;
 
-    @Column(name = "provider_id", length = 100)
+    @Column(name = "providerid", length = 100)
     private String providerId;
-
-    @Builder
-    public User(Integer isFirst, Integer isSeller, Integer gender, Integer age,
-                String refreshToken, String nickname, String provider,
-                String providerId) {
-        this.isFirst = isFirst != null ? isFirst : 0;
-        this.isSeller = isSeller != null ? isSeller : 0;
-        this.gender = gender != null ? gender : 0;
-        this.age = age != null ? age : 0;
-        this.refreshToken = refreshToken;
-        this.nickname = nickname;
-        this.provider = provider;
-        this.providerId = providerId;
-    }
-
-    // 업데이트 메서드
-    public void updateRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
-    }
-
-    public void updateUserInfo(String nickname, Integer gender, Integer age) {
-        if (nickname != null) this.nickname = nickname;
-        if (gender != null) this.gender = gender;
-        if (age != null) this.age = age;
-    }
-
-    public void markAsFirstLogin() {
-        this.isFirst = 1;
-    }
-    public void markAsNotFirstLogin() {
-        this.isFirst = 0;
-    }
-
-    public void toggleSellerStatus() {
-        this.isSeller = this.isSeller == 0 ? 1 : 0;
-    }
 }
