@@ -30,13 +30,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final CookieUtils cookieUtils;
 
     // 프론트엔드 리다이렉트 URL (환경변수에서 가져오거나 하드코딩)
-    @Value("${app.oauth2.redirect-uri:http://localhost:3000/oauth/success}")
-    private String frontendRedirectUri;
+    @Value("${app.oauth2.redirect-uri:https://j12e203.p.ssafy.io/login}")
+    private String defaultRedirectUri;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
         String targetUrl = determineTargetUrl(request, response, authentication);
+        log.info("OAuth2 인증 성공. 리다이렉트 URL: {}", targetUrl);
 
         if (response.isCommitted()) {
             log.debug("응답이 이미 전송되었습니다. 리다이렉트할 수 없습니다: {}", targetUrl);
@@ -49,36 +50,46 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) {
-        String redirectUri = frontendRedirectUri;
+        // UserPrincipal에서 사용자 정보 및 제공자 가져오기
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Integer userId = userPrincipal.getId();
+        boolean isFirstLogin = userPrincipal.isFirstLogin();
 
-        if (!isValidRedirectUri(redirectUri)) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "유효하지 않은 리다이렉트 URI입니다");
+        // 사용자 정보로부터 제공자 추출
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        String provider = user.getProvider();
+
+        log.info("OAuth2 인증 제공자: {}, 사용자 ID: {}, 첫 로그인: {}", provider, userId, isFirstLogin);
+
+        // 제공자별 리다이렉트 URI 결정
+        String redirectUri;
+        if ("kakao".equals(provider)) {
+            redirectUri = "https://j12e203.p.ssafy.io/kakao/callback";
+        } else if ("naver".equals(provider)) {
+            redirectUri = "https://j12e203.p.ssafy.io/naver/callback";
+        } else {
+            // 기본 리다이렉트 URI
+            redirectUri = defaultRedirectUri;
         }
 
         // JWT 토큰 생성
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        Long userId = userPrincipal.getId();
-        boolean isFirstLogin = userPrincipal.isFirstLogin();
-
         String accessToken = tokenProvider.createAccessToken(authentication, userId);
         String refreshToken = tokenProvider.createRefreshToken();
 
         // 리프레시 토큰 저장
         saveRefreshToken(userId, refreshToken);
 
-        // 쿠키에 토큰 저장 (선택적)
-        int cookieMaxAge = (int) (tokenProvider.getExpiryDuration() / 1000);
-        cookieUtils.addCookie(response, "accessToken", accessToken, cookieMaxAge);
-
-        // 프론트엔드로 리다이렉트 URL 생성 (토큰과 첫 로그인 여부 포함)
+        // 프론트엔드로 리다이렉트 (code 파라미터 대신 token 사용)
+        // 프론트엔드의 KakaoRedirectHandler.jsx에서 code 파라미터를 예상하므로 code로 변경
         return UriComponentsBuilder.fromUriString(redirectUri)
-                .queryParam("token", accessToken)
+                .queryParam("code", accessToken)  // 프론트엔드와 일치시키기 위해 code로 변경
                 .queryParam("refreshToken", refreshToken)
                 .queryParam("isFirst", isFirstLogin)
                 .build().toUriString();
     }
 
-    private void saveRefreshToken(Long userId, String refreshToken) {
+    private void saveRefreshToken(Integer userId, String refreshToken) {
         // 사용자 찾기
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -86,6 +97,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         // 리프레시 토큰 업데이트
         user.updateRefreshToken(refreshToken);
         userRepository.save(user);
+        log.info("사용자 ID {}의 리프레시 토큰이 업데이트되었습니다.", userId);
     }
 
     // 리다이렉트 URI 유효성 검사

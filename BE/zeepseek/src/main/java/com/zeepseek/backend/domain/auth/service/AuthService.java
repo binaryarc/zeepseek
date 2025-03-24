@@ -9,6 +9,11 @@ import com.zeepseek.backend.domain.auth.exception.ErrorCode;
 import com.zeepseek.backend.domain.auth.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -16,9 +21,14 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -27,10 +37,26 @@ public class AuthService {
 
     private final JwtTokenProvider tokenProvider;
     private final UserRepository userRepository;
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    /**
-     * OAuth 로그인 처리
-     */
+    @Value("${spring.security.oauth2.client.registration.kakao.client-id}")
+    private String kakaoClientId;
+
+    @Value("${spring.security.oauth2.client.registration.kakao.client-secret}")
+    private String kakaoClientSecret;
+
+    @Value("${spring.security.oauth2.client.registration.naver.client-id}")
+    private String naverClientId;
+
+    @Value("${spring.security.oauth2.client.registration.naver.client-secret}")
+    private String naverClientSecret;
+
+    @Value("${spring.security.oauth2.client.registration.kakao.redirect-uri}")
+    private String kakaoRedirectUri;
+
+    @Value("${spring.security.oauth2.client.registration.naver.redirect-uri}")
+    private String naverRedirectUri;
+
     /**
      * OAuth 로그인 처리
      */
@@ -43,8 +69,12 @@ public class AuthService {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "지원하지 않는 소셜 로그인입니다.");
         }
 
-        // 인증 코드를 providerId로 사용
-        String providerId = authorizationCode;
+        // 소셜 로그인 제공자로부터 사용자 정보 가져오기
+        String providerId = getProviderId(authorizationCode, provider);
+
+        if (providerId == null || providerId.isBlank()) {
+            throw new CustomException(ErrorCode.SOCIAL_LOGIN_FAILED, "소셜 로그인에 실패했습니다.");
+        }
 
         // 사용자 조회 또는 생성
         User user = userRepository.findByProviderAndProviderId(provider, providerId)
@@ -88,6 +118,127 @@ public class AuthService {
     }
 
     /**
+     * 각 소셜 로그인 제공자로부터 사용자 정보 가져오기
+     */
+    private String getProviderId(String authorizationCode, String provider) {
+        try {
+            if ("kakao".equals(provider)) {
+                return getKakaoProviderId(authorizationCode);
+            } else if ("naver".equals(provider)) {
+                return getNaverProviderId(authorizationCode);
+            }
+            return null;
+        } catch (Exception e) {
+            log.error("소셜 로그인 사용자 정보 가져오기 실패: {}", e.getMessage());
+            throw new CustomException(ErrorCode.SOCIAL_LOGIN_FAILED, "소셜 로그인 정보를 가져오는데 실패했습니다.");
+        }
+    }
+
+    /**
+     * 카카오 로그인 처리
+     */
+    private String getKakaoProviderId(String authorizationCode) {
+        // 1. 인증 코드로 액세스 토큰 요청
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("grant_type", "authorization_code");
+        params.add("client_id", kakaoClientId);
+        params.add("client_secret", kakaoClientSecret);
+        params.add("code", authorizationCode);
+        params.add("redirect_uri", kakaoRedirectUri);
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+
+        Map<String, Object> response = restTemplate.postForObject(
+                "https://kauth.kakao.com/oauth/token",
+                request,
+                Map.class
+        );
+
+        if (response == null || !response.containsKey("access_token")) {
+            throw new CustomException(ErrorCode.SOCIAL_LOGIN_FAILED, "카카오 액세스 토큰 획득 실패");
+        }
+
+        String accessToken = (String) response.get("access_token");
+
+        // 2. 액세스 토큰으로 사용자 정보 요청
+        HttpHeaders userInfoHeaders = new HttpHeaders();
+        userInfoHeaders.setBearerAuth(accessToken);
+
+        HttpEntity<Void> userInfoRequest = new HttpEntity<>(userInfoHeaders);
+
+        Map<String, Object> userInfo = restTemplate.exchange(
+                "https://kapi.kakao.com/v2/user/me",
+                HttpMethod.GET,
+                userInfoRequest,
+                Map.class
+        ).getBody();
+
+        if (userInfo == null || !userInfo.containsKey("id")) {
+            throw new CustomException(ErrorCode.SOCIAL_LOGIN_FAILED, "카카오 사용자 정보 획득 실패");
+        }
+
+        return String.valueOf(userInfo.get("id"));
+    }
+
+    /**
+     * 네이버 로그인 처리
+     */
+    private String getNaverProviderId(String authorizationCode) {
+        // 1. 인증 코드로 액세스 토큰 요청
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("grant_type", "authorization_code");
+        params.add("client_id", naverClientId);
+        params.add("client_secret", naverClientSecret);
+        params.add("code", authorizationCode);
+        params.add("redirect_uri", naverRedirectUri);
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+
+        Map<String, Object> response = restTemplate.postForObject(
+                "https://nid.naver.com/oauth2.0/token",
+                request,
+                Map.class
+        );
+
+        if (response == null || !response.containsKey("access_token")) {
+            throw new CustomException(ErrorCode.SOCIAL_LOGIN_FAILED, "네이버 액세스 토큰 획득 실패");
+        }
+
+        String accessToken = (String) response.get("access_token");
+
+        // 2. 액세스 토큰으로 사용자 정보 요청
+        HttpHeaders userInfoHeaders = new HttpHeaders();
+        userInfoHeaders.setBearerAuth(accessToken);
+
+        HttpEntity<Void> userInfoRequest = new HttpEntity<>(userInfoHeaders);
+
+        Map<String, Object> userInfoResponse = restTemplate.exchange(
+                "https://openapi.naver.com/v1/nid/me",
+                HttpMethod.GET,
+                userInfoRequest,
+                Map.class
+        ).getBody();
+
+        if (userInfoResponse == null || !userInfoResponse.containsKey("response")) {
+            throw new CustomException(ErrorCode.SOCIAL_LOGIN_FAILED, "네이버 사용자 정보 획득 실패");
+        }
+
+        Map<String, Object> userInfo = (Map<String, Object>) userInfoResponse.get("response");
+
+        if (userInfo == null || !userInfo.containsKey("id")) {
+            throw new CustomException(ErrorCode.SOCIAL_LOGIN_FAILED, "네이버 사용자 ID 획득 실패");
+        }
+
+        return (String) userInfo.get("id");
+    }
+
+    /**
      * 리프레시 토큰을 사용하여 새 액세스 토큰 발급
      */
     @Transactional
@@ -121,7 +272,7 @@ public class AuthService {
      * 로그아웃 처리
      */
     @Transactional
-    public void logout(Long userId) {
+    public void logout(int userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 

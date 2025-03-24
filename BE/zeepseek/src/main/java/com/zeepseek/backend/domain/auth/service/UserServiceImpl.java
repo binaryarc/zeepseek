@@ -25,7 +25,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserResponse getUserById(Long userId) {
+    public UserResponse getUserById(int userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
         return UserResponse.from(user);
@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponse updateUserInfo(Long userId, String nickname, Integer gender, Integer age) {
+    public UserResponse updateUserInfo(int userId, String nickname, Integer gender, Integer age) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
@@ -68,7 +68,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponse toggleSellerStatus(Long userId) {
+    public UserResponse toggleSellerStatus(int userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
@@ -84,7 +84,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public boolean isFirstLogin(Long userId) {
+    public boolean isFirstLogin(int userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
         return user.getIsFirst() == 1;
@@ -92,7 +92,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void updateFirstLoginStatus(Long userId) {
+    public void updateFirstLoginStatus(int userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
@@ -123,9 +123,9 @@ public class UserServiceImpl implements UserService {
     }
 
     // 사용자 권한 확인 (본인 데이터만 수정 가능)
-    private void checkUserAuthorization(Long userId) {
+    private void checkUserAuthorization(int userId) {
         User currentUser = securityUtils.getCurrentUser();
-        if (!currentUser.getIdx().equals(userId)) {
+        if (currentUser.getIdx() != userId) {
             throw new CustomException(ErrorCode.UNAUTHORIZED, "본인의 정보만 수정할 수 있습니다.");
         }
     }

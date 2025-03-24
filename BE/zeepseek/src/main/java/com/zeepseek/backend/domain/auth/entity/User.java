@@ -11,12 +11,12 @@ import jakarta.persistence.*;
 @Table(name = "USER", uniqueConstraints = {
         @UniqueConstraint(name = "unique_social_account", columnNames = {"email", "provider"})
 })
-public class User extends BaseTimeEntity {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idx")
-    private Long idx;
+    private int idx;
 
     @Column(name = "isFirst", columnDefinition = "INT DEFAULT 0")
     private Integer isFirst = 0;

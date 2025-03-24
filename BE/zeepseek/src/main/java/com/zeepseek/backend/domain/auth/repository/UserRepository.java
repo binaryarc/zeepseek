@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, Integer> {
 
     // 제공자와 제공자ID로 사용자 찾기 (OAuth 인증 후 사용자 조회 시 사용)
     Optional<User> findByProviderAndProviderId(String provider, String providerId);

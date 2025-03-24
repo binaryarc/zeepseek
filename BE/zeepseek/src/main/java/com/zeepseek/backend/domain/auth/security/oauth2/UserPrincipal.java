@@ -16,7 +16,7 @@ import java.util.Map;
 @Getter
 @AllArgsConstructor
 public class UserPrincipal implements OAuth2User, UserDetails {
-    private Long id;
+    private Integer id;
     private String provider;
     private String providerId;
     private Collection<? extends GrantedAuthority> authorities;

@@ -13,7 +13,7 @@ public class UserPreference {
 
     @Id
     @Column(name = "user_id")
-    private Long userId;
+    private Integer userId;
 
     @OneToOne
     @MapsId

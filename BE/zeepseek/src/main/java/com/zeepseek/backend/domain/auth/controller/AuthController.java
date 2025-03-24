@@ -19,7 +19,7 @@ import jakarta.validation.Valid;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/auth") // 기본 경로를 /api/v1/auth로 변경
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -39,45 +39,22 @@ public class AuthController {
     }
 
     /**
-     * OAuth2 리다이렉트 처리 엔드포인트
-     * GET /api/v1/redirect
-     */
-    @GetMapping("/redirect")
-    public ResponseEntity<Void> redirect(
-            @RequestParam("provider") String provider,
-            @RequestParam("code") String code) {
-        log.info("OAuth2 리다이렉트: provider={}, code={}", provider, code);
-
-        // 프론트엔드의 실제 라우트에 맞게 리다이렉트 경로 설정
-        String frontendRedirectUri;
-        if ("kakao".equals(provider)) {
-            frontendRedirectUri = "https://j12e203.p.ssafy.io/kakao/callback";
-        } else if ("naver".equals(provider)) {
-            frontendRedirectUri = "https://j12e203.p.ssafy.io/naver/callback";
-        } else {
-            frontendRedirectUri = "https://j12e203.p.ssafy.io/login";
-        }
-
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .header(HttpHeaders.LOCATION,
-                        UriComponentsBuilder.fromUriString(frontendRedirectUri)
-                                .queryParam("code", code)
-                                .build().toUriString())
-                .build();
-    }
-
-    /**
      * 로그아웃 엔드포인트
      * POST /api/v1/auth/logout
      */
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout() {
         log.info("로그아웃 요청");
-        Long userId = securityUtils.getCurrentUserId();
+        int userId = securityUtils.getCurrentUserId();
         authService.logout(userId);
         return ResponseEntity.ok(ApiResponse.success(null, "로그아웃되었습니다."));
     }
 
+
+    /**
+     * 로그인 엔드포인트
+     * POST /api/v1/auth/login
+     */
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(
             @Valid @RequestBody OAuthLoginRequest request) {
