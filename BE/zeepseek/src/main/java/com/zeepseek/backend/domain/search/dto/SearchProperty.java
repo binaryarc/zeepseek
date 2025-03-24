@@ -33,7 +33,6 @@ public class SearchProperty {
     private Float longitude;
     private Integer dongId;
     private String guName;
-    private String title;
 
     @Override
     public String toString() {
@@ -59,7 +58,6 @@ public class SearchProperty {
                 ", longitude=" + longitude +
                 ", dongId=" + dongId +
                 ", guName='" + guName + '\'' +
-                ", title='" + title + '\'' +
                 '}';
     }
 }
