@@ -2,7 +2,7 @@ package com.zeepseek.backend.domain.property.controller;
 
 import com.zeepseek.backend.domain.property.dto.response.PropertySummaryDto;
 import com.zeepseek.backend.domain.property.model.Property;
-import com.zeepseek.backend.domain.property.service.PropertyService;
+import com.zeepseek.backend.domain.property.service.PropertyServiceImpl;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/property")
 public class PropertyController {
 
-    private final PropertyService propertyService;
+    private final PropertyServiceImpl propertyService;
 
     @Autowired
-    public PropertyController(PropertyService propertyService) {
+    public PropertyController(PropertyServiceImpl propertyService) {
         this.propertyService = propertyService;
     }
 

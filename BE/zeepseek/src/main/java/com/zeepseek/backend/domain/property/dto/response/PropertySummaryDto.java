@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PropertySummaryDto {
-    private Long propertyId;
+    private Integer propertyId;
     private Double latitude;
     private Double longitude;
 }

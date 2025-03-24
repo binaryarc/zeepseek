@@ -5,16 +5,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "property")
 @Data
 @NoArgsConstructor
+@Entity
+@Table(name = "property")
 public class Property {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "property_id")
-    private Long propertyId;
+    private Integer propertyId;
 
     @Column(name = "seller_id")
     private Integer sellerId;
@@ -32,7 +32,7 @@ public class Property {
     private String address;
 
     @Lob
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "area", length = 50)
@@ -54,7 +54,7 @@ public class Property {
     private String direction;
 
     @Lob
-    @Column(name = "image_url")
+    @Column(name = "image_url", columnDefinition = "TEXT") // 필요시 columnDefinition 추가
     private String imageUrl;
 
     @Column(name = "sale_price")
