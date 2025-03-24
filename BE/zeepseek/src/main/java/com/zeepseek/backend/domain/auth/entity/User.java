@@ -16,7 +16,7 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idx")
-    private Long idx;
+    private int idx;
 
     @Column(name = "isFirst", columnDefinition = "INT DEFAULT 0")
     private Integer isFirst = 0;

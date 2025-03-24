@@ -10,7 +10,7 @@ public interface UserService {
     /**
      * 사용자 ID로 사용자 정보 조회
      */
-    UserResponse getUserById(Long userId);
+    UserResponse getUserById(int userId);
 
     /**
      * 닉네임으로 사용자 정보 조회
@@ -25,22 +25,22 @@ public interface UserService {
     /**
      * 사용자 정보 업데이트 (닉네임, 성별, 나이)
      */
-    UserResponse updateUserInfo(Long userId, String nickname, Integer gender, Integer age);
+    UserResponse updateUserInfo(int userId, String nickname, Integer gender, Integer age);
 
     /**
      * 판매자 상태 전환 (일반 → 판매자, 판매자 → 일반)
      */
-    UserResponse toggleSellerStatus(Long userId);
+    UserResponse toggleSellerStatus(int userId);
 
     /**
      * 사용자의 첫 로그인 여부 확인
      */
-    boolean isFirstLogin(Long userId);
+    boolean isFirstLogin(int userId);
 
     /**
      * 사용자의 첫 로그인 상태 업데이트
      */
-    void updateFirstLoginStatus(Long userId);
+    void updateFirstLoginStatus(int userId);
 
     /**
      * 판매자 목록 조회

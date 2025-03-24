@@ -272,7 +272,7 @@ public class AuthService {
      * 로그아웃 처리
      */
     @Transactional
-    public void logout(Long userId) {
+    public void logout(int userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
