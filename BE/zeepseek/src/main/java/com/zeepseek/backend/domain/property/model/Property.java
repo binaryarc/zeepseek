@@ -81,9 +81,6 @@ public class Property {
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "title", nullable = false, length = 255)
-    private String title;
-
     // guName 필드의 getter 오버라이드: \r 제거 및 양쪽 공백 trim 처리
     public String getGuName() {
         return guName != null ? guName.replace("\r", "").trim() : null;
