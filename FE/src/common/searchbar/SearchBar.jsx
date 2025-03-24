@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import title from "../../assets/logo/zeeptitle.png";
 import { useNavigate } from "react-router-dom";
-import "./Searchbar.css";
+import "./SearchBar.css";
 import { FaRegUserCircle } from "react-icons/fa"; // 사람 아이콘
 import { FiSearch } from "react-icons/fi"; // 검색 아이콘
 
