@@ -28,7 +28,7 @@ function Searchbar() {
   };
 
   return (
-    <nav className="nav-navbar">
+    <nav className="search-navbar">
       <img
         src={title}
         alt="zeepseek 로고"
