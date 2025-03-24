@@ -1,79 +1,104 @@
 package com.zeepseek.backend.domain.auth.controller;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import com.zeepseek.backend.domain.auth.dto.request.OAuthLoginRequest;
-import com.zeepseek.backend.domain.auth.dto.request.TokenRefreshRequest;
-import com.zeepseek.backend.domain.auth.dto.response.ApiResponse;
-import com.zeepseek.backend.domain.auth.dto.response.AuthResponse;
+import com.zeepseek.backend.domain.auth.dto.*;
+import com.zeepseek.backend.domain.auth.security.UserPrincipal;
 import com.zeepseek.backend.domain.auth.service.AuthService;
-import com.zeepseek.backend.domain.auth.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
-
-@Slf4j
 @RestController
-@RequestMapping("/api/v1/auth") // 기본 경로를 /api/v1/auth로 변경
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
 
     private final AuthService authService;
-    private final SecurityUtils securityUtils;
 
     /**
-     * 액세스 토큰 갱신 엔드포인트
-     * POST /api/v1/auth/refresh
-     */
-    @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(
-            @Valid @RequestBody TokenRefreshRequest request) {
-        log.info("토큰 갱신 요청");
-        AuthResponse response = authService.refreshToken(request);
-        return ResponseEntity.ok(ApiResponse.success(response, "토큰이 성공적으로 갱신되었습니다."));
-    }
-
-    /**
-     * 로그아웃 엔드포인트
-     * POST /api/v1/auth/logout
-     */
-    @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout() {
-        log.info("로그아웃 요청");
-        int userId = securityUtils.getCurrentUserId();
-        authService.logout(userId);
-        return ResponseEntity.ok(ApiResponse.success(null, "로그아웃되었습니다."));
-    }
-
-
-    /**
-     * 로그인 엔드포인트
-     * POST /api/v1/auth/login
+     * 소셜 로그인 처리
      */
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthResponse>> login(
-            @Valid @RequestBody OAuthLoginRequest request) {
-        log.info("OAuth 로그인 요청: provider={}", request.getProvider());
-        AuthResponse response = authService.oauthLogin(request.getAuthorizationCode(), request.getProvider());
-        return ResponseEntity.ok(ApiResponse.success(response, "로그인에 성공했습니다."));
+    public ResponseEntity<ApiResponse<TokenDto>> socialLogin(@RequestBody SocialLoginRequest request) {
+        // 인증 코드로 토큰 요청 및 사용자 정보 조회
+        TokenDto tokenDto = authService.processSocialLogin(request.getAuthorizationCode(), request.getProvider());
+        return ResponseEntity.ok(ApiResponse.success(tokenDto));
     }
 
     /**
-     * 인증 상태 확인 엔드포인트
-     * GET /api/v1/auth/check
+     * 로그아웃 - access token 무효화
      */
-    @GetMapping("/check")
-    public ResponseEntity<ApiResponse<Boolean>> checkAuth() {
-        try {
-            securityUtils.getCurrentUserId(); // 인증이 유효한지 확인
-            return ResponseEntity.ok(ApiResponse.success(true, "유효한 인증입니다."));
-        } catch (Exception e) {
-            return ResponseEntity.ok(ApiResponse.success(false, "인증이 유효하지 않습니다."));
-        }
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(@RequestHeader("Authorization") String authHeader) {
+        // Bearer 접두사 제거
+        String accessToken = authHeader.replace("Bearer ", "");
+        authService.logout(accessToken);
+        return ResponseEntity.ok(ApiResponse.success("성공적으로 로그아웃 되었습니다.", null));
     }
+
+    /**
+     * 토큰 갱신 - refresh token을 사용하여 access token 재발급
+     */
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<TokenDto>> refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
+        TokenDto tokenDto = authService.refreshToken(refreshTokenRequest.getRefreshToken());
+        return ResponseEntity.ok(ApiResponse.success(tokenDto));
+    }
+
+    /**
+     * 회원 정보 수정
+     */
+    @PatchMapping("/update")
+    public ResponseEntity<ApiResponse<UserDto>> updateUser(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestBody UserDto userDto) {
+        UserDto updatedUser = authService.updateUser(userPrincipal.getId(), userDto);
+        return ResponseEntity.ok(ApiResponse.success(updatedUser));
+    }
+
+    /**
+     * 회원 탈퇴
+     */
+    @DeleteMapping("/delete")
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        authService.deleteUser(userPrincipal.getId());
+        return ResponseEntity.ok(ApiResponse.success("계정이 삭제되었습니다.", null));
+    }
+
+    /**
+     * 첫 로그인 시 추가 데이터 처리
+     */
+    @PostMapping("/first-data")
+    public ResponseEntity<ApiResponse<UserDto>> firstLoginData(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestBody UserDto userDto) {
+        UserDto updatedUser = authService.processFirstLoginData(userPrincipal.getId(), userDto);
+        return ResponseEntity.ok(ApiResponse.success(updatedUser));
+    }
+
+    /**
+     * 현재 사용자 정보 조회 (필요시)
+     */
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<UserDto>> getCurrentUser(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        UserDto userDto = authService.getCurrentUser(userPrincipal.getId());
+        return ResponseEntity.ok(ApiResponse.success(userDto));
+    }
+
+    /**
+     * 카카오 로그인 후 리다이렉트 엔드포인트
+     * - 카카오에서 인가 코드를 받아 처리하는 역할
+     */
+    @GetMapping("/redirect")
+    public ResponseEntity<ApiResponse<TokenDto>> kakaoRedirect(@RequestParam("code") String code) {
+        log.info("카카오 로그인 요청 code: {}", code);
+
+        // 인가 코드를 사용하여 로그인 처리 (카카오 토큰 요청 -> 사용자 정보 조회)
+        TokenDto tokenDto = authService.processSocialLogin(code, "kakao");
+
+        return ResponseEntity.ok(ApiResponse.success(tokenDto));
+    }
+
 }

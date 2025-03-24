@@ -1,64 +1,56 @@
 package com.zeepseek.backend.domain.auth.exception;
 
-import com.zeepseek.backend.domain.auth.dto.response.ApiResponse;
+import com.zeepseek.backend.domain.auth.dto.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.validation.BindException;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-@Slf4j
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+@Slf4j
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(CustomException.class)
-    protected ResponseEntity<ApiResponse<Void>> handleCustomException(CustomException e) {
-        log.error("CustomException: {}", e.getMessage());
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAuthException(AuthException ex) {
+        log.error("인증 예외 발생: {}", ex.getMessage());
         return ResponseEntity
-                .status(e.getErrorCode().getStatus())
-                .body(ApiResponse.error(e.getMessage(), e.getErrorCode().getCode()));
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(ex.getMessage()));
     }
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    protected ResponseEntity<ApiResponse<Void>> handleResourceNotFoundException(ResourceNotFoundException e) {
-        log.error("ResourceNotFoundException: {}", e.getMessage());
+    @ExceptionHandler(OAuth2AuthenticationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleOAuth2Exception(OAuth2AuthenticationException ex) {
+        log.error("OAuth2 인증 예외 발생: {}", ex.getMessage());
         return ResponseEntity
-                .status(e.getErrorCode().getStatus())
-                .body(ApiResponse.error(e.getMessage(), e.getErrorCode().getCode()));
-    }
-
-    @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
-    protected ResponseEntity<ApiResponse<Void>> handleValidationException(Exception e) {
-        log.error("ValidationException: {}", e.getMessage());
-        return ResponseEntity
-                .status(ErrorCode.INVALID_INPUT_VALUE.getStatus())
-                .body(ApiResponse.error("잘못된 입력값입니다.", ErrorCode.INVALID_INPUT_VALUE.getCode()));
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(ex.getMessage()));
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    protected ResponseEntity<ApiResponse<Void>> handleAuthenticationException(AuthenticationException e) {
-        log.error("AuthenticationException: {}", e.getMessage());
+    public ResponseEntity<ApiResponse<Void>> handleAuthenticationException(AuthenticationException ex) {
+        log.error("인증 예외 발생: {}", ex.getMessage());
         return ResponseEntity
-                .status(ErrorCode.UNAUTHORIZED.getStatus())
-                .body(ApiResponse.error("인증에 실패했습니다.", ErrorCode.UNAUTHORIZED.getCode()));
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error("인증에 실패했습니다."));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    protected ResponseEntity<ApiResponse<Void>> handleAccessDeniedException(AccessDeniedException e) {
-        log.error("AccessDeniedException: {}", e.getMessage());
+    public ResponseEntity<ApiResponse<Void>> handleAccessDeniedException(AccessDeniedException ex) {
+        log.error("접근 권한 예외 발생: {}", ex.getMessage());
         return ResponseEntity
-                .status(ErrorCode.UNAUTHORIZED.getStatus())
-                .body(ApiResponse.error("접근 권한이 없습니다.", ErrorCode.UNAUTHORIZED.getCode()));
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error("접근 권한이 없습니다."));
     }
 
     @ExceptionHandler(Exception.class)
-    protected ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
-        log.error("Exception: {}", e.getMessage(), e);
+    public ResponseEntity<ApiResponse<Void>> handleGlobalException(Exception ex) {
+        log.error("예외 발생: {}", ex.getMessage(), ex);
         return ResponseEntity
-                .status(ErrorCode.INTERNAL_SERVER_ERROR.getStatus())
-                .body(ApiResponse.error("서버 오류가 발생했습니다.", ErrorCode.INTERNAL_SERVER_ERROR.getCode()));
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("서버 오류가 발생했습니다."));
     }
 }
