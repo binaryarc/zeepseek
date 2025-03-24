@@ -11,7 +11,7 @@ import jakarta.persistence.*;
 @Table(name = "USER", uniqueConstraints = {
         @UniqueConstraint(name = "unique_social_account", columnNames = {"email", "provider"})
 })
-public class User extends BaseTimeEntity {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
