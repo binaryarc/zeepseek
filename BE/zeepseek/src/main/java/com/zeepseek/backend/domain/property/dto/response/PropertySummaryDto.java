@@ -1,4 +1,4 @@
-package com.zeepseek.backend.domain.property.dto;
+package com.zeepseek.backend.domain.property.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,6 +1,6 @@
 package com.zeepseek.backend.domain.property.service;
 
-import com.zeepseek.backend.domain.property.dto.PropertySummaryDto;
+import com.zeepseek.backend.domain.property.dto.response.PropertySummaryDto;
 import com.zeepseek.backend.domain.property.model.Property;
 import com.zeepseek.backend.domain.property.repository.PropertyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
