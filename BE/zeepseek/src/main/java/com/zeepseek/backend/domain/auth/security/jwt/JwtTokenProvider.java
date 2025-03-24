@@ -45,7 +45,7 @@ public class JwtTokenProvider {
     }
 
     // 액세스 토큰 생성
-    public String createAccessToken(Authentication authentication, Long userId) {
+    public String createAccessToken(Authentication authentication, Integer userId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + accessTokenExpirationMsec);
 
@@ -76,14 +76,14 @@ public class JwtTokenProvider {
     }
 
     // 토큰에서 사용자 ID 추출
-    public Long getUserIdFromToken(String token) {
+    public Integer getUserIdFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
 
-        return Long.parseLong(claims.get(USER_ID_KEY).toString());
+        return Integer.parseInt(claims.get(USER_ID_KEY).toString());
     }
 
     // 토큰에서 인증 정보 추출

@@ -45,10 +45,11 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout() {
         log.info("로그아웃 요청");
-        Long userId = securityUtils.getCurrentUserId();
+        int userId = securityUtils.getCurrentUserId();
         authService.logout(userId);
         return ResponseEntity.ok(ApiResponse.success(null, "로그아웃되었습니다."));
     }
+
 
     /**
      * 로그인 엔드포인트

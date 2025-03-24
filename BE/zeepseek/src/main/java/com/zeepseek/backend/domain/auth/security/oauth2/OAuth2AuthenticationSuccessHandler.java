@@ -52,7 +52,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                                         Authentication authentication) {
         // UserPrincipal에서 사용자 정보 및 제공자 가져오기
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        Long userId = userPrincipal.getId();
+        Integer userId = userPrincipal.getId();
         boolean isFirstLogin = userPrincipal.isFirstLogin();
 
         // 사용자 정보로부터 제공자 추출
@@ -89,7 +89,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .build().toUriString();
     }
 
-    private void saveRefreshToken(Long userId, String refreshToken) {
+    private void saveRefreshToken(Integer userId, String refreshToken) {
         // 사용자 찾기
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));

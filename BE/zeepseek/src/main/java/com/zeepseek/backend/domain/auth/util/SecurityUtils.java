@@ -23,7 +23,7 @@ public class SecurityUtils {
     /**
      * 현재 인증된 사용자 ID 가져오기
      */
-    public Long getCurrentUserId() {
+    public int getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -38,6 +38,7 @@ public class SecurityUtils {
         // JWT 토큰인 경우
         if (authentication.getCredentials() instanceof String) {
             String token = (String) authentication.getCredentials();
+            // 이 메소드도 int를 반환하도록 변경해야 합니다
             return tokenProvider.getUserIdFromToken(token);
         }
 
@@ -48,7 +49,7 @@ public class SecurityUtils {
      * 현재 인증된 사용자 정보 가져오기
      */
     public User getCurrentUser() {
-        Long userId = getCurrentUserId();
+        Integer userId = getCurrentUserId();
         return userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
