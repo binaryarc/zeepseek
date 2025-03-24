@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import title from "../../assets/logo/zeeptitle.png";
 import { useNavigate } from "react-router-dom";
-import "./Searchbar.css";
+import "./SearchBar.css";
 import { FaRegUserCircle } from "react-icons/fa"; // 사람 아이콘
 import { FiSearch } from "react-icons/fi"; // 검색 아이콘
 
@@ -28,7 +28,7 @@ function Searchbar() {
   };
 
   return (
-    <nav className="nav-navbar">
+    <nav className="search-navbar">
       <img
         src={title}
         alt="zeepseek 로고"

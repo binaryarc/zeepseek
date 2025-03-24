@@ -11,12 +11,16 @@ function CurrentLocationLabel({ map }) {
 
     const updateCenterAddress = () => {
       const center = map.getCenter();
+      const level = map.getLevel();
+
       geocoder.coord2RegionCode(center.getLng(), center.getLat(), (result, status) => {
         if (status === window.kakao.maps.services.Status.OK) {
-          // 법정동 중 '동' 또는 '구' 정보 추출
-          const region = result.find(r => r.region_type === 'H' || r.region_type === 'B');
-          if (region) {
-            setLocationName(region.region_3depth_name || region.region_2depth_name);
+          const regionData = result[0];
+
+          if (level >= 6) {
+            setLocationName(regionData.region_2depth_name); // 구
+          } else {
+            setLocationName(regionData.region_3depth_name); // 동
           }
         }
       });
@@ -24,7 +28,6 @@ function CurrentLocationLabel({ map }) {
 
     updateCenterAddress();
 
-    // 지도 이동 시 주소 갱신
     window.kakao.maps.event.addListener(map, "idle", updateCenterAddress);
 
     return () => {

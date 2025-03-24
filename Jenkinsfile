@@ -14,7 +14,7 @@ pipeline {
                 echo "OAuth 환경 변수 설정 중..."
                 withCredentials([file(credentialsId: 'oauth2_env', variable: 'ENV_FILE')]) {
                     // 환경 변수 파일을 작업 디렉토리에 임시로 저장
-                    sh 'cat $ENV_FILE > ${WORKSPACE}/.env.tmp'
+                    sh 'cat $ENV_FILE > ${WORKSPACE}/.env'
 
                     // 환경 변수 파일이 생성되었는지 확인
                     sh 'echo "환경 변수 파일이 생성되었습니다."'
