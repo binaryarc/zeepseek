@@ -70,19 +70,21 @@ const RoomList = () => {
         ))}
       </nav>
 
-      {selectedTab === "AI 추천" ? (
-        <AiRecommend />
-      ) : (
-        properties.map((room) => (
-          <div key={room.id} className="room-item">
-            <img src={room.img} alt={room.title} />
-            <div>
-              <p className="room-title">{room.title}</p>
-              <p className="room-description">{room.description}</p>
+      <div className="room-list-inner">
+        {selectedTab === "AI 추천" ? (
+          <AiRecommend />
+        ) : (
+          properties.map((room) => (
+            <div key={room.id} className="room-item">
+              <img src={room.img} alt={room.title} />
+              <div>
+                <p className="room-title">{room.title}</p>
+                <p className="room-description">{room.description}</p>
+              </div>
             </div>
-          </div>
-        ))
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 };
