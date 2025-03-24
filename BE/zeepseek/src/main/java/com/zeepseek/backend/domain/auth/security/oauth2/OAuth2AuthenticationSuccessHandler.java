@@ -29,8 +29,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final UserRepository userRepository;
     private final CookieUtils cookieUtils;
 
-    // 프론트엔드 리다이렉트 URL (환경변수에서 가져오거나 하드코딩)
-    @Value("${app.oauth2.redirect-uri:https://j12e203.p.ssafy.io/login}")
+    // 각 제공자별 프론트엔드 리다이렉트 URL 설정
+    @Value("${app.oauth2.redirect-uri.kakao:https://j12e203.p.ssafy.io/kakao/callback}")
+    private String kakaoRedirectUri;
+
+    @Value("${app.oauth2.redirect-uri.naver:https://j12e203.p.ssafy.io/naver/callback}")
+    private String naverRedirectUri;
+
+    @Value("${app.oauth2.redirect-uri.default:https://j12e203.p.ssafy.io/login}")
     private String defaultRedirectUri;
 
     @Override
@@ -64,13 +70,16 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         // 제공자별 리다이렉트 URI 결정
         String redirectUri;
-        if ("kakao".equals(provider)) {
-            redirectUri = "https://j12e203.p.ssafy.io/kakao/callback";
-        } else if ("naver".equals(provider)) {
-            redirectUri = "https://j12e203.p.ssafy.io/naver/callback";
-        } else {
-            // 기본 리다이렉트 URI
-            redirectUri = defaultRedirectUri;
+        switch (provider) {
+            case "kakao":
+                redirectUri = kakaoRedirectUri;
+                break;
+            case "naver":
+                redirectUri = naverRedirectUri;
+                break;
+            default:
+                redirectUri = defaultRedirectUri;
+                break;
         }
 
         // JWT 토큰 생성
@@ -80,10 +89,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         // 리프레시 토큰 저장
         saveRefreshToken(userId, refreshToken);
 
-        // 프론트엔드로 리다이렉트 (code 파라미터 대신 token 사용)
-        // 프론트엔드의 KakaoRedirectHandler.jsx에서 code 파라미터를 예상하므로 code로 변경
+        // 프론트엔드로 리다이렉트 (토큰 정보 포함)
         return UriComponentsBuilder.fromUriString(redirectUri)
-                .queryParam("code", accessToken)  // 프론트엔드와 일치시키기 위해 code로 변경
+                .queryParam("code", accessToken)
                 .queryParam("refreshToken", refreshToken)
                 .queryParam("isFirst", isFirstLogin)
                 .build().toUriString();
