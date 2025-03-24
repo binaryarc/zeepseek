@@ -1,22 +1,27 @@
 package com.zeepseek.backend.domain.auth.security.oauth2;
 
+import com.zeepseek.backend.domain.auth.security.oauth2.CustomOAuth2UserService;
 import com.zeepseek.backend.domain.auth.entity.User;
 import com.zeepseek.backend.domain.auth.repository.UserRepository;
-import com.zeepseek.backend.domain.auth.exception.CustomException;
-import com.zeepseek.backend.domain.auth.exception.ErrorCode;
+import com.zeepseek.backend.domain.auth.security.UserPrincipal;
+import com.zeepseek.backend.domain.auth.security.oauth2.provider.KakaoOAuth2UserInfo;
+import com.zeepseek.backend.domain.auth.security.oauth2.provider.NaverOAuth2UserInfo;
+import com.zeepseek.backend.domain.auth.security.oauth2.provider.OAuth2UserInfo;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.Collections;
 import java.util.Optional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
@@ -24,66 +29,74 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final UserRepository userRepository;
 
     @Override
-    public OAuth2User loadUser(OAuth2UserRequest oAuth2UserRequest) throws OAuth2AuthenticationException {
-        OAuth2User oAuth2User = super.loadUser(oAuth2UserRequest);
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        OAuth2User oAuth2User = super.loadUser(userRequest);
 
         try {
-            return processOAuth2User(oAuth2UserRequest, oAuth2User);
+            return processOAuth2User(userRequest, oAuth2User);
+        } catch (AuthenticationException ex) {
+            throw ex;
         } catch (Exception ex) {
-            log.error("OAuth2 인증 처리 중 오류 발생: {}", ex.getMessage());
-            throw new InternalAuthenticationServiceException(ex.getMessage(), ex);
+            throw new InternalAuthenticationServiceException(ex.getMessage(), ex.getCause());
         }
     }
 
     private OAuth2User processOAuth2User(OAuth2UserRequest oAuth2UserRequest, OAuth2User oAuth2User) {
-        // OAuth2 제공자 ID (kakao, naver)
-        String provider = oAuth2UserRequest.getClientRegistration().getRegistrationId();
+        String registrationId = oAuth2UserRequest.getClientRegistration().getRegistrationId();
+        String userNameAttributeName = oAuth2UserRequest.getClientRegistration()
+                .getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
 
-        // 제공자별 속성 추출
-        OAuthAttributes attributes = OAuthAttributes.of(provider, oAuth2User.getAttributes());
-
-        if (!StringUtils.hasText(attributes.getProviderId())) {
-            throw new CustomException(ErrorCode.SOCIAL_LOGIN_FAILED, "소셜 ID를 찾을 수 없습니다.");
+        OAuth2UserInfo oAuth2UserInfo;
+        if (registrationId.equalsIgnoreCase("kakao")) {
+            oAuth2UserInfo = new KakaoOAuth2UserInfo(oAuth2User.getAttributes());
+        } else if (registrationId.equalsIgnoreCase("naver")) {
+            oAuth2UserInfo = new NaverOAuth2UserInfo(oAuth2User.getAttributes());
+        } else {
+            throw new OAuth2AuthenticationException("지원하지 않는 소셜 로그인입니다.");
         }
 
-        // 사용자 정보 조회 또는 생성
-        User user = getOrCreateUser(attributes, provider);
+        if (!StringUtils.hasText(oAuth2UserInfo.getProviderId())) {
+            throw new OAuth2AuthenticationException("Provider ID를 찾을 수 없습니다.");
+        }
 
-        // UserPrincipal 객체 생성 및 반환
-        return UserPrincipal.create(user, oAuth2User.getAttributes());
-    }
-
-    private User getOrCreateUser(OAuthAttributes attributes, String provider) {
-        // 이미 가입된 회원인지 확인
         Optional<User> userOptional = userRepository.findByProviderAndProviderId(
-                provider, attributes.getProviderId());
+                oAuth2UserInfo.getProvider(),
+                oAuth2UserInfo.getProviderId());
+
+        User user;
+        boolean isFirst = false;
 
         if (userOptional.isPresent()) {
-            User existingUser = userOptional.get();
+            user = userOptional.get();
 
-            // 두 번째 로그인인 경우 isFirst 값을 0으로 업데이트
-            if (existingUser.getIsFirst() == 1) {
-                existingUser.markAsNotFirstLogin();
-                return userRepository.save(existingUser);
+            // 필요시 사용자 정보 업데이트
+            if (!user.getNickname().equals(oAuth2UserInfo.getNickname())) {
+                user.setNickname(oAuth2UserInfo.getNickname());
+                userRepository.save(user);
             }
-
-            // 기존 사용자 반환
-            return existingUser;
         } else {
             // 새 사용자 생성
-            User user = User.builder()
-                    .provider(provider)
-                    .providerId(attributes.getProviderId())
-                    .nickname(generateNickname(provider, attributes))
-                    .isFirst(1) // 첫 로그인
-                    .build();
-
-            return userRepository.save(user);
+            user = createUser(oAuth2UserInfo);
+            isFirst = true;
         }
+
+        UserPrincipal userPrincipal = UserPrincipal.create(user, oAuth2User.getAttributes());
+        userPrincipal.setFirst(isFirst);
+
+        return userPrincipal;
     }
 
-    // 임시 닉네임 생성 (실제로는 사용자가 추후에 변경할 수 있음)
-    private String generateNickname(String provider, OAuthAttributes attributes) {
-        return provider + "_user_" + attributes.getProviderId().substring(0, 8);
+    private User createUser(OAuth2UserInfo oAuth2UserInfo) {
+        User user = User.builder()
+                .provider(oAuth2UserInfo.getProvider())
+                .providerId(oAuth2UserInfo.getProviderId())
+                .nickname(oAuth2UserInfo.getNickname())
+                .isFirst(1) // 처음 가입
+                .isSeller(0)
+                .gender(0)
+                .age(0)
+                .build();
+
+        return userRepository.save(user);
     }
 }
