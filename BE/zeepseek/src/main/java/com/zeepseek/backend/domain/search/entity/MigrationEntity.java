@@ -102,7 +102,6 @@ public class MigrationEntity {
                 ", longitude=" + longitude +
                 ", dongId=" + dongId +
                 ", guName='" + guName + '\'' +
-                ", title='" + title + '\'' +
                 '}';
     }
 }
