@@ -106,7 +106,7 @@ const Map = () => {
               window.kakao.maps.event.addListener(polygon, "mouseout", () => {
                 polygon.setOptions({
                   strokeOpacity: 0,
-                  fillOpacity: 0,
+                  fillOpacity: 0.02,       
                 });
               });
               
