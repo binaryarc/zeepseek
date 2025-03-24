@@ -53,8 +53,6 @@ services:
       - /etc/letsencrypt/live/j12e203.p.ssafy.io/privkey.pem:/etc/nginx/certs/privkey.pem:ro
     depends_on:
       - fe
-      - be
-      - recommend
     restart: always
     networks:
       - e203
