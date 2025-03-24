@@ -1,0 +1,86 @@
+  .ai-filter-container {
+    padding: 16px;
+    padding-top: 0%;
+  }
+
+  .recommend-title {
+    font-family: KOROAD;
+    text-align: center;
+  }
+
+  .slider-block {
+    margin-bottom: 16px;
+    font-family: KOROAD;
+  }
+  
+  .slider-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+
+  /* 공통 슬라이더 초기화 */
+  .slider-block input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    background: transparent; /* 트랙은 아래에서 설정 */
+    margin: 0;
+    padding: 0;
+  }
+
+  /* 채워진 트랙 색상 (Chrome/Safari) */
+  .slider-block input[type="range"]::-webkit-slider-runnable-track {
+    height: 6px;
+    background: linear-gradient(to right, green 0%, green var(--value), #ccc var(--value), #ccc 100%);
+    border-radius: 3px;
+  }
+
+  /* 포인터(thumb) */
+  .slider-block input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    background: black;
+    border-radius: 50%;
+    margin-top: -5px;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Firefox 채워진 슬라이더 */
+  .slider-block input[type="range"]::-moz-range-track {
+    height: 6px;
+    background: #ccc;
+    border-radius: 3px;
+  }
+  .slider-block input[type="range"]::-moz-range-progress {
+    background: green;
+    height: 6px;
+    border-radius: 3px;
+  }
+  .slider-block input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: black;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+  }
+
+  .search-btn {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #f7a500;
+    border: 2px solid black;
+    width: 100%;
+    /* border: none; */
+    border-radius: 5px;
+    color: black;
+    font-weight: bold;
+    font-size: 1.2rem;
+    cursor: pointer;
+    font-family: KOROAD;
+  }

@@ -5,6 +5,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 # 전체 소스 복사 후 빌드 (Vite의 기본 빌드 명령어)
+
+COPY .env ./
 COPY . .
 RUN npm run build
 
