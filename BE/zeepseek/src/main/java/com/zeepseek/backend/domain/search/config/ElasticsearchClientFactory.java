@@ -6,22 +6,27 @@ import co.elastic.clients.transport.rest_client.RestClientTransport;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
+@Configuration
 public class ElasticsearchClientFactory {
 
-    public static ElasticsearchClient createClient() {
-        // 1. 저수준 RestClient 생성 (호스트, 포트 등 환경에 맞게 조정)
+    // application.properties에서 elasticsearch.host 값을 읽어옴.
+    @Value("${elasticsearch.host}")
+    private String esHost;
+
+    @Bean
+    public ElasticsearchClient elasticsearchClient() {
+        // esHost 값에 따라 호스트가 동적으로 설정됨.
         RestClient restClient = RestClient.builder(
-                new HttpHost("localhost", 9200)
+                new HttpHost(esHost, 9200)
         ).build();
 
-        // 2. Transport 생성 (Jackson 기반의 매퍼 사용)
         ElasticsearchTransport transport = new RestClientTransport(
                 restClient, new JacksonJsonpMapper()
         );
-
-        // 3. ElasticsearchClient 생성
-        ElasticsearchClient client = new ElasticsearchClient(transport);
-        return client;
+        return new ElasticsearchClient(transport);
     }
 }

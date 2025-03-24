@@ -12,7 +12,7 @@ public class ElasticsearchMigrationController {
 
     private final ElasticsearchDataMigrationService migrationService;
 
-    @PostMapping("/migrate")
+    @GetMapping("/migrate")
     public ResponseEntity<String> migrateData() {
         try {
             String result = migrationService.migrate();

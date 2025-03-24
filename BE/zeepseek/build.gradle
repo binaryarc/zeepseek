@@ -35,7 +35,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'         // Redis 캐싱 및 데이터 액세스
 	runtimeOnly 'com.mysql:mysql-connector-j'                                        // MySQL 연결 드라이버
 
-	implementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.17.0'   // elasticsearch 자바 클라이언트 라이브러리
+//	implementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.17.0'   // elasticsearch 자바 클라이언트 라이브러리
 
 	// 보안 및 인증 관련
 	implementation 'org.springframework.boot:spring-boot-starter-security'           // 스프링 시큐리티 기능 구현
