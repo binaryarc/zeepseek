@@ -75,9 +75,6 @@ public class MigrationEntity {
     @Column(name = "gu_name")
     private String guName;
 
-    @Column(name = "title")
-    private String title;
-
     @Override
     public String toString() {
         return "SearchProperty{" +

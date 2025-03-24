@@ -40,7 +40,7 @@ public class SearchService {
                     .query(q -> q
                             .multiMatch(mm -> mm
                                     .query(keyword)
-                                    .fields("title", "description", "address", "guName", "roomType")
+                                    .fields( "description", "address", "guName", "roomType")
                             )
                     )
             );
