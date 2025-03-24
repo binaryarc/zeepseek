@@ -13,6 +13,10 @@ import MainPage from "./features/main/MainPage.jsx";
 import LoginPage from "./features/auth/LoginPage.jsx";
 import MainMapPage from "./features/map/MainMapPage.jsx";
 
+//import OAuth2s' jsx
+import KakaoRedirectHandler from "./features/auth/kakao/KakaoRedirectHandler.jsx";
+import NaverRedirectHandler from "./features/auth/naver/NaverRedirectHandler.jsx";
+
 const router = createBrowserRouter(
   createRoutesFromElements(
     <>
@@ -20,6 +24,10 @@ const router = createBrowserRouter(
       <Route path="/main" element={<MainPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/map" element={<MainMapPage />} />
+
+      {/* 소셜 로그인 콜백 라우트 추가 */}
+      <Route path="/kakao/callback" element={<KakaoRedirectHandler />} />
+      <Route path="/naver/callback" element={<NaverRedirectHandler />} />
     </>
   )
 );
