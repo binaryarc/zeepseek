@@ -1,0 +1,126 @@
+/* 네비게이션 바 */
+.nav-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+  background-color: #fff;
+  /* box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); */
+}
+
+/* 오른쪽 전체 영역 */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 80px;
+  margin-right: 2%;
+}
+
+/* 로고 */
+.nav-logo {
+  width: 250px;
+  height: auto;
+  margin: 0;
+}
+
+/* 로그인 버튼 */
+.nav-login-btn {
+  padding: 10px 30px;
+  margin-right: 2%;
+  background-color: #f5c16c;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: KOROAD;
+  font-size: 1.2rem;
+}
+
+.nav-login-btn:hover {
+  background-color: #e0a751;
+}
+
+/* 사용자 영역 (아이콘 + 닉네임 + 드롭다운) */
+.nav-user-area {
+  position: relative;
+  display: flex;
+  align-items: center;
+  font-family: KOROAD;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+/* 닉네임 */
+.nav-nickname {
+  margin-left: 4px;
+}
+
+/* 드롭다운 메뉴 */
+.nav-dropdown {
+  position: absolute;
+  top: 35px;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 150px;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.nav-dropdown div {
+  padding: 10px 15px;
+  font-family: KOROAD;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.nav-dropdown div:hover {
+  background-color: #f5f5f5;
+}
+
+/* 메뉴 (지도/방내놓기/찜) */
+.nav-menu {
+  display: flex;
+  gap: 70px;
+  font-family: KOROAD;
+  font-size: 1.2rem;
+  color: #3f2b1c;
+}
+
+.nav-menu span {
+  cursor: pointer;
+}
+
+.nav-menu span:hover {
+  font-weight: bold;
+}
+
+/* 검색창 영역 */
+.nav-searchbox {
+  display: flex;
+  align-items: center;
+  width: 40vw;
+  height: 5vh;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 999px;
+  padding: 0 10px;
+  margin: 0 40px;
+}
+
+.nav-searchbox input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-family: KOROAD;
+  font-size: 1rem;
+  padding-left: 10px;
+  background: transparent;
+}
+
+.nav-searchbox button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #333;
+}
