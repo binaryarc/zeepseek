@@ -1,7 +1,10 @@
-import { useEffect } from "react";
-import "./Map.css"; // CSS 파일 분리
+import { useEffect, useState } from "react";
+import "./Map.css";
+import CurrentLocationLabel from "./currentlocation/CurrentLocationLabel"; // 방금 만든 컴포넌트
 
 const Map = () => {
+  const [map, setMap] = useState(null); // 👈 map 객체 저장용 상태
+
   useEffect(() => {
     const kakaoMapScript = document.createElement("script");
     kakaoMapScript.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${
@@ -10,7 +13,6 @@ const Map = () => {
     kakaoMapScript.async = true;
 
     console.log("카카오 API 스크립트 추가 시도:", kakaoMapScript.src);
-
     document.head.appendChild(kakaoMapScript);
 
     console.log("카카오 API 키:", import.meta.env.VITE_APP_KAKAO_MAP_API_KEY);
@@ -24,20 +26,22 @@ const Map = () => {
           level: 3,
         };
 
-        const map = new window.kakao.maps.Map(container, options);
+        const mapInstance = new window.kakao.maps.Map(container, options);
+        setMap(mapInstance); // 👈 상태에 저장
 
-        // 예시 마커 추가
+        // 마커는 예시
         new window.kakao.maps.Marker({
           position: options.center,
-          map: map,
+          map: mapInstance,
         });
       });
     };
   }, []);
 
   return (
-    <div className="map-container">
+    <div className="map-container" style={{ position: "relative" }}>
       <div id="map" className="map-box" />
+      {map && <CurrentLocationLabel map={map} />} {/* 👈 컴포넌트 연결 */}
     </div>
   );
 };
