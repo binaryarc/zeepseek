@@ -86,4 +86,19 @@ public class AuthController {
         UserDto userDto = authService.getCurrentUser(userPrincipal.getId());
         return ResponseEntity.ok(ApiResponse.success(userDto));
     }
+
+    /**
+     * 카카오 로그인 후 리다이렉트 엔드포인트
+     * - 카카오에서 인가 코드를 받아 처리하는 역할
+     */
+    @GetMapping("/redirect")
+    public ResponseEntity<ApiResponse<TokenDto>> kakaoRedirect(@RequestParam("code") String code) {
+        log.info("카카오 로그인 요청 code: {}", code);
+
+        // 인가 코드를 사용하여 로그인 처리 (카카오 토큰 요청 -> 사용자 정보 조회)
+        TokenDto tokenDto = authService.processSocialLogin(code, "kakao");
+
+        return ResponseEntity.ok(ApiResponse.success(tokenDto));
+    }
+
 }
