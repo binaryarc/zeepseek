@@ -11,7 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Migration {
+public class SearchProperty {
     private Integer propertyId;
     private Integer sellerId;
     private String roomType;

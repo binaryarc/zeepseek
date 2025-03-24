@@ -3,7 +3,7 @@ package com.zeepseek.backend.domain.search.service;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
 import co.elastic.clients.elasticsearch.core.BulkResponse;
-import com.zeepseek.backend.domain.search.dto.Migration;
+import com.zeepseek.backend.domain.search.dto.SearchProperty;
 import com.zeepseek.backend.domain.search.entity.MigrationEntity;
 import com.zeepseek.backend.domain.search.repository.MigrationPropertyRepository;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +45,7 @@ public class ElasticsearchDataMigrationService {
             for (MigrationEntity property : batch) {
                 log.info("인덱싱 대상 문서: {}", property);
                 // 엔티티를 DTO로 매핑
-                Migration migration = Migration.builder()
+                SearchProperty searchProperty = SearchProperty.builder()
                         .propertyId(property.getPropertyId())
                         .sellerId(property.getSellerId())
                         .roomType(property.getRoomType())
@@ -72,8 +72,8 @@ public class ElasticsearchDataMigrationService {
 
                 bulkBuilder.operations(op -> op.index(idx -> idx
                         .index("properties")
-                        .id(String.valueOf(migration.getPropertyId()))
-                        .document(migration)
+                        .id(String.valueOf(searchProperty.getPropertyId()))
+                        .document(searchProperty)
                 ));
             }
 
