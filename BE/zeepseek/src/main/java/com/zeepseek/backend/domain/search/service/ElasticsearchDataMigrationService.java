@@ -3,9 +3,9 @@ package com.zeepseek.backend.domain.search.service;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
 import co.elastic.clients.elasticsearch.core.BulkResponse;
-import com.zeepseek.backend.domain.search.dto.PropertyDTO;
-import com.zeepseek.backend.domain.search.entity.SearchProperty;
-import com.zeepseek.backend.domain.search.repository.SearchPropertyRepository;
+import com.zeepseek.backend.domain.search.dto.Migration;
+import com.zeepseek.backend.domain.search.entity.MigrationEntity;
+import com.zeepseek.backend.domain.search.repository.MigrationPropertyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ import java.util.List;
 @Slf4j
 public class ElasticsearchDataMigrationService {
 
-    private final SearchPropertyRepository propertyRepository;
+    private final MigrationPropertyRepository propertyRepository;
     private final ElasticsearchClient elasticsearchClient;
 
     public String migrate() throws Exception {
@@ -32,7 +32,7 @@ public class ElasticsearchDataMigrationService {
             log.info("Index 'properties' already exists.");
         }
 
-        List<SearchProperty> properties = propertyRepository.findAll();
+        List<MigrationEntity> properties = propertyRepository.findAll();
         int batchSize = 100; // 한 번에 처리할 문서 수 조정 (필요에 따라 변경)
         int total = properties.size();
         log.info("총 {}개의 문서를 인덱싱합니다.", total);
@@ -40,12 +40,12 @@ public class ElasticsearchDataMigrationService {
         for (int i = 0; i < total; i += batchSize) {
             BulkRequest.Builder bulkBuilder = new BulkRequest.Builder();
             int end = Math.min(i + batchSize, total);
-            List<SearchProperty> batch = properties.subList(i, end);
+            List<MigrationEntity> batch = properties.subList(i, end);
 
-            for (SearchProperty property : batch) {
+            for (MigrationEntity property : batch) {
                 log.info("인덱싱 대상 문서: {}", property);
                 // 엔티티를 DTO로 매핑
-                PropertyDTO propertyDTO = PropertyDTO.builder()
+                Migration migration = Migration.builder()
                         .propertyId(property.getPropertyId())
                         .sellerId(property.getSellerId())
                         .roomType(property.getRoomType())
@@ -72,8 +72,8 @@ public class ElasticsearchDataMigrationService {
 
                 bulkBuilder.operations(op -> op.index(idx -> idx
                         .index("properties")
-                        .id(String.valueOf(propertyDTO.getPropertyId()))
-                        .document(propertyDTO)
+                        .id(String.valueOf(migration.getPropertyId()))
+                        .document(migration)
                 ));
             }
 
