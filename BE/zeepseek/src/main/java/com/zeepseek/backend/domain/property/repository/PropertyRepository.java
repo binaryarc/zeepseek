@@ -21,4 +21,7 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
     List<GuPropertyCountDto> countPropertiesByGu();
 
     List<Property> findByDongId(Integer dongId);
+
+    List<Property> findByGuName(String guName);
+
 }

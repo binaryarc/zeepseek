@@ -67,4 +67,12 @@ public class PropertyController {
         List<PropertySummaryDto> properties = propertyService.getPropertiesByDong(dongId);
         return ResponseEntity.ok(properties);
     }
+
+    // 특정 구(gu) 내 매물 조회: GET /api/v1/property/gu/{guName}
+    @GetMapping("/gu/{guName}")
+    public ResponseEntity<List<PropertySummaryDto>> getPropertiesByGu(@PathVariable String guName) {
+        List<PropertySummaryDto> properties = propertyService.getPropertiesByGu(guName);
+        return ResponseEntity.ok(properties);
+    }
+
 }

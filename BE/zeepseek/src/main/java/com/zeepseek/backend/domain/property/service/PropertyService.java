@@ -15,6 +15,7 @@ public interface PropertyService {
     List<PropertySummaryDto> getAllPropertySummaries();
     Page<PropertySummaryDto> getPropertySummaries(Pageable pageable);
     List<PropertySummaryDto> getPropertiesByDong(Integer dongId);
+    List<PropertySummaryDto> getPropertiesByGu(String guName);
     List<DongPropertyCountDto> countPropertiesByDong();
     List<GuPropertyCountDto> countPropertiesByGu();
 }

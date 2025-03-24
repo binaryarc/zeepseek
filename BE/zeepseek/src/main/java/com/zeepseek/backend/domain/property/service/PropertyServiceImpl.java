@@ -70,6 +70,15 @@ public class PropertyServiceImpl implements PropertyService {
     }
 
     @Override
+    public List<PropertySummaryDto> getPropertiesByGu(String guName) {
+        List<Property> properties = propertyRepository.findByGuName(guName);
+        logger.info("Found {} properties for guName {}", properties.size(), guName);
+        return properties.stream()
+                .map(p -> new PropertySummaryDto(p.getPropertyId(), p.getLatitude(), p.getLongitude()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<DongPropertyCountDto> countPropertiesByDong() {
         List<DongPropertyCountDto> counts = propertyRepository.countPropertiesByDong();
         if (!counts.isEmpty()) {
