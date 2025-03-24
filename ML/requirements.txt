@@ -1,5 +1,9 @@
 fastapi
 uvicorn
-mysql-connector-python
+sqlalchemy
+pymysql
 pymongo
-elasticsearch
+python-dotenv
+numpy
+scikit-learn
+cryptography

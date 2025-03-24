@@ -1,15 +1,16 @@
-# Python 3.9 기반 이미지 사용
-FROM python:3.9
+FROM python:3.9-slim
 
-# 작업 디렉토리 설정
+# 터미널 로그가 바로 출력되도록 설정
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /app
 
-# 필요한 패키지 설치
+# 의존성 파일 복사 및 설치
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# FastAPI 서버 코드 복사
-COPY jenkins-test.py .
+# 전체 애플리케이션 코드 복사
+COPY ./app /app/app
 
-# FastAPI 실행
-CMD ["uvicorn", "jenkins-test:app", "--host", "0.0.0.0", "--port", "8000"]
+# uvicorn으로 FastAPI 앱 실행
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

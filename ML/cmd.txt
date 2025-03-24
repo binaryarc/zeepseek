@@ -1,0 +1,78 @@
+docker stop $(docker ps -q)
+docker rm $(docker ps -a -q)
+docker rmi $(docker images -q)
+
+docker stop fastapi_app
+docker rm fastapi_app
+docker build -t fastapi-app .
+docker run -d --name fastapi_app -p 8000:8000 fastapi-app
+
+curl http://localhost:8000/
+curl -X POST "http://localhost:8000/calculate" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "property_id": 1,
+           "latitude": 37.55,
+           "longitude": 126.97
+         }'
+
+
+#limit 생략가능, 생략시 전체조회
+curl -X POST "http://localhost:8000/recalculate/batch" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "batch_size": 10000,
+           "max_workers": 15,
+           "limit": 20000
+         }'
+
+curl -X POST "http://localhost:8000/recalculate/batch" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "batch_size": 20000,
+           "max_workers": 20
+         }'
+
+
+curl -X POST "http://localhost:8000/recalculate/incomplete"
+
+
+curl -X POST "http://localhost:8000/recalculate/no_batch"
+curl -X POST "http://localhost:8000/recalculate/single"
+curl -X POST "http://localhost:8000/recalculate/batch"
+
+
+고려 x : 0.2
+보통 : 3.0
+중요 : 6.0
+
+curl -X POST "http://localhost:8000/recommend" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "transport_score": 1.0,
+           "restaurant_score": 1.0,
+           "health_score": 1.0,
+           "convenience_score": 1.0,
+           "cafe_score": 1.0,
+           "chicken_score": 1.0,
+           "leisure_score": 1.0
+         }'
+
+docker-compose down -v --rmi all --remove-orphans
+docker-compose up -d mysql mongodb redis
+docker-compose up -d fastapi
+
+curl -X GET "http://localhost:8000/"
+curl -X POST "http://localhost:8000/recommend" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": 1,
+    "safe": 0.9,
+    "leisure": 0.5,
+    "restaurant": 0.2,
+    "health": 0.3,
+    "convenience": 1.0,
+    "transport": 0.8,
+    "cafe": 0.7,
+    "bar": 0.6
+}' | jq .
