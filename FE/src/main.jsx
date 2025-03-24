@@ -6,12 +6,15 @@ import {
   Route,
   RouterProvider,
 } from "react-router-dom";
-// import store from './store/store.js'
+import { Provider } from "react-redux";
+import store from './store/store.js'
 import "./index.css";
 import App from "./App.jsx";
 import MainPage from "./features/main/MainPage.jsx";
 import LoginPage from "./features/auth/LoginPage.jsx";
 import MainMapPage from "./features/map/MainMapPage.jsx";
+import AuthInitializer from "./store/AuthInitializer.jsx";
+
 
 //import OAuth2s' jsx
 import KakaoRedirectHandler from "./features/auth/kakao/KakaoRedirectHandler.jsx";
@@ -33,5 +36,10 @@ const router = createBrowserRouter(
 );
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <RouterProvider router={router} />
+  <Provider store={store}>
+    <AuthInitializer> 
+      <RouterProvider router={router} />
+    </AuthInitializer>
+  </Provider>
+  
 );

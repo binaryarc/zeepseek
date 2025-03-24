@@ -1,28 +1,27 @@
+// store/AuthInitializer.jsx
 import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { setAuth, logout } from "./authSlice";
-import { refreshTokenApi } from "../common/api/authApi";
+import { useDispatch } from "react-redux";
+import { setAccessToken, setUser, logout } from "./authSlice";
+import { refreshAccessToken } from "../common/api/authApi";
 
-function AuthInitializer({ children }) {
+const AuthInitializer = ({ children }) => {
   const dispatch = useDispatch();
-  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
   useEffect(() => {
-    async function initializeAuth() {
+    const initializeAuth = async () => {
       try {
-        const res = await refreshTokenApi();
-        dispatch(setAuth({ accessToken: res.data.accessToken, user: res.data }));
+        const res = await refreshAccessToken();
+        dispatch(setAccessToken(res.data.accessToken));
+        // 유저 정보도 필요하다면 추가로 요청
       } catch (err) {
         dispatch(logout());
       }
-    }
+    };
 
-    if (!isAuthenticated) {
-      initializeAuth();
-    }
-  }, [dispatch, isAuthenticated]);
+    initializeAuth();
+  }, [dispatch]);
 
-  return children;
-}
+  return <>{children}</>;
+};
 
 export default AuthInitializer;
