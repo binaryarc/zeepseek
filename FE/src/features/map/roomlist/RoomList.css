@@ -1,12 +1,11 @@
 /* 매물 리스트 스타일 */
-.room-list {
+/* .room-list {
     width: 30%;
     max-width: 400px;
     background-color: #f8f8f8;
-    /* padding: 20px; */
     overflow-y: auto;
     border-right: 1px solid #ddd;
-  }
+  } */
 
   .room-type {
     position: relative;
@@ -24,14 +23,35 @@
     border: 1px solid #ddd;
   }
 
+  .room-list {
+    width: 30%;
+    max-width: 400px;
+    background-color: #f8f8f8;
+    border-right: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .room-type {
+    flex-shrink: 0; /* nav는 고정 */
+  }
+  
+  /* 스크롤 되는 영역 */
+  .room-list-inner {
+    overflow-y: auto;
+    height: calc(100vh - 7vh); /* 전체 높이 - nav 높이 (7vh) */
+    padding-right: 8px; /* 스크롤바 밀리지 않게 */
+  }
+
+  
   .room-type span {
     cursor: pointer;
-    padding: 8px 16px;
+    padding: 0.5rem 0.8rem;
     /* margin-right: 10px; */
   }
 
   .room-type .active-tab {
-    background-color: #e0e0e0;
+    background-color: #D8F4AB;
     font-weight: bold;
     border-radius: 5px;
   }
