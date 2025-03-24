@@ -55,6 +55,9 @@ dependencies {
 	implementation 'com.fasterxml.jackson.core:jackson-databind'                     // JSON 객체 매핑 (spring-boot-starter-web에 포함될 수 있음)
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'          // Java 8 날짜/시간 타입 지원
 
+	// Spring WebFlux (WebClient 포함)
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
 	// 도메인 모델 간소화
 	compileOnly 'org.projectlombok:lombok'                                           // 보일러플레이트 코드 자동 생성
 	annotationProcessor 'org.projectlombok:lombok'                                   // 롬복 어노테이션 처리기
@@ -63,7 +66,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'           // 스프링 부트 테스트 프레임워크
 	testImplementation 'org.springframework.security:spring-security-test'           // 스프링 시큐리티 테스트 지원
 	testImplementation 'org.springframework.kafka:spring-kafka-test'                 // Kafka 테스트 지원
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'                     // JUnit 테스트 실행기
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'                 // JUnit 테스트 실행기
 }
 
 tasks.named('test') {
