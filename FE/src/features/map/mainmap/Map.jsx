@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import "./Map.css";
-import CurrentLocationLabel from "./currentlocation/CurrentLocationLabel"; // 방금 만든 컴포넌트
+import CurrentLocationLabel from "./currentlocation/CurrentLocationLabel";
+import SaleCountMarkers from "./salecountmarkers/SaleCountMarkers";
 
 const Map = () => {
   const [map, setMap] = useState(null); // 👈 map 객체 저장용 상태
@@ -122,7 +123,12 @@ const Map = () => {
   return (
     <div className="map-container" style={{ position: "relative" }}>
       <div id="map" className="map-box" />
-      {map && <CurrentLocationLabel map={map} />} {/* 👈 컴포넌트 연결 */}
+      {map && (
+        <>
+          <CurrentLocationLabel map={map} />
+          <SaleCountMarkers map={map} /> {/* 👈 여기 추가 */}
+        </>
+      )}
     </div>
   );
 };
