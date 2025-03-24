@@ -6,12 +6,15 @@ import {
   Route,
   RouterProvider,
 } from "react-router-dom";
-// import store from './store/store.js'
+import { Provider } from "react-redux";
+import store from './store/store.js'
 import "./index.css";
 import App from "./App.jsx";
 import MainPage from "./features/main/MainPage.jsx";
 import LoginPage from "./features/auth/LoginPage.jsx";
 import MainMapPage from "./features/map/MainMapPage.jsx";
+import AuthInitializer from "./store/AuthInitializer.jsx";
+
 
 //import OAuth2s' jsx
 import KakaoRedirectHandler from "./features/auth/kakao/KakaoRedirectHandler.jsx";
@@ -29,9 +32,15 @@ const router = createBrowserRouter(
       <Route path="/kakao/callback" element={<KakaoRedirectHandler />} />
       <Route path="/naver/callback" element={<NaverRedirectHandler />} />
     </>
-  )
+  ),
+  { basename: "/"} // 라우트가 /api/경로 파일을 처리하지 않도록 선언
 );
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <RouterProvider router={router} />
+  <Provider store={store}>
+    <AuthInitializer> 
+      <RouterProvider router={router} />
+    </AuthInitializer>
+  </Provider>
+  
 );
