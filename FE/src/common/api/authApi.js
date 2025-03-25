@@ -1,4 +1,6 @@
 import zeepApi from "./api";
+// import { setAccessToken, setUser } from "../../store/authSlice";
+// import store from "../../store/store";
 // // import { setAuth } from "../../store/slices/authSlice";
 // import store from "../../store/store";
 
@@ -15,11 +17,10 @@ export const oauthLogin = async (authorizationCode, provider) => {
 
     return response.data;
   } catch (error) {
-    console.error(` ${provider} 로그인 실패:`, error);
+    console.error(`${provider} 로그인 실패:`, error);
     throw error;
   }
 };
-
 
 export const loginOAuth = async (authorizationCode, provider) => {
   return await zeepApi.post("/auth/login", {

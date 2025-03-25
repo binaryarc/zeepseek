@@ -37,7 +37,7 @@ export const searchProperties = async (keyword, page = 1, size = 20) => {
 // ✅ 동 ID 기반 매물 조회 API
 export const getPropertiesByDongId = async (dongId) => {
   try {
-    const res = await zeepApi.get(`/property/dong/${dongId}`);
+    const res = await zeepApi.get(`roomList/fetchByDong`);
     console.log("동 매물 조회 결과:", dongId);
     console.log("동 매물 조회 결과:", res);
     return res.data; // 🔥 res.properties가 아니라 res.data로 전체 리턴
@@ -47,6 +47,16 @@ export const getPropertiesByDongId = async (dongId) => {
   }
 };
 
+// 상세 매물 조회 API
+export const getPropertyDetail = async (propertyId) => {
+  try {
+    const res = await zeepApi.get(`/property/${propertyId}`);
+    return res.data;
+  } catch (error) {
+    console.error("매물 상세 조회 실패:", error);
+    return null;
+  }
+};
 
 // 응답 인터셉터
 zeepApi.interceptors.response.use(
@@ -62,10 +72,9 @@ zeepApi.interceptors.response.use(
         const res = await zeepApi.post('/auth/refresh');
         const newToken = res.data.accessToken;
         store.dispatch(setAccessToken(newToken));
-
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return zeepApi(originalRequest);
-      } catch (refreshErr) {
+      } catch {
         store.dispatch(logout());
         window.location.href = '/login';
       }
