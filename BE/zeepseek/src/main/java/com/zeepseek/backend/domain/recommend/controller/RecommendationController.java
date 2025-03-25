@@ -1,7 +1,7 @@
 package com.zeepseek.backend.domain.recommend.controller;
 
 import com.zeepseek.backend.domain.recommend.dto.request.UserRecommendationRequestDto;
-import com.zeepseek.backend.domain.recommend.dto.response.RecommendationResponseDto;
+import com.zeepseek.backend.domain.recommend.dto.response.DetailedRecommendationResponseDto;
 import com.zeepseek.backend.domain.recommend.service.RecommendationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,9 +19,9 @@ public class RecommendationController {
     }
 
     @PostMapping
-    public ResponseEntity<RecommendationResponseDto> getRecommendations(
+    public ResponseEntity<DetailedRecommendationResponseDto> getRecommendations(
             @RequestBody UserRecommendationRequestDto requestDto) {
-        RecommendationResponseDto responseDto = recommendationService.getRecommendations(requestDto);
+        DetailedRecommendationResponseDto responseDto = recommendationService.getRecommendations(requestDto);
         return ResponseEntity.ok(responseDto);
     }
 }

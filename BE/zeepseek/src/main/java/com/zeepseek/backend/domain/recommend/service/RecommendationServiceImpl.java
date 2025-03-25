@@ -1,6 +1,12 @@
 package com.zeepseek.backend.domain.recommend.service;
 
+import com.zeepseek.backend.domain.property.exception.PropertyNotFoundException;
+import com.zeepseek.backend.domain.property.model.Property;
+import com.zeepseek.backend.domain.property.dto.response.PropertySummaryDto;
+import com.zeepseek.backend.domain.property.service.PropertyService;
 import com.zeepseek.backend.domain.recommend.dto.request.UserRecommendationRequestDto;
+import com.zeepseek.backend.domain.recommend.dto.response.DetailedRecommendationResponseDto;
+import com.zeepseek.backend.domain.recommend.dto.response.RecommendationDto;
 import com.zeepseek.backend.domain.recommend.dto.response.RecommendationResponseDto;
 import com.zeepseek.backend.domain.recommend.exception.RecommendationException;
 import org.slf4j.Logger;
@@ -9,31 +15,58 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class RecommendationServiceImpl implements RecommendationService {
 
     private static final Logger logger = LoggerFactory.getLogger(RecommendationServiceImpl.class);
     private final WebClient recommendationWebClient;
+    private final PropertyService propertyService;
 
-    public RecommendationServiceImpl(WebClient recommendationWebClient) {
+    public RecommendationServiceImpl(WebClient recommendationWebClient, PropertyService propertyService) {
         this.recommendationWebClient = recommendationWebClient;
+        this.propertyService = propertyService;
     }
 
     @Override
-    public RecommendationResponseDto getRecommendations(UserRecommendationRequestDto requestDto) {
-        RecommendationResponseDto response = recommendationWebClient.post()
+    public DetailedRecommendationResponseDto getRecommendations(UserRecommendationRequestDto requestDto) {
+        // FastAPI로부터 추천 결과 받기
+        RecommendationResponseDto originalResponse = recommendationWebClient.post()
                 .body(Mono.just(requestDto), UserRecommendationRequestDto.class)
                 .retrieve()
                 .bodyToMono(RecommendationResponseDto.class)
                 .block();
 
-        // 응답 받은 내용 로깅
-        logger.info("Received recommendation response from FastAPI: {}", response);
+        logger.info("Received recommendation response from FastAPI: {}", originalResponse);
 
-        if (response == null || response.getRecommendedProperties() == null || response.getRecommendedProperties().isEmpty()) {
+        if (originalResponse == null || originalResponse.getRecommendedProperties() == null || originalResponse.getRecommendedProperties().isEmpty()) {
             throw new RecommendationException("No recommendations received from Python API.");
         }
 
-        return response;
+        // 각 추천 항목(propertyId)로 DB에서 상세조회 후 PropertySummaryDto 생성
+        List<RecommendationDto> recList = originalResponse.getRecommendedProperties();
+        List<PropertySummaryDto> detailedProperties = new ArrayList<>();
+
+        for (RecommendationDto rec : recList) {
+            try {
+                Property property = propertyService.getPropertyDetail(rec.getPropertyId());
+                // PropertySummaryDto 생성 (필요에 따라 상세 정보를 포함하도록 확장 가능)
+                PropertySummaryDto summaryDto = new PropertySummaryDto(property.getPropertyId(), property.getLatitude(), property.getLongitude());
+                detailedProperties.add(summaryDto);
+            } catch (PropertyNotFoundException ex) {
+                logger.warn("Property not found for id: {}", rec.getPropertyId());
+            }
+        }
+
+        // 페이징 정보는 필요에 따라 재구성 (여기서는 단일 페이지로 설정)
+        DetailedRecommendationResponseDto detailedResponse = new DetailedRecommendationResponseDto();
+        detailedResponse.setRecommendedProperties(detailedProperties);
+        detailedResponse.setTotalElements(detailedProperties.size());
+        detailedResponse.setTotalPages(1);
+        detailedResponse.setCurrentPage(0);
+
+        return detailedResponse;
     }
 }
