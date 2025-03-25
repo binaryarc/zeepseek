@@ -2,6 +2,7 @@ package com.zeepseek.backend.domain.auth.service;
 
 import com.zeepseek.backend.domain.auth.dto.TokenDto;
 import com.zeepseek.backend.domain.auth.dto.UserDto;
+import com.zeepseek.backend.domain.auth.dto.UserProfileDto;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,7 +21,7 @@ public interface AuthService {
     void deleteUser(Integer userId);
 
     // 첫 로그인 시 추가 데이터 처리
-    UserDto processFirstLoginData(Integer userId, UserDto userDto);
+    UserDto processFirstLoginData(Integer userId, UserProfileDto profileDto);
 
     // 현재 로그인된 사용자 정보 조회
     UserDto getCurrentUser(Integer userId);

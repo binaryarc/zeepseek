@@ -5,9 +5,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zeepseek.backend.domain.auth.dto.TokenDto;
 import com.zeepseek.backend.domain.auth.dto.UserDto;
+import com.zeepseek.backend.domain.auth.dto.UserProfileDto;
 import com.zeepseek.backend.domain.auth.entity.User;
+import com.zeepseek.backend.domain.auth.entity.UserPreferences;
 import com.zeepseek.backend.domain.auth.entity.UserRole;
 import com.zeepseek.backend.domain.auth.exception.AuthException;
+import com.zeepseek.backend.domain.auth.repository.UserPreferencesRepository;
 import com.zeepseek.backend.domain.auth.repository.UserRepository;
 import com.zeepseek.backend.domain.auth.security.UserPrincipal;
 import com.zeepseek.backend.domain.auth.security.jwt.JwtTokenProvider;
@@ -37,7 +40,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider tokenProvider;
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
-
+    private final UserPreferencesRepository userPreferencesRepository;
     @Value("${spring.security.oauth2.client.registration.kakao.client-id}")
     private String kakaoClientId;
 
@@ -92,20 +95,52 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void logout(String accessToken) {
+        log.info("로그아웃 시도: 액세스 토큰 = {}", accessToken.substring(0, 10) + "...");
+
         // 액세스 토큰 유효성 검사
         if (!tokenProvider.validateToken(accessToken)) {
+            log.error("유효하지 않은 액세스 토큰");
             throw new AuthException("Invalid access token");
         }
+        log.info("액세스 토큰 유효성 검증 성공");
 
         Authentication authentication = tokenProvider.getAuthentication(accessToken);
-        String userId = authentication.getName();
+        log.info("인증 객체 추출 성공: {}", authentication);
 
-        // 사용자의 리프레시 토큰 삭제
-        userRepository.findById(Integer.parseInt(userId))
-                .ifPresent(user -> {
-                    user.setRefreshToken(null);
-                    userRepository.save(user);
-                });
+        String userId = authentication.getName();
+        log.info("사용자 ID 추출: {}", userId);
+
+        try {
+            Integer userIdInt = Integer.parseInt(userId);
+            log.info("사용자 ID 변환 성공: {}", userIdInt);
+
+            // 사용자 조회
+            Optional<User> userOpt = userRepository.findById(userIdInt);
+
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                log.info("사용자 찾음: idx={}, 현재 리프레시 토큰={}", user.getIdx(),
+                        user.getRefreshToken() != null ? user.getRefreshToken().substring(0, 10) + "..." : "null");
+
+                // 리프레시 토큰 설정
+                user.setRefreshToken(null);
+                log.info("리프레시 토큰 null로 설정");
+
+                // 저장
+                User savedUser = userRepository.save(user);
+                log.info("사용자 저장 완료, 저장 후 리프레시 토큰: {}", savedUser.getRefreshToken());
+
+                // DB에서 다시 조회하여 확인
+                User verifyUser = userRepository.findById(userIdInt).orElse(null);
+                log.info("DB에서 재조회한 사용자 리프레시 토큰: {}",
+                        verifyUser != null ? verifyUser.getRefreshToken() : "사용자 없음");
+            } else {
+                log.error("사용자를 찾을 수 없음: ID={}", userIdInt);
+            }
+        } catch (NumberFormatException e) {
+            log.error("사용자 ID 변환 실패: {}", userId, e);
+            throw new AuthException("Invalid user ID format");
+        }
     }
 
     @Override
@@ -150,32 +185,88 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public UserDto processFirstLoginData(Integer userId, UserDto userDto) {
+    public UserDto processFirstLoginData(Integer userId, UserProfileDto profileDto) {
+        // 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException("User not found"));
 
-        // 첫 로그인 데이터 처리
-        if (userDto.getNickname() != null) {
-            user.setNickname(userDto.getNickname());
-        }
-        if (userDto.getGender() != null) {
-            user.setGender(userDto.getGender());
-        }
-        if (userDto.getAge() != null) {
-            user.setAge(userDto.getAge());
+        // 이미 첫 로그인이 아니면 에러
+        if (user.getIsFirst() != 1) {
+            throw new AuthException("User is not a first-time user");
         }
 
-        // 첫 로그인 플래그 변경
+        // 사용자 기본 정보 업데이트
+        if (profileDto.getGender() != null) {
+            user.setGender(profileDto.getGender());
+        }
+        if (profileDto.getAge() != null) {
+            user.setAge(profileDto.getAge());
+        }
+
+        // 첫 로그인 플래그 변경 (중요: 프로필 설정 완료 시 0으로 변경)
         user.setIsFirst(0);
-
         User updatedUser = userRepository.save(user);
 
+        // 매물 고려사항 처리
+        if (profileDto.getPropertyPreferences() != null && !profileDto.getPropertyPreferences().isEmpty()) {
+            // 새 선호도 객체 생성
+            UserPreferences preferences = UserPreferences.builder()
+                    .user(user)
+                    .safe(0.0f)
+                    .leisure(0.0f)
+                    .restaurant(0.0f)
+                    .health(0.0f)
+                    .convenience(0.0f)
+                    .transport(0.0f)
+                    .cafe(0.0f)
+                    .build();
+
+            // 선택된 항목 1.0으로 설정
+            for (String preference : profileDto.getPropertyPreferences()) {
+                switch (preference.toLowerCase()) {
+                    case "안전":
+                    case "safe":
+                        preferences.setSafe(1.0f);
+                        break;
+                    case "여가":
+                    case "leisure":
+                        preferences.setLeisure(1.0f);
+                        break;
+                    case "식당":
+                    case "restaurant":
+                        preferences.setRestaurant(1.0f);
+                        break;
+                    case "건강":
+                    case "health":
+                        preferences.setHealth(1.0f);
+                        break;
+                    case "편의":
+                    case "convenience":
+                        preferences.setConvenience(1.0f);
+                        break;
+                    case "교통":
+                    case "transport":
+                        preferences.setTransport(1.0f);
+                        break;
+                    case "카페":
+                    case "cafe":
+                        preferences.setCafe(1.0f);
+                        break;
+                    default:
+                        log.warn("Unknown preference: {}", preference);
+                }
+            }
+
+            userPreferencesRepository.save(preferences);
+        }
+
+        // 업데이트된 사용자 정보 반환
         return UserDto.builder()
                 .idx(updatedUser.getIdx())
                 .nickname(updatedUser.getNickname())
                 .gender(updatedUser.getGender())
                 .age(updatedUser.getAge())
-                .isFirst(updatedUser.getIsFirst())
+                .isFirst(updatedUser.getIsFirst()) // 이제 0으로 설정됨
                 .isSeller(updatedUser.getIsSeller())
                 .provider(updatedUser.getProvider())
                 .build();

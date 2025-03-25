@@ -88,8 +88,9 @@ public class AuthController {
     @PostMapping("/first-data")
     public ResponseEntity<ApiResponse<UserDto>> firstLoginData(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @RequestBody UserDto userDto) {
-        UserDto updatedUser = authService.processFirstLoginData(userPrincipal.getId(), userDto);
+            @RequestBody UserProfileDto profileDto) {
+        log.info("첫 로그인 데이터 처리: userId={}, profileDto={}", userPrincipal.getId(), profileDto);
+        UserDto updatedUser = authService.processFirstLoginData(userPrincipal.getId(), profileDto);
         return ResponseEntity.ok(ApiResponse.success(updatedUser));
     }
 
