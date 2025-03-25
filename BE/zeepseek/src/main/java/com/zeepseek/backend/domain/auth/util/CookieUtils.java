@@ -1,18 +1,16 @@
 package com.zeepseek.backend.domain.auth.util;
 
+import org.springframework.util.SerializationUtils;
+
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.stereotype.Component;
-import org.springframework.util.SerializationUtils;
-
 import java.util.Base64;
 import java.util.Optional;
 
-@Component
 public class CookieUtils {
 
-    public Optional<Cookie> getCookie(HttpServletRequest request, String name) {
+    public static Optional<Cookie> getCookie(HttpServletRequest request, String name) {
         Cookie[] cookies = request.getCookies();
 
         if (cookies != null) {
@@ -26,7 +24,7 @@ public class CookieUtils {
         return Optional.empty();
     }
 
-    public void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
+    public static void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
         Cookie cookie = new Cookie(name, value);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
@@ -34,7 +32,7 @@ public class CookieUtils {
         response.addCookie(cookie);
     }
 
-    public void deleteCookie(HttpServletRequest request, HttpServletResponse response, String name) {
+    public static void deleteCookie(HttpServletRequest request, HttpServletResponse response, String name) {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
@@ -48,11 +46,13 @@ public class CookieUtils {
         }
     }
 
-    public String serialize(Object object) {
+    public static String serialize(Object object) {
         return Base64.getUrlEncoder().encodeToString(SerializationUtils.serialize(object));
     }
 
-    public <T> T deserialize(Cookie cookie, Class<T> cls) {
-        return cls.cast(SerializationUtils.deserialize(Base64.getUrlDecoder().decode(cookie.getValue())));
+    public static <T> T deserialize(Cookie cookie, Class<T> cls) {
+        return cls.cast(SerializationUtils.deserialize(
+                Base64.getUrlDecoder().decode(cookie.getValue())
+        ));
     }
 }

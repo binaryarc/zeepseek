@@ -1,18 +1,15 @@
 package com.zeepseek.backend.domain.recommend.service;
 
-import com.zeepseek.backend.domain.recommend.dto.request.UserCategoryScoreRequestDto;
-import com.zeepseek.backend.domain.recommend.dto.response.RecommendationDto;
+import com.zeepseek.backend.domain.recommend.dto.request.UserRecommendationRequestDto;
+import com.zeepseek.backend.domain.recommend.dto.RecommendationDto;
 import com.zeepseek.backend.domain.recommend.dto.response.RecommendationResponseDto;
 import com.zeepseek.backend.domain.recommend.exception.RecommendationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -22,8 +19,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private static final Logger logger = LoggerFactory.getLogger(RecommendationServiceImpl.class);
 
-    // Python FastAPI 추천 API URL (내부 네트워크 IP 또는 도메인)
-    @Value("${recommendation.api.url:http://localhost:8000/recommend}")
+    @Value("${recommendation.api.url:http://localhost:8000}/recommend")
     private String recommendationApiUrl;
 
     private final WebClient webClient;
@@ -33,32 +29,37 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     @Override
-    public Page<RecommendationDto> getRecommendations(UserCategoryScoreRequestDto userCategoryScoreDto, Pageable pageable) {
+    public RecommendationResponseDto getRecommendations(UserRecommendationRequestDto requestDto, Pageable pageable) {
         try {
+            // FastAPI 추천 API로 사용자 점수 전달 및 추천 결과 수신 (예: 상위 100개 추천)
             RecommendationResponseDto response = webClient.post()
-                    .body(Mono.just(userCategoryScoreDto), UserCategoryScoreRequestDto.class)
+                    .body(Mono.just(requestDto), UserRecommendationRequestDto.class)
                     .retrieve()
                     .bodyToMono(RecommendationResponseDto.class)
                     .block();
 
             if (response == null || response.getRecommendedProperties() == null) {
-                logger.warn("No recommendations received from Python API for user score: {}", userCategoryScoreDto);
-                throw new RecommendationException("NO_RECOMMENDATION", "No recommendations received from Python API.", null);
+                throw new RecommendationException("No recommendations received from Python API.");
             }
 
-            List<RecommendationDto> recommendations = response.getRecommendedProperties();
-            int totalElements = recommendations.size();
+            List<RecommendationDto> allRecommendations = response.getRecommendedProperties();
+            int totalElements = allRecommendations.size();
+            int pageSize = pageable.getPageSize();
+            int currentPage = pageable.getPageNumber();
+            int start = currentPage * pageSize;
+            int end = Math.min(start + pageSize, totalElements);
+            List<RecommendationDto> pagedRecommendations = allRecommendations.subList(start, end);
 
-            // 페이지네이션 처리
-            int start = (int) pageable.getOffset();
-            int end = Math.min(start + pageable.getPageSize(), totalElements);
-            List<RecommendationDto> pageList = recommendations.subList(start, end);
+            RecommendationResponseDto result = new RecommendationResponseDto();
+            result.setRecommendedProperties(pagedRecommendations);
+            result.setTotalElements(totalElements);
+            result.setTotalPages((int) Math.ceil((double) totalElements / pageSize));
+            result.setCurrentPage(currentPage);
 
-            logger.info("Returning {} recommendations out of {} total. Page: {}", pageList.size(), totalElements, pageable.getPageNumber());
-            return new PageImpl<>(pageList, pageable, totalElements);
-        } catch (WebClientResponseException e) {
-            logger.error("WebClient error fetching recommendations: {} - {}", e.getRawStatusCode(), e.getResponseBodyAsString());
-            throw new RecommendationException("WEBCLIENT_ERROR", "Error fetching recommendations: " + e.getMessage(), e);
+            logger.info("Returning page {} with {} recommendations out of {} total.",
+                    currentPage, pagedRecommendations.size(), totalElements);
+
+            return result;
         } catch (Exception e) {
             logger.error("Error fetching recommendations: {}", e.getMessage(), e);
             throw new RecommendationException("Failed to fetch recommendations.", e);
