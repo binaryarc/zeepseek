@@ -19,7 +19,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private static final Logger logger = LoggerFactory.getLogger(RecommendationServiceImpl.class);
 
-    @Value("${recommendation.api.url:http://recommend_container:8000/recommend}")
+    @Value("${recommendation.api.url:http://localhost:8000}/recommend")
     private String recommendationApiUrl;
 
     private final WebClient webClient;
@@ -57,7 +57,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             result.setCurrentPage(currentPage);
 
             logger.info("Returning page {} with {} recommendations out of {} total.",
-                        currentPage, pagedRecommendations.size(), totalElements);
+                    currentPage, pagedRecommendations.size(), totalElements);
 
             return result;
         } catch (Exception e) {
