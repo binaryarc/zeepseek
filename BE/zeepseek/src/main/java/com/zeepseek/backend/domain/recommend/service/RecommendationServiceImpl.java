@@ -19,13 +19,16 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private static final Logger logger = LoggerFactory.getLogger(RecommendationServiceImpl.class);
 
-    @Value("${recommendation.api.url:http://localhost:8000}/recommend")
-    private String recommendationApiUrl;
-
+    private final String recommendationApiUrl;
     private final WebClient webClient;
 
-    public RecommendationServiceImpl(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.baseUrl(recommendationApiUrl).build();
+    // 생성자 주입으로 recommendationApiUrl도 함께 주입받습니다.
+    public RecommendationServiceImpl(WebClient.Builder webClientBuilder,
+                                     @Value("${recommendation.api.url:http://recommend_container:8000}/recommend") String recommendationApiUrl) {
+        this.recommendationApiUrl = recommendationApiUrl;
+        this.webClient = webClientBuilder.baseUrl(this.recommendationApiUrl).build();
+        // 생성자 내부에서 URL 로깅
+        logger.info("Recommendation API URL: {}", this.recommendationApiUrl);
     }
 
     @Override
