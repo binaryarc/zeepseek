@@ -41,7 +41,8 @@ pipeline {
                 def payload = """{
                     "text": "## Jenkins 빌드 알림\\n**Job:** \\`${env.JOB_NAME}\\`\\n:rocket: **빌드 성공!** 배포가 완료되었습니다.\\n\\n자세한 정보는 Jenkins 콘솔 로그를 확인하세요."
                 }"""
-                sh "curl -i -X POST -H 'Content-Type: application/json' -d '${payload}' ${mattermostWebhook}"
+                // -d 인자를 큰따옴표로 감싸서 payload가 올바르게 전달되도록 수정
+                sh "curl -i -X POST -H 'Content-Type: application/json' -d \"${payload}\" ${mattermostWebhook}"
             }
         }
         failure {
@@ -50,7 +51,7 @@ pipeline {
                 def payload = """{
                     "text": "## Jenkins 빌드 알림\\n**Job:** \\`${env.JOB_NAME}\\`\\n:warning: **빌드 에러 발생!** 확인이 필요합니다.\\n\\n자세한 로그는 Jenkins 콘솔 로그를 확인하세요.\\n\\n*에러 발생 시 즉각적인 확인 바랍니다.*"
                 }"""
-                sh "curl -i -X POST -H 'Content-Type: application/json' -d '${payload}' ${mattermostWebhook}"
+                sh "curl -i -X POST -H 'Content-Type: application/json' -d \"${payload}\" ${mattermostWebhook}"
             }
         }
         always {
