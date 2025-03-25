@@ -67,6 +67,7 @@ public class ElasticsearchDataMigrationService {
                         .longitude(property.getLongitude())
                         .dongId(property.getDongId())
                         .guName(property.getGuName())
+                        .dongName(property.getDongName())
                         .build();
 
                 bulkBuilder.operations(op -> op.index(idx -> idx
