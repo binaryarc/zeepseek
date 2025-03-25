@@ -4,7 +4,7 @@ import store from '../../store/store';
 import { setAccessToken, logout } from '../../store/slices/authSlice';
 
 const zeepApi = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL:`https://j12e203.p.ssafy.io/api/v1`, // ✅ API 서버 주소
   withCredentials: false, // ✅ 쿠키 포함 요청
 });
 
