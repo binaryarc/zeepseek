@@ -6,14 +6,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-# 환경 변수를 .env 파일로 생성
-RUN echo "VITE_API_BASE_URL=https://j12e203.p.ssafy.io/api" > .env && \
-    echo "VITE_APP_KAKAO_MAP_API_KEY=2f0c32ff649b3fdadea601325ca90f62" >> .env && \
-    echo "VITE_KAKAO_CLIENT_ID=38c66a61f9b3af37dec7da2f800c1199" >> .env && \
-    echo "VITE_KAKAO_REDIRECT_URI=https://j12e203.p.ssafy.io/api/v1/auth/redirect" >> .env && \
-    echo "VITE_NAVER_CLIENT_ID=a4Okl4nf4Y547xepGxtu" >> .env && \
-    echo "VITE_NAVER_REDIRECT_URI=https://j12e203.p.ssafy.io/api/v1/auth/redirect" >> .env && \
-    echo "VITE_NAVER_STATE_STRING=HELLOTHISISAIRDEXSPEAKING" >> .env
+# 환경 변수 파일을 먼저 복사 (이 부분이 중요합니다)
+COPY .env ./
 
 # 소스 코드 복사 후 빌드
 COPY . .
@@ -25,10 +19,11 @@ WORKDIR /app
 
 # 빌드 단계에서 생성된 빌드 결과물을 복사
 COPY --from=builder /app/dist ./dist
-# .env 파일도 복사
-COPY --from=builder /app/.env ./.env
 
+# .env 파일도 복사 (명시적으로 위치 지정)
+COPY .env ./
+
+EXPOSE 5173
 # serve 패키지를 전역으로 설치하여 정적 파일 서빙
 RUN npm install -g serve
-EXPOSE 5173
 CMD ["serve", "-s", "dist", "-l", "5173"]
