@@ -23,7 +23,7 @@ router = APIRouter()
 
 
 class NewPropertyData(BaseModel):
-    property_id: int
+    propertyId: int
     latitude: float
     longitude: float
 
@@ -88,13 +88,13 @@ def recalculate_incomplete():
 
 
 class UserCategoryScore(BaseModel):
-    transport_score: float
-    restaurant_score: float
-    health_score: float
-    convenience_score: float
-    cafe_score: float
-    chicken_score: float
-    leisure_score: float
+    transportScore: float
+    restaurantScore: float
+    healthScore: float
+    convenienceScore: float
+    cafeScore: float
+    chickenScore: float
+    leisureScore: float
 
 
 @router.post("/recommend", summary="Recommend top 5 properties based on user's category scores")
