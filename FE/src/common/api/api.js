@@ -1,10 +1,10 @@
 // src/api/zeepApi.js
-import axios from 'axios';
-import store from '../../store/store';
-import { setAccessToken, logout } from '../../store/slices/authSlice';
+import axios from "axios";
+import store from "../../store/store";
+import { setAccessToken, logout } from "../../store/slices/authSlice";
 
 const zeepApi = axios.create({
-  baseURL:`https://j12e203.p.ssafy.io/api/v1`, // ✅ API 서버 주소
+  baseURL: `https://j12e203.p.ssafy.io/api/v1`, // ✅ API 서버 주소
   withCredentials: false, // ✅ 쿠키 포함 요청
 });
 
@@ -41,7 +41,6 @@ export const fetchDongPropertyCounts = async () => {
   }
 };
 
-
 // ✅ 매물 검색 요청 (keyword 기반)
 export const searchProperties = async (keyword, page = 1, size = 20) => {
   try {
@@ -60,7 +59,12 @@ export const searchProperties = async (keyword, page = 1, size = 20) => {
 };
 
 // ✅ 지도 드래그 매물 조회
-export const fetchPropertiesByBounds = async (guName, dongName, page=1, size=10000) => {
+export const fetchPropertiesByBounds = async (
+  guName,
+  dongName,
+  page = 1,
+  size = 10000
+) => {
   try {
     const res = await zeepApi.get("/search/mapper", {
       params: {
@@ -74,18 +78,6 @@ export const fetchPropertiesByBounds = async (guName, dongName, page=1, size=100
   } catch (error) {
     console.error("지도 드래그 매물 조회 실패:", error);
     return [];
-  }
-}
-
-
-// 상세 매물 조회 API
-export const getPropertyDetail = async (propertyId) => {
-  try {
-    const res = await zeepApi.get(`/property/${propertyId}`);
-    return res.data;
-  } catch (error) {
-    console.error("매물 상세 조회 실패:", error);
-    return null;
   }
 };
 
@@ -111,14 +103,14 @@ zeepApi.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const res = await zeepApi.post('/auth/refresh');
+        const res = await zeepApi.post("/auth/refresh");
         const newToken = res.data.accessToken;
         store.dispatch(setAccessToken(newToken));
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return zeepApi(originalRequest);
       } catch {
         store.dispatch(logout());
-        window.location.href = '/login';
+        window.location.href = "/login";
       }
     }
 
