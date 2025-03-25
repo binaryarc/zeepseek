@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import "./CurrentLocationLabel.css";
 import { useDispatch, useSelector } from "react-redux";
+import { useRef } from "react";
 import {
   setCurrentDongId,
-  fetchRoomListByDongId,
+  fetchRoomListByBounds,
   setSearchLock,
 } from "../../../../store/slices/roomListSlice";
 
@@ -12,6 +13,12 @@ function CurrentLocationLabel({ map }) {
   const dispatch = useDispatch();
   const currentDongId = useSelector((state) => state.roomList.currentDongId);
   const searchLock = useSelector((state) => state.roomList.searchLock);
+  const searchLockRef = useRef(searchLock); // ✅ useRef로 감싸서 최신값 유지
+
+  // ✅ searchLock 최신값 반영
+  useEffect(() => {
+    searchLockRef.current = searchLock;
+  }, [searchLock]);
 
   useEffect(() => {
     if (!map || !window.kakao) return;
@@ -30,15 +37,19 @@ function CurrentLocationLabel({ map }) {
             console.log(result);
             const regionData = result[1]; // result[1]은 행정동 정보
             const dongCode = regionData.code.slice(0, -2); // 👉 행정동 코드 (dongId)
+            const guName = regionData.region_2depth_name;
+            const dongName = regionData.region_3depth_name;
 
             // ✅ 현재 저장된 dongId와 다르면 요청
             if (dongCode && dongCode !== currentDongId) {
-              if (searchLock) {
+              if (searchLockRef.current) {
                 // 🔓 검색으로 인한 이동이면 그냥 무시
                 dispatch(setSearchLock(false));
+                console.log("검색으로 인한 이동이라 무시합니다.");
               } else {
+                console.log("여기로 너 안오잖아");
                 dispatch(setCurrentDongId(dongCode));
-                dispatch(fetchRoomListByDongId(dongCode));
+                dispatch(fetchRoomListByBounds({ guName, dongName }));
               }
             }
 

@@ -8,6 +8,7 @@ import { useDispatch } from "react-redux";
 import {
   setCurrentDongId,
   setSearchLock,
+  fetchRoomList,
 } from "../../store/slices/roomListSlice";
 import { searchProperties } from "../../common/api/api";
 
@@ -64,10 +65,7 @@ function Searchbar() {
         dispatch(setCurrentDongId(null));
 
         // 검색 결과를 rooms에 반영 (덮어쓰기)
-        dispatch({
-          type: "roomList/fetchByDong/fulfilled",
-          payload: properties,
-        });
+        dispatch(fetchRoomList(searchText));
 
         dispatch(setSearchLock(true)); // 🔐 검색으로 인해 이동 발생
       } else {
