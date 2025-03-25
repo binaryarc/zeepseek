@@ -17,6 +17,31 @@ const zeepApi = axios.create({
 //   return config;
 // });
 
+// 🔹 매물 개수 조회 - 구 단위
+export const fetchGuPropertyCounts = async () => {
+  try {
+    const res = await zeepApi.get("/property/count/gu");
+    // console.log("구별 매물 개수 조회 결과:", res);
+    return res.data;
+  } catch (err) {
+    console.error("구별 매물 개수 조회 실패:", err);
+    return [];
+  }
+};
+
+// 🔹 매물 개수 조회 - 동 단위
+export const fetchDongPropertyCounts = async () => {
+  try {
+    const res = await zeepApi.get("/property/count/dong");
+    // console.log("동동별 매물 개수 조회 결과:", res);
+    return res.data;
+  } catch (err) {
+    console.error("동별 매물 개수 조회 실패:", err);
+    return [];
+  }
+};
+
+
 // ✅ 매물 검색 요청 (keyword 기반)
 export const searchProperties = async (keyword, page = 1, size = 20) => {
   try {
@@ -34,16 +59,33 @@ export const searchProperties = async (keyword, page = 1, size = 20) => {
   }
 };
 
-// ✅ 동 ID 기반 매물 조회 API
-export const getPropertiesByDongId = async (dongId) => {
+// ✅ 지도 드래그 매물 조회
+export const fetchPropertiesByBounds = async (guName, dongName, page=1, size=10000) => {
   try {
-    const res = await zeepApi.get(`roomList/fetchByDong`);
-    console.log("동 매물 조회 결과:", dongId);
-    console.log("동 매물 조회 결과:", res);
-    return res.data; // 🔥 res.properties가 아니라 res.data로 전체 리턴
+    const res = await zeepApi.get("/search/mapper", {
+      params: {
+        guName,
+        dongName,
+        page,
+        size,
+      },
+    });
+    return res.data;
   } catch (error) {
-    console.error("동 매물 조회 실패:", error);
+    console.error("지도 드래그 매물 조회 실패:", error);
     return [];
+  }
+}
+
+
+// 상세 매물 조회 API
+export const getPropertyDetail = async (propertyId) => {
+  try {
+    const res = await zeepApi.get(`/property/${propertyId}`);
+    return res.data;
+  } catch (error) {
+    console.error("매물 상세 조회 실패:", error);
+    return null;
   }
 };
 
