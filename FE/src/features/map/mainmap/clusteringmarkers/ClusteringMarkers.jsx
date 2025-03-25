@@ -10,10 +10,19 @@ function ClusteringMarkers({ map, saleData }) {
     const drawGridMarkers = () => {
       const level = map.getLevel();
 
-      console.log("level: ", level)
-
-      // ✅ 줌 레벨에 따라 그리드 간격 조정 (대략적인 경도/위도 단위)
-      const gridSize = level >= 14 ? 0.002 : level >= 12 ? 0.005 : 0.01;
+      // ✅ 레벨이 6보다 크면 (즉, 축소 상태) → grid 적용 안 함
+      if (level > 6) {
+        overlaysRef.current.forEach((o) => o.setMap(null));
+        overlaysRef.current = [];
+        return;
+      }
+    
+      // ✅ 6 이하부터 grid 클러스터링 적용
+      const gridSize =
+        level <= 4 ? 0.001 :
+        level <= 5 ? 0.002 :
+        0.003;
+    
 
       // ✅ 기존 마커 제거
       overlaysRef.current.forEach((o) => o.setMap(null));
