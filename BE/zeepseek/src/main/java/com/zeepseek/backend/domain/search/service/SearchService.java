@@ -1,6 +1,7 @@
 package com.zeepseek.backend.domain.search.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
@@ -40,7 +41,9 @@ public class SearchService {
                     .query(q -> q
                             .multiMatch(mm -> mm
                                     .query(keyword)
-                                    .fields( "description", "address", "guName", "roomType")
+                                    .fields( "address", "description", "guName", "roomType")
+                                    .type(TextQueryType.BoolPrefix)
+                                    .fuzziness("AUTO")
                             )
                     )
             );
