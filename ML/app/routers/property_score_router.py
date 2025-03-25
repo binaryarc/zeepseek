@@ -102,7 +102,7 @@ def recommend_properties_endpoint(user_scores: UserCategoryScore):
     """
     사용자 점수를 받아, 코사인 유사도 기반으로 상위 5개 매물을 추천
     """
-    recommendations = recommend_properties(user_scores.dict(), top_n=5)
+    recommendations = recommend_properties(user_scores.dict(), top_n=10)
     if not recommendations:
         raise HTTPException(status_code=404, detail="No properties found")
     return {"recommended_properties": recommendations}
