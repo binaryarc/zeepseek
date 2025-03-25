@@ -10,8 +10,9 @@ RUN npm install
 ARG CACHE_BUST=$(date +%s)
 ENV CACHE_BUST=${CACHE_BUST}
 
-COPY .env ./
+
 COPY . .
+COPY .env ./
 RUN npm run build
 
 # 2단계: Production Stage - 정적 파일을 제공하기 위해 serve 사용
