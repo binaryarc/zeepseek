@@ -4,13 +4,26 @@ import { useNavigate } from "react-router-dom";
 import "./SearchBar.css";
 import { FaRegUserCircle } from "react-icons/fa"; // 사람 아이콘
 import { FiSearch } from "react-icons/fi"; // 검색 아이콘
+import { useDispatch } from "react-redux";
+import {
+  setCurrentDongId,
+  setSearchLock,
+} from "../../store/slices/roomListSlice";
+import { searchProperties } from "../../common/api/api";
 
 function Searchbar() {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(true); // 임시 상태
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchText, setSearchText] = useState("");
   const nickname = "크롤링하는 크롱님";
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
 
   const handleToggleDropdown = () => {
     setShowDropdown((prev) => !prev);
@@ -21,9 +34,47 @@ function Searchbar() {
     navigate(path);
   };
 
-  const handleSearch = () => {
-    if (searchText.trim()) {
-      navigate(`/search?keyword=${encodeURIComponent(searchText)}`);
+  const handleSearch = async () => {
+    if (!searchText.trim()) return;
+
+    try {
+      const res = await searchProperties(searchText);
+      console.log("검색결과", res);
+      const properties = res?.properties || [];
+
+      if (properties.length > 0) {
+        const first = properties[0];
+        const geocoder = new window.kakao.maps.services.Geocoder();
+
+        // 주소를 좌표로 변환하여 지도 이동
+        geocoder.addressSearch(first.address, (result, status) => {
+          if (status === window.kakao.maps.services.Status.OK) {
+            const { x, y } = result[0];
+            const latLng = new window.kakao.maps.LatLng(y, x);
+            const map = window.map;
+            if (map) map.setCenter(latLng);
+            // 💡 강제로 idle 이벤트 트리거
+            setTimeout(() => {
+              window.kakao.maps.event.trigger(map, "idle");
+            }, 50); // 500ms 정도면 충분
+          }
+        });
+
+        // 현재 동 코드를 제거하여 다음 지도 idle 시에 다시 요청될 수 있게 함
+        dispatch(setCurrentDongId(null));
+
+        // 검색 결과를 rooms에 반영 (덮어쓰기)
+        dispatch({
+          type: "roomList/fetchByDong/fulfilled",
+          payload: properties,
+        });
+
+        dispatch(setSearchLock(true)); // 🔐 검색으로 인해 이동 발생
+      } else {
+        alert("검색 결과가 없습니다.");
+      }
+    } catch (err) {
+      console.error("검색 실패:", err);
     }
   };
 
@@ -39,9 +90,10 @@ function Searchbar() {
       <div className="nav-searchbox">
         <input
           type="text"
-          placeholder="지역, 단지, 매물번호를 검색하세요!"
+          placeholder="지역, 매물번호를 검색하세요!"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
+          onKeyDown={handleKeyDown} // ✅ 여기 추가
         />
         <button onClick={handleSearch}>
           <FiSearch size={20} />
@@ -61,8 +113,12 @@ function Searchbar() {
             {showDropdown && (
               <div className="nav-dropdown">
                 <div onClick={() => handleMenuClick("/mypage")}>마이페이지</div>
-                <div onClick={() => handleMenuClick("/wishlist")}>찜한 매물</div>
-                <div onClick={() => handleMenuClick("/profile")}>내 정보 수정</div>
+                <div onClick={() => handleMenuClick("/wishlist")}>
+                  찜한 매물
+                </div>
+                <div onClick={() => handleMenuClick("/profile")}>
+                  내 정보 수정
+                </div>
                 <div onClick={() => setIsLoggedIn(false)}>로그아웃</div>
               </div>
             )}
