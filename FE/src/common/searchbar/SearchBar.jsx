@@ -19,6 +19,12 @@ function Searchbar() {
   const [searchText, setSearchText] = useState("");
   const nickname = "크롤링하는 크롱님";
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
   const handleToggleDropdown = () => {
     setShowDropdown((prev) => !prev);
   };
@@ -47,6 +53,10 @@ function Searchbar() {
             const latLng = new window.kakao.maps.LatLng(y, x);
             const map = window.map;
             if (map) map.setCenter(latLng);
+            // 💡 강제로 idle 이벤트 트리거
+            setTimeout(() => {
+              window.kakao.maps.event.trigger(map, "idle");
+            }, 50); // 500ms 정도면 충분
           }
         });
 
@@ -80,9 +90,10 @@ function Searchbar() {
       <div className="nav-searchbox">
         <input
           type="text"
-          placeholder="지역, 단지, 매물번호를 검색하세요!"
+          placeholder="지역, 매물번호를 검색하세요!"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
+          onKeyDown={handleKeyDown} // ✅ 여기 추가
         />
         <button onClick={handleSearch}>
           <FiSearch size={20} />
