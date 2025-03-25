@@ -5,7 +5,7 @@ const KakaoLogin = () => {
 
     const handleKakaoLogin = () => {
         console.log("리다이렉트 URI:", import.meta.env.VITE_KAKAO_REDIRECT_URI);
-        const redirectUri = "http://j12e203.p.ssafy.io/api/v1/auth/redirect";
+        const redirectUri = "https://j12e203.p.ssafy.io/api/v1/auth/redirect";
         const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${import.meta.env.VITE_KAKAO_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}`;
         console.log("전체 인증 URL:", KAKAO_AUTH_URL);
         window.location.href = KAKAO_AUTH_URL;

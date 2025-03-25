@@ -46,8 +46,8 @@ const RoomList = () => {
               <p className="room-description">{room.address}</p>
             </div>
           </div>
-        ))
-      )}
+          ))
+        )}
     </div>
   );
 };

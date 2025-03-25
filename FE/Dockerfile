@@ -6,8 +6,13 @@ COPY package*.json ./
 RUN npm install
 # 전체 소스 복사 후 빌드 (Vite의 기본 빌드 명령어)
 
-COPY .env ./
+# 캐시 비활성화를 위한 더미데이터 추가
+ARG CACHE_BUST=$(date +%s)
+ENV CACHE_BUST=${CACHE_BUST}
+
+
 COPY . .
+COPY .env ./
 RUN npm run build
 
 # 2단계: Production Stage - 정적 파일을 제공하기 위해 serve 사용
@@ -15,6 +20,7 @@ FROM node:22-alpine
 WORKDIR /app
 # 빌드 단계에서 생성된 빌드 결과물을 복사 (보통 Vite는 'dist' 폴더에 빌드 결과물을 생성합니다)
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/.env ./.env
 # serve 패키지를 전역으로 설치하여 정적 파일 서빙
 RUN npm install -g serve
 EXPOSE 5173
