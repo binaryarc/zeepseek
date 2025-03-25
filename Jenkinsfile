@@ -22,12 +22,6 @@ pipeline {
                 '''
             }
         }
-        stage('Cleanup Old Containers') {
-            steps {
-                echo "기존 컨테이너 정리 중..."
-                sh 'docker-compose down'
-            }
-        }
         stage('Build & Deploy Backend') {
             steps {
                 echo "Backend 서비스를 재빌드 및 재배포합니다..."
