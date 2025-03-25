@@ -6,6 +6,10 @@ COPY package*.json ./
 RUN npm install
 # 전체 소스 복사 후 빌드 (Vite의 기본 빌드 명령어)
 
+# 캐시 비활성화를 위한 더미데이터 추가
+ARG CACHE_BUST=$(date +%s)
+ENV CACHE_BUST=${CACHE_BUST}
+
 COPY .env ./
 COPY . .
 RUN npm run build
