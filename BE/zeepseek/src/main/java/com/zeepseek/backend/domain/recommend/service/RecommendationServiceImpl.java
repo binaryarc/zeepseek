@@ -8,8 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -22,22 +24,36 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final String recommendationApiUrl;
     private final WebClient webClient;
 
-    // 생성자 주입으로 recommendationApiUrl도 함께 주입받습니다.
     public RecommendationServiceImpl(WebClient.Builder webClientBuilder,
-                                     @Value("${recommendation.api.url:http://recommend_container:8000}/recommend") String recommendationApiUrl) {
+                                     @Value("${recommendation.api.url:http://recommend_container:8000/recommend}") String recommendationApiUrl) {
         this.recommendationApiUrl = recommendationApiUrl;
-        this.webClient = webClientBuilder.baseUrl(this.recommendationApiUrl).build();
-        // 생성자 내부에서 URL 로깅
-        logger.info("Recommendation API URL: {}", this.recommendationApiUrl);
+        this.webClient = webClientBuilder
+                .baseUrl(this.recommendationApiUrl)
+                .defaultHeader("Content-Type", "application/json")
+                .build();
+
+        logger.info("Recommendation API URL configured: {}", this.recommendationApiUrl);
     }
 
     @Override
     public RecommendationResponseDto getRecommendations(UserRecommendationRequestDto requestDto, Pageable pageable) {
         try {
-            // FastAPI 추천 API로 사용자 점수 전달 및 추천 결과 수신 (예: 상위 100개 추천)
+            // Debug: Log the request DTO before sending
+            logger.debug("Request DTO being sent: {}", requestDto);
+
             RecommendationResponseDto response = webClient.post()
+                    .contentType(MediaType.APPLICATION_JSON)
                     .body(Mono.just(requestDto), UserRecommendationRequestDto.class)
                     .retrieve()
+                    .onStatus(
+                            httpStatus -> httpStatus.is4xxClientError() || httpStatus.is5xxServerError(),
+                            clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .flatMap(errorBody -> {
+                                        logger.error("Error response from recommendation API: Status {}, Body: {}",
+                                                clientResponse.statusCode(), errorBody);
+                                        return Mono.error(new RecommendationException("API Error: " + errorBody));
+                                    })
+                    )
                     .bodyToMono(RecommendationResponseDto.class)
                     .block();
 
@@ -45,6 +61,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 throw new RecommendationException("No recommendations received from Python API.");
             }
 
+            // Rest of the method remains the same as your original implementation
             List<RecommendationDto> allRecommendations = response.getRecommendedProperties();
             int totalElements = allRecommendations.size();
             int pageSize = pageable.getPageSize();
@@ -63,6 +80,11 @@ public class RecommendationServiceImpl implements RecommendationService {
                     currentPage, pagedRecommendations.size(), totalElements);
 
             return result;
+        } catch (WebClientResponseException e) {
+            // More detailed logging for WebClient specific exceptions
+            logger.error("WebClient Error - Status: {}, Body: {}",
+                    e.getStatusCode(), e.getResponseBodyAsString(), e);
+            throw new RecommendationException("Failed to fetch recommendations: " + e.getResponseBodyAsString(), e);
         } catch (Exception e) {
             logger.error("Error fetching recommendations: {}", e.getMessage(), e);
             throw new RecommendationException("Failed to fetch recommendations.", e);
