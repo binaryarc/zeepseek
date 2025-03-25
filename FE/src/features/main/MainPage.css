@@ -7,7 +7,6 @@
 
   .main-logo {
     margin-top: 3%;
-    width: 28%;
     height: auto;
   }
   
@@ -18,7 +17,7 @@
   
   /* 검색 바 */
   .main-search-bar {
-    width: 50%;
+    width: 40rem;
     padding: 12px;
     margin-top: 20px;
     border-radius: 20px;

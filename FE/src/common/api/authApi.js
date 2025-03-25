@@ -1,11 +1,13 @@
 import zeepApi from "./api";
+// import { setAccessToken, setUser } from "../../store/authSlice";
+// import store from "../../store/store";
 // // import { setAuth } from "../../store/slices/authSlice";
 // import store from "../../store/store";
 
 // OAuth 로그인 (카카오 & 네이버)
 export const oauthLogin = async (authorizationCode, provider) => {
   try {
-    const response = await zeepApi.post("/api/v1/auth/login", {
+    const response = await zeepApi.post("/auth/login", {
       authorizationCode,
       provider,
     });
@@ -15,11 +17,10 @@ export const oauthLogin = async (authorizationCode, provider) => {
 
     return response.data;
   } catch (error) {
-    console.error(` ${provider} 로그인 실패:`, error);
+    console.error(`${provider} 로그인 실패:`, error);
     throw error;
   }
 };
-
 
 export const loginOAuth = async (authorizationCode, provider) => {
   return await zeepApi.post("/auth/login", {

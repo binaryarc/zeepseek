@@ -78,6 +78,27 @@ export const fetchPropertiesByBounds = async (guName, dongName, page=1, size=100
 }
 
 
+// 상세 매물 조회 API
+export const getPropertyDetail = async (propertyId) => {
+  try {
+    const res = await zeepApi.get(`/property/${propertyId}`);
+    return res.data;
+  } catch (error) {
+    console.error("매물 상세 조회 실패:", error);
+    return null;
+  }
+};
+
+// 상세 매물 조회 API
+export const getPropertyDetail = async (propertyId) => {
+  try {
+    const res = await zeepApi.get(`/property/${propertyId}`);
+    return res.data;
+  } catch (error) {
+    console.error("매물 상세 조회 실패:", error);
+    return null;
+  }
+};
 
 // 응답 인터셉터
 zeepApi.interceptors.response.use(
@@ -93,10 +114,9 @@ zeepApi.interceptors.response.use(
         const res = await zeepApi.post('/auth/refresh');
         const newToken = res.data.accessToken;
         store.dispatch(setAccessToken(newToken));
-
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return zeepApi(originalRequest);
-      } catch (refreshErr) {
+      } catch {
         store.dispatch(logout());
         window.location.href = '/login';
       }

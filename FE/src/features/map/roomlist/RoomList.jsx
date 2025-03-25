@@ -1,19 +1,21 @@
 import React, { useState } from "react";
 import "./RoomList.css";
 import AiRecommend from "./ai_recommend/AiRecommend";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { setSelectedPropertyId } from "../../../store/slices/roomListSlice";
 import defaultImage from "../../../assets/logo/192image.png";
+
 
 const RoomList = () => {
   const [selectedTab, setSelectedTab] = useState("원룸/투룸");
-
+  const dispatch = useDispatch();
   const handleTabClick = (tab) => {
     setSelectedTab(tab);
   };
 
   // ✅ Redux 상태에서 매물 리스트, 로딩 상태 가져오기
   const { rooms, loading, keyword } = useSelector((state) => state.roomList);
-
+  
   return (
     <div className="room-list">
       <nav className="room-type">
@@ -38,7 +40,11 @@ const RoomList = () => {
         </div>
       ) : (
         rooms.map((room) => (
-          <div key={room.propertyId} className="room-item">
+          <div
+          key={room.propertyId}
+          className="room-item"
+          onClick={() => dispatch(setSelectedPropertyId(room.propertyId))}
+        >
             <img src={room.imageUrl || defaultImage} alt="매물 이미지" />
             <div>
               <p className="room-title">
@@ -48,8 +54,12 @@ const RoomList = () => {
             </div>
           </div>
           ))
-        )}
+          
+        )
+        }
+        
     </div>
+    
   );
 };
 
