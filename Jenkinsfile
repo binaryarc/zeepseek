@@ -18,6 +18,10 @@ pipeline {
 
                     // 환경 변수 파일이 생성되었는지 확인
                     sh 'echo "환경 변수 파일이 생성되었습니다."'
+
+                    // 환경 변수 내용 확인 (마스킹 처리 없이)
+                    sh 'echo "환경 변수 파일 내용:" && cat ${WORKSPACE}/.env'
+
                     sh 'ls -la ${WORKSPACE}/'
                 }
             }
