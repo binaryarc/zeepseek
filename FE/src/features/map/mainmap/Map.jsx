@@ -63,7 +63,6 @@ const Map = () => {
           const bounds = mapInstance.getBounds();
           const level = mapInstance.getLevel();
 
-
           if (level > 5) {
             polygonsRef.current.forEach((polygon) => polygon.setMap(null));
             polygonsRef.current = [];
@@ -94,7 +93,7 @@ const Map = () => {
                 strokeColor: "#3CB371",
                 strokeOpacity: 0,     
                 fillColor: "#A2D1FF",
-                fillOpacity: 0.02,       
+                fillOpacity: 0.02,
               });
 
               polygon.setMap(map);
@@ -134,8 +133,7 @@ const Map = () => {
 
               // ✅ 마우스 올릴 때 경계선 표시
               window.kakao.maps.event.addListener(polygon, "mouseover", () => {
-                polygon.setOptions(
-                  {
+                polygon.setOptions({
                   strokeOpacity: 1,
                   fillOpacity: 0.5,
                   fillColor: "#F1FAD3"
@@ -149,7 +147,6 @@ const Map = () => {
                    fillOpacity: 0.02,       
                 });
               });
-              
 
               polygon.setMap(mapInstance);
               polygonsRef.current.push(polygon);

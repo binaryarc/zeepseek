@@ -1,6 +1,8 @@
 import zeepApi from "./api";
-import { setAccessToken, setUser } from "../../store/authSlice";
-import store from "../../store/store";
+// import { setAccessToken, setUser } from "../../store/authSlice";
+// import store from "../../store/store";
+// // import { setAuth } from "../../store/slices/authSlice";
+// import store from "../../store/store";
 
 // OAuth 로그인 (카카오 & 네이버)
 export const oauthLogin = async (authorizationCode, provider) => {
@@ -10,10 +12,8 @@ export const oauthLogin = async (authorizationCode, provider) => {
       provider,
     });
 
-    
-    // ✅ Redux 상태 업데이트
-    store.dispatch(setAccessToken(response.data.accessToken));
-    store.dispatch(setUser(response.data)); // 필요 시 user 정보 일부만 저장해도 됨
+    // Redux 상태 업데이트 (토큰 & 유저 정보 저장)
+    // store.dispatch(setAuth({ accessToken: response.data.accessToken, user: response.data }));
 
     return response.data;
   } catch (error) {

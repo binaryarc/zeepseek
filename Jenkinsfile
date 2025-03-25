@@ -18,6 +18,10 @@ pipeline {
 
                     // 환경 변수 파일이 생성되었는지 확인
                     sh 'echo "환경 변수 파일이 생성되었습니다."'
+
+                    // 환경 변수 내용 확인 (마스킹 처리 없이)
+                    sh 'echo "환경 변수 파일 내용:" && cat ${WORKSPACE}/.env'
+
                     sh 'ls -la ${WORKSPACE}/'
                 }
             }
@@ -36,23 +40,36 @@ pipeline {
                 '''
             }
         }
-        stage('Cleanup Old Containers') {
-            steps {
-                echo "기존 컨테이너 정리 중..."
-                // docker-compose.yml이 있는 디렉토리에서 기존 컨테이너 중지 및 삭제
-                sh 'docker-compose down'
-            }
-        }
         stage('Build & Deploy Frontend & Nginx') {
             steps {
                 echo "Frontend를 재빌드 및 재배포합니다..."
-                sh 'docker-compose up -d --no-deps --build fe'
+                sh 'docker rmi -f frontend_fe || true'  // 기존 이미지 강제 삭제 (실패해도 계속 진행)
+                sh 'docker-compose build --no-cache fe' // 캐시 없이 새로 빌드
+                sh 'docker-compose up -d fe'            // 컨테이너 시작
             }
         }
     }
     post {
+        success {
+            script {
+                def mattermostWebhook = 'https://meeting.ssafy.com/hooks/7wymxz3oztnfino8nt3sfc5dyo'
+                def payload = """{
+                    "text": "# :world_map: Jenkins Job < '${env.JOB_NAME}' > 빌드 성공!"
+                }"""
+                sh "curl -i -X POST -H 'Content-Type: application/json' -d '${payload}' ${mattermostWebhook}"
+            }
+        }
+        failure {
+            script {
+                def mattermostWebhook = 'https://meeting.ssafy.com/hooks/7wymxz3oztnfino8nt3sfc5dyo'
+                def payload = """{
+                    "text": "# :warning: :world_map: Jenkins Job < '${env.JOB_NAME}' >에서 빌드 에러 발생! 확인이 필요합니다."
+                }"""
+                sh "curl -i -X POST -H 'Content-Type: application/json' -d '${payload}' ${mattermostWebhook}"
+            }
+        }
         always {
-            echo "Frontend & Nginx Pipeline 완료."
+            echo "frontend Pipeline 완료."
         }
     }
 }
