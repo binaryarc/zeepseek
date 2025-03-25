@@ -8,7 +8,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Configuration
 public class WebClientConfig {
 
-    @Value("${recommendation.api.host:http://recommend_container}")
+    @Value("${recommendation.api.host:http://recommend}")
     private String recommendationApiHost;
 
     @Value("${recommendation.api.port:8000}")
@@ -17,9 +17,9 @@ public class WebClientConfig {
     @Bean
     public WebClient recommendationWebClient(WebClient.Builder webClientBuilder) {
         String baseUrl = String.format("%s:%d/recommend", recommendationApiHost, recommendationApiPort);
-        
+
         return webClientBuilder
-            .baseUrl(baseUrl)
-            .build();
+                .baseUrl(baseUrl)
+                .build();
     }
 }
