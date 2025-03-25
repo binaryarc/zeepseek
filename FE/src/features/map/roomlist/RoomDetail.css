@@ -4,45 +4,55 @@
     width: 420px;
     background: white;
     z-index: 1000;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); */
     padding: 1rem;
-    border-radius: 5px;
     font-family: 'KOROAD_Bold';
   }
   
-  .room-detail img {
+  /* .room-detail img {
     width: 100%;
     height: 100%;
     max-height: 300px;
     margin-bottom: 10px;
-  }
+  } */
   
   .room-detail h2 {
-    font-size: 20px;
-    margin-bottom: 8px;
+    font-size: 27px;
+    margin-bottom: 10px;
+    font-family: KOROAD;
   }
   
   .room-detail p {
     font-size: 14px;
     margin: 4px 0;
-  }
-  
-/* RoomDetail.css */
+    margin-bottom: 2.5%;
+    font-family: KOROAD;
+}
+
 .close-btn {
     position: absolute;
-    top: 3px;          /* 카드 바깥으로 튀어나오게 */
+    top: 0px;         
     right: -30px;
     background: white;
-    border: 1px solid #ccc;
+    border: #ccc;
     font-size: 16px;
     width: 32px;
     height: 32px;
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    /* box-shadow: 0 2px 6px rgba(0,0,0,0.2); */
     z-index: 1001;
   }
-  
-  .detail-image {
-    width: 
-    object-fit: cover; /* 비율 유지하면서 꽉 차게 */
+
+  .detail-icons {
+    width: 20px; 
+    height: 20px;
+    margin-right: 8px; /* 텍스트와 간격 */
+    vertical-align: middle; /* 텍스트와 세로 정렬 */
   }
+  
+  .detail-line {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  

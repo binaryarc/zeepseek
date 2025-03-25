@@ -12,9 +12,9 @@ const MainMapPage = () => {
     <div className="map-page">
       <Searchbar />
       <div className="map-content">
-  <RoomList />
+      <RoomList />
 
-  <div className="map-container">
+      <div className="map-container">
     <Map />
     
     {selectedPropertyId && (
