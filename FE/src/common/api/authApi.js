@@ -1,5 +1,5 @@
 import api from "./api";
-import { setAuth } from "../../store/authSlice";
+import { setAuth } from "../../store/slices/authSlice";
 import store from "../../store/store";
 
 // OAuth 로그인 (카카오 & 네이버)
