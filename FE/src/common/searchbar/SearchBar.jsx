@@ -47,6 +47,10 @@ function Searchbar() {
             const latLng = new window.kakao.maps.LatLng(y, x);
             const map = window.map;
             if (map) map.setCenter(latLng);
+            // 💡 강제로 idle 이벤트 트리거
+            setTimeout(() => {
+              window.kakao.maps.event.trigger(map, "idle");
+            }, 50); // 500ms 정도면 충분
           }
         });
 
