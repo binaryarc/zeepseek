@@ -15,6 +15,7 @@ FROM node:22-alpine
 WORKDIR /app
 # 빌드 단계에서 생성된 빌드 결과물을 복사 (보통 Vite는 'dist' 폴더에 빌드 결과물을 생성합니다)
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/.env ./.env
 # serve 패키지를 전역으로 설치하여 정적 파일 서빙
 RUN npm install -g serve
 EXPOSE 5173
