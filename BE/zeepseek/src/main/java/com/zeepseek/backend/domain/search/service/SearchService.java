@@ -44,7 +44,7 @@ public class SearchService {
                     .query(q -> q
                             .multiMatch(mm -> mm
                                     .query(keyword)
-                                    .fields( "address", "description", "guName", "roomType")
+                                    .fields( "dongName", "description", "guName", "roomType")
                                     .type(TextQueryType.BoolPrefix)
                                     .fuzziness("AUTO")
                             )
@@ -90,8 +90,8 @@ public class SearchService {
                     .trackTotalHits(t -> t.enabled(true))
                     .query(q -> q.bool(b -> b
                             .must(List.of(
-                                    Query.of(qb -> qb.term(t -> t.field("guName").value(guName))),
-                                    Query.of(qb -> qb.term(t -> t.field("dongName").value(dongName)))
+                                    Query.of(qb -> qb.term(t -> t.field("guName.keyword").value(guName))),
+                                    Query.of(qb -> qb.term(t -> t.field("dongName.keyword").value(dongName)))
                             ))
                     ))
             );
