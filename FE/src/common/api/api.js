@@ -5,7 +5,7 @@ import { setAccessToken, logout } from '../../store/slices/authSlice';
 
 const zeepApi = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
-  withCredentials: true, // ✅ 쿠키 포함 요청
+  withCredentials: false, // ✅ 쿠키 포함 요청
 });
 
 // ✅ 요청 인터셉터 (모든 요청에 `accessToken` 자동 추가)

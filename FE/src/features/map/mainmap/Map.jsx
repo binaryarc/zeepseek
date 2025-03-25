@@ -42,12 +42,6 @@ const Map = () => {
         window.map = mapInstance; // 👈 전역에 저장
         setMap(mapInstance); // 👈 상태에 저장
 
-        // 마커는 예시
-        new window.kakao.maps.Marker({
-          position: options.center,
-          map: mapInstance,
-        });
-
         // 🌐 지도가 이동할 때마다 보이는 동들만 폴리곤으로 그리기
         window.kakao.maps.event.addListener(mapInstance, "idle", () => {
           if (!geoDataRef.current) return;

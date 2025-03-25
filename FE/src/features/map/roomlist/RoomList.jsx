@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "./RoomList.css";
 import AiRecommend from "./ai_recommend/AiRecommend";
 import { useSelector } from "react-redux";
+import defaultImage from "../../../assets/logo/192image.png";
 
 const RoomList = () => {
   const [selectedTab, setSelectedTab] = useState("원룸/투룸");
@@ -38,7 +39,7 @@ const RoomList = () => {
       ) : (
         rooms.map((room) => (
           <div key={room.propertyId} className="room-item">
-            <img src={room.imageUrl} alt="매물 이미지" />
+            <img src={room.imageUrl || defaultImage} alt="매물 이미지" />
             <div>
               <p className="room-title">
                 {room.contractType} {room.price}
