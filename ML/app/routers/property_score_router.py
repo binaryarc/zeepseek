@@ -2,7 +2,7 @@
 
 from typing import Optional
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 # 배치 처리 로직이 scoring_batch.py 라는 파일에 있다고 가정
 from app.services.scoring_batch import (
@@ -100,10 +100,10 @@ class UserCategoryScore(BaseModel):
         allow_population_by_field_name = True
 
 
-@router.post("/recommend", summary="Recommend top 5 properties based on user's category scores")
+@router.post("/recommend", summary="Recommend top 10 properties based on user's category scores")
 def recommend_properties_endpoint(user_scores: UserCategoryScore):
     """
-    사용자 점수를 받아, 코사인 유사도 기반으로 상위 5개 매물을 추천
+    사용자 점수를 받아, 코사인 유사도 기반으로 상위 10개 매물을 추천
     """
     recommendations = recommend_properties(user_scores.dict(), top_n=10)
     if not recommendations:
