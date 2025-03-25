@@ -42,19 +42,17 @@ export const fetchDongPropertyCounts = async () => {
 };
 
 // ✅ 매물 검색 요청 (keyword 기반)
-export const searchProperties = async (keyword, page = 1, size = 20) => {
+export const searchProperties = async (keyword, page = 1, size = 50) => {
   try {
-    const res = await zeepApi.get("/search", {
-      params: {
-        keyword,
-        page,
-        size,
-      },
+    const res = await zeepApi.post("/search", {
+      keyword,
+      page,
+      size,
     });
     return res.data;
   } catch (error) {
     console.error("매물 검색 API 실패:", error);
-    return []; // ✅ 실패 시라도 빈 배열 반환
+    return [];
   }
 };
 
@@ -66,13 +64,11 @@ export const fetchPropertiesByBounds = async (
   size = 10000
 ) => {
   try {
-    const res = await zeepApi.get("/search/mapper", {
-      params: {
-        guName,
-        dongName,
-        page,
-        size,
-      },
+    const res = await zeepApi.post("/search/mapper", {
+      guName,
+      dongName,
+      page,
+      size,
     });
     return res.data;
   } catch (error) {
@@ -80,6 +76,7 @@ export const fetchPropertiesByBounds = async (
     return [];
   }
 };
+
 
 // 상세 매물 조회 API
 export const getPropertyDetail = async (propertyId) => {

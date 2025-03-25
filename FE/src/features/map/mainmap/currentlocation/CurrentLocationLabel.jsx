@@ -38,7 +38,7 @@ function CurrentLocationLabel({ map }) {
             const regionData = result[1]; // result[1]은 행정동 정보
             const dongCode = regionData.code.slice(0, -2); // 👉 행정동 코드 (dongId)
             const guName = regionData.region_2depth_name;
-            const dongName = regionData.region_3depth_name;
+            const dongName = regionData.region_3depth_name.replaceAll(".", "·");
 
             // ✅ 현재 저장된 dongId와 다르면 요청
             if (dongCode && dongCode !== currentDongId) {
@@ -49,6 +49,7 @@ function CurrentLocationLabel({ map }) {
               } else {
                 console.log("여기로 너 안오잖아");
                 dispatch(setCurrentDongId(dongCode));
+                console.log(dongName);
                 dispatch(fetchRoomListByBounds({ guName, dongName }));
               }
             }
