@@ -134,7 +134,6 @@ def recommend_properties(user_scores: dict, top_n=5):
         # 방어: std가 0이면 1로 대체
         stds[stds == 0] = 1
         norm_array = (property_array - means) / stds
-        # (원하는 경우 정규화된 값을 0~1 범위로 선형 변환할 수 있으나, 코사인 유사도는 방향만 비교함)
 
         logger.info("First property vector (z-score normalized): %s", norm_array[0])
 
@@ -155,15 +154,15 @@ def recommend_properties(user_scores: dict, top_n=5):
         similarities = cosine_similarity(norm_array, user_vector).flatten()
         logger.info("Calculated similarities for %d properties.", len(similarities))
 
-        # 결과 매핑
+        # 결과 매핑 (키 이름 변경: property_id -> propertyId)
         properties_rec = []
         for i, pid in enumerate(property_ids):
             properties_rec.append({
-                "property_id": pid,
+                "propertyId": pid,
                 "similarity": float(similarities[i])
             })
         top_properties = sorted(properties_rec, key=lambda x: x["similarity"], reverse=True)[:top_n]
-        logger.info("Top %d recommended properties: %s", top_n, [p["property_id"] for p in top_properties])
+        logger.info("Top %d recommended properties: %s", top_n, [p["propertyId"] for p in top_properties])
         return top_properties
 
     except Exception as e:
