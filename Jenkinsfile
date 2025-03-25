@@ -52,7 +52,7 @@ pipeline {
             script {
                 def mattermostWebhook = 'https://meeting.ssafy.com/hooks/7wymxz3oztnfino8nt3sfc5dyo'
                 def payload = """{
-                    "text": "# Jenkins Job < '${env.JOB_NAME}' > 빌드 성공!"
+                    "text": "# :world_map: Jenkins Job < '${env.JOB_NAME}' > 빌드 성공!"
                 }"""
                 sh "curl -i -X POST -H 'Content-Type: application/json' -d '${payload}' ${mattermostWebhook}"
             }
@@ -61,7 +61,7 @@ pipeline {
             script {
                 def mattermostWebhook = 'https://meeting.ssafy.com/hooks/7wymxz3oztnfino8nt3sfc5dyo'
                 def payload = """{
-                    "text": "# Jenkins Job < '${env.JOB_NAME}' >에서 빌드 에러 발생! 확인이 필요합니다."
+                    "text": "# :warning: :world_map: Jenkins Job < '${env.JOB_NAME}' >에서 빌드 에러 발생! 확인이 필요합니다."
                 }"""
                 sh "curl -i -X POST -H 'Content-Type: application/json' -d '${payload}' ${mattermostWebhook}"
             }
