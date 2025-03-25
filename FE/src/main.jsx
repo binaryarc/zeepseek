@@ -6,14 +6,14 @@ import {
   Route,
   RouterProvider,
 } from "react-router-dom";
-import { Provider } from "react-redux";
 import store from './store/store.js'
 import "./index.css";
 import App from "./App.jsx";
 import MainPage from "./features/main/MainPage.jsx";
 import LoginPage from "./features/auth/LoginPage.jsx";
 import MainMapPage from "./features/map/MainMapPage.jsx";
-import AuthInitializer from "./store/AuthInitializer.jsx";
+// import AuthInitializer from "./store/AuthInitializer.jsx";
+import { Provider } from "react-redux";
 
 
 //import OAuth2s' jsx
@@ -38,9 +38,9 @@ const router = createBrowserRouter(
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <Provider store={store}>
-    <AuthInitializer> 
+    {/* <AuthInitializer>  */}
       <RouterProvider router={router} />
-    </AuthInitializer>
+    {/* </AuthInitializer> */}
   </Provider>
   
 );
