@@ -46,7 +46,7 @@ pipeline {
         }
         failure {
             script {
-                def mattermostWebhook = 'https://meeting.ssafy.com/hooks/w6gseydkrtbcugisw5o8kfg3pa'
+                def mattermostWebhook = 'https://meeting.ssafy.com/hooks/7wymxz3oztnfino8nt3sfc5dyo'
                 def payload = "{\"text\": \"## Jenkins 빌드 알림\\n**Job:** \\`${env.JOB_NAME}\\`\\n:warning: **빌드 에러 발생!** 확인이 필요합니다.\\n\\n자세한 로그는 Jenkins 콘솔 로그를 확인하세요.\\n\\n*에러 발생 시 즉각적인 확인 바랍니다.*\"}"
                 sh "curl -i -X POST -H 'Content-Type: application/json' -d \"${payload}\" ${mattermostWebhook}"
             }
