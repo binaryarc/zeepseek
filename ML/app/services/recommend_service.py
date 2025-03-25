@@ -75,7 +75,7 @@ def get_category_mean_std_values():
     finally:
         session.close()
 
-def recommend_properties(user_scores: dict, top_n=10):
+def recommend_properties(user_scores: dict, top_n=5):
     """
     사용자의 카테고리 점수와 property_score 테이블의 각 매물의 카테고리 점수 간 
     코사인 유사도를 계산합니다.
