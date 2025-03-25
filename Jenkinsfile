@@ -1,3 +1,5 @@
+import groovy.json.JsonOutput
+
 pipeline {
     agent any
     stages {
@@ -38,8 +40,8 @@ pipeline {
         success {
             script {
                 def mattermostWebhook = 'https://meeting.ssafy.com/hooks/7wymxz3oztnfino8nt3sfc5dyo'
-                // payload를 한 줄 JSON 문자열로 작성합니다.
-                def payload = "{\"text\": \"## Jenkins 빌드 알림\\n**Job:** \\`${env.JOB_NAME}\\`\\n:rocket: **빌드 성공!** 배포가 완료되었습니다.\\n\\n자세한 정보는 Jenkins 콘솔 로그를 확인하세요.\"}"
+                def message = "## Jenkins 빌드 알림\n**Job:** `${env.JOB_NAME}`\n:rocket: **빌드 성공!** 배포가 완료되었습니다.\n\n자세한 정보는 Jenkins 콘솔 로그를 확인하세요."
+                def payload = JsonOutput.toJson([ text: message ])
                 // -d 옵션에는 double-quote로 감싼 payload를 전달합니다.
                 sh "curl -i -X POST -H 'Content-Type: application/json' -d \"${payload}\" ${mattermostWebhook}"
             }
@@ -47,7 +49,8 @@ pipeline {
         failure {
             script {
                 def mattermostWebhook = 'https://meeting.ssafy.com/hooks/7wymxz3oztnfino8nt3sfc5dyo'
-                def payload = "{\"text\": \"## Jenkins 빌드 알림\\n**Job:** \\`${env.JOB_NAME}\\`\\n:warning: **빌드 에러 발생!** 확인이 필요합니다.\\n\\n자세한 로그는 Jenkins 콘솔 로그를 확인하세요.\\n\\n*에러 발생 시 즉각적인 확인 바랍니다.*\"}"
+                def message = "## Jenkins 빌드 알림\n**Job:** `${env.JOB_NAME}`\n:warning: **빌드 에러 발생!** 확인이 필요합니다.\n\n자세한 로그는 Jenkins 콘솔 로그를 확인하세요.\n\n*에러 발생 시 즉각적인 확인 바랍니다.*"
+                def payload = JsonOutput.toJson([ text: message ])
                 sh "curl -i -X POST -H 'Content-Type: application/json' -d \"${payload}\" ${mattermostWebhook}"
             }
         }
