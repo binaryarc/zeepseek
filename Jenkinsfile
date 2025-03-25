@@ -40,13 +40,6 @@ pipeline {
                 '''
             }
         }
-        stage('Cleanup Old Containers') {
-            steps {
-                echo "기존 컨테이너 정리 중..."
-                // docker-compose.yml이 있는 디렉토리에서 기존 컨테이너 중지 및 삭제
-                sh 'docker-compose down'
-            }
-        }
         stage('Build & Deploy Frontend & Nginx') {
             steps {
                 echo "Frontend를 재빌드 및 재배포합니다..."
@@ -55,8 +48,26 @@ pipeline {
         }
     }
     post {
+        success {
+            script {
+                def mattermostWebhook = 'https://meeting.ssafy.com/hooks/7wymxz3oztnfino8nt3sfc5dyo'
+                def payload = """{
+                    "text": "# Jenkins Job < '${env.JOB_NAME}' > 빌드 성공!"
+                }"""
+                sh "curl -i -X POST -H 'Content-Type: application/json' -d '${payload}' ${mattermostWebhook}"
+            }
+        }
+        failure {
+            script {
+                def mattermostWebhook = 'https://meeting.ssafy.com/hooks/7wymxz3oztnfino8nt3sfc5dyo'
+                def payload = """{
+                    "text": "# Jenkins Job < '${env.JOB_NAME}' >에서 빌드 에러 발생! 확인이 필요합니다."
+                }"""
+                sh "curl -i -X POST -H 'Content-Type: application/json' -d '${payload}' ${mattermostWebhook}"
+            }
+        }
         always {
-            echo "Frontend & Nginx Pipeline 완료."
+            echo "frontend Pipeline 완료."
         }
     }
 }
