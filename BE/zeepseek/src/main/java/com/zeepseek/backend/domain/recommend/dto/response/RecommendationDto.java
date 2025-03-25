@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecommendationDto {
-    private Long propertyId;
+    private Long property_id;
     private double similarity;
 }
