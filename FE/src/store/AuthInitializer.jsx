@@ -1,7 +1,7 @@
 // store/AuthInitializer.jsx
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { setAccessToken, setUser, logout } from "./authSlice";
+import { setAccessToken, logout } from "./authSlice";
 import { refreshAccessToken } from "../common/api/authApi";
 
 const AuthInitializer = ({ children }) => {

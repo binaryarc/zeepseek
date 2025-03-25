@@ -4,7 +4,7 @@ import zeepApi from './api.js';
 export const fetchPropertiesByDong = async (dongId) => {
   try {
     const response = await zeepApi.get(`/property/dong/${dongId}`);
-    return response.data; // 리스트 형태로 옴
+    return response.data; 
   } catch (err) {
     console.error('동 매물 리스트 조회 실패:', err);
     throw err;
