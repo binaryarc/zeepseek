@@ -17,6 +17,7 @@ const roomListSlice = createSlice({
     currentDongId: null,
     loading: false,
     searchLock: false, // ✅ 중복 요청 방지용
+    selectedPropertyId: null,
   },
   reducers: {
     // ✅ 현재 지도 중심 dongId 저장 (중복 요청 방지용)
@@ -25,6 +26,9 @@ const roomListSlice = createSlice({
     },
     setSearchLock: (state, action) => {
       state.searchLock = action.payload;
+    },
+    setSelectedPropertyId: (state, action) => {
+      state.selectedPropertyId = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -42,5 +46,5 @@ const roomListSlice = createSlice({
   },
 });
 
-export const { setCurrentDongId,setSearchLock } = roomListSlice.actions;
+export const { setCurrentDongId,setSearchLock, setSelectedPropertyId } = roomListSlice.actions;
 export default roomListSlice.reducer;

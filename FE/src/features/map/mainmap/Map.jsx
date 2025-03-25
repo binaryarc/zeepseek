@@ -43,8 +43,8 @@ const Map = () => {
         };
 
         const mapInstance = new window.kakao.maps.Map(container, options);
-        setMap(mapInstance);
-  
+        window.map = mapInstance; // 👈 전역에 저장
+        setMap(mapInstance); // 👈 상태에 저장
 
         // 🌐 지도가 이동할 때마다 보이는 동들만 폴리곤으로 그리기
         window.kakao.maps.event.addListener(mapInstance, "idle", () => {
@@ -63,7 +63,7 @@ const Map = () => {
           const bounds = mapInstance.getBounds();
           const level = mapInstance.getLevel();
 
-          if (level > 5) {
+          if (level > 6) {
             polygonsRef.current.forEach((polygon) => polygon.setMap(null));
             polygonsRef.current = [];
             return;
@@ -167,7 +167,7 @@ const Map = () => {
         </>
       )}
     </div>
-  );
+  );                                                                                                                                                                                                                                                                                                                                                                                              
 };
 
 export default Map;
