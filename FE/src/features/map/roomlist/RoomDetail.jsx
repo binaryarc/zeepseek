@@ -4,40 +4,75 @@ import { getPropertyDetail } from "../../../common/api/api";
 import defaultImage from "../../../assets/logo/192image.png";
 import { useDispatch } from "react-redux";
 import { setSelectedPropertyId } from "../../../store/slices/roomListSlice";
+import date from "../../../assets/images/detail_png/date.png";
+import floor from "../../../assets/images/detail_png/floor.png";
+import room from "../../../assets/images/detail_png/room.png";
+import size from "../../../assets/images/detail_png/size.png";
+import direction from "../../../assets/images/detail_png/direction.png";
 
 const RoomDetail = ({ propertyId }) => {
-    const [detail, setDetail] = useState(null);
-    const dispatch = useDispatch();
-    useEffect(() => {
-      console.log("받은 propertyId:", propertyId);
-      const fetchDetail = async () => {
-        console.log("RoomDetail에서 받은 propertyId:", propertyId);
-        const data = await getPropertyDetail(propertyId);
-        console.log("받은 상세 데이터:", data);
-        if (data) setDetail(data);
-      };
-      fetchDetail();
-    }, [propertyId]);
-  
-    if (!detail) return null; // 아직 로딩 중
-  
-    return (
-      <div className="room-detail">
-        <button className="close-btn" onClick={() => dispatch(setSelectedPropertyId(null))}>X</button>        
-        <img src={detail.imageUrl || defaultImage} alt="매물 이미지" />
-        <div className="detail-info">
-          <h3>{detail.contractType} {detail.price}</h3>
-          <p>{detail.address}</p>
-          <p>{detail.description}</p>
+  const [detail, setDetail] = useState(null);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    console.log("받은 propertyId:", propertyId);
+    const fetchDetail = async () => {
+      console.log("RoomDetail에서 받은 propertyId:", propertyId);
+      const data = await getPropertyDetail(propertyId);
+      console.log("받은 상세 데이터:", data);
+      if (data) setDetail(data);
+    };
+    fetchDetail();
+  }, [propertyId]);
+
+  if (!detail) return null; // 아직 로딩 중
+
+  return (
+    <div className="room-detail">
+      <button
+        className="close-btn"
+        onClick={() => dispatch(setSelectedPropertyId(null))}
+      >
+        X
+      </button>
+      <img
+        src={detail.imageUrl || defaultImage}
+        alt="매물 이미지"
+        className="detail-image"
+      />
+      <div className="detail-info">
+        <p>{detail.address}</p>
+        <h2>
+          {detail.contractType} {detail.price}
+        </h2>
+        <p>관리비: {detail.maintenanceFee?.toLocaleString() || "없음"}원</p>
+        <hr />
+
+        <p>{detail.description}</p>
+        <div className="detail-line">
+          <img src={date} alt="날짜 아이콘" className="detail-icons" />
+          <p>{detail.moveInDate}</p>
+        </div>
+
+        <div className="detail-line">
+          <img src={size} alt="면적 아이콘" className="detail-icons" />
           <p>{detail.area}</p>
+        </div>
+
+        <div className="detail-line">
+          <img src={floor} alt="층수 아이콘" className="detail-icons" />
           <p>{detail.floorInfo}</p>
+        </div>
+        <div className="detail-line">
+          <img src={room} alt="방욕실 아이콘" className="detail-icons" />
           <p>{detail.roomBathCount}</p>
+        </div>
+        <div className="detail-line">
+          <img src={direction} alt="방향" className="detail-icons" />
           <p>{detail.direction}</p>
-          <p>관리비: {detail.maintenanceFee?.toLocaleString() || "없음"}원</p>
-          <p>입주 가능일: {detail.moveInDate}</p>
         </div>
       </div>
-    );
-  };
-  
-  export default RoomDetail;
+    </div>
+  );
+};
+
+export default RoomDetail;
