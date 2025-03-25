@@ -18,7 +18,7 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException {
-        String targetUrl = UriComponentsBuilder.fromUriString("https://your-frontend-domain.com/auth/error")
+        String targetUrl = UriComponentsBuilder.fromUriString("https://j12e203.p.ssafy.io/auth/error")
                 .queryParam("error", exception.getLocalizedMessage())
                 .build().toUriString();
 

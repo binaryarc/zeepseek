@@ -2,7 +2,9 @@ package com.zeepseek.backend.domain.auth.service;
 
 import com.zeepseek.backend.domain.auth.dto.TokenDto;
 import com.zeepseek.backend.domain.auth.dto.UserDto;
+import org.springframework.stereotype.Service;
 
+@Service
 public interface AuthService {
 
     // 토큰 갱신 (액세스 토큰 만료 시)
