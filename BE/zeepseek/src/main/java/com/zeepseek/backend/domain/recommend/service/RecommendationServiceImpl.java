@@ -19,7 +19,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private static final Logger logger = LoggerFactory.getLogger(RecommendationServiceImpl.class);
 
-    @Value("${recommendation.api.url:http://localhost:8000/recommend}")
+    @Value("${recommendation.api.url:http://recommend_container:8000/recommend}")
     private String recommendationApiUrl;
 
     private final WebClient webClient;
