@@ -43,7 +43,9 @@ pipeline {
         stage('Build & Deploy Frontend & Nginx') {
             steps {
                 echo "Frontend를 재빌드 및 재배포합니다..."
-                sh 'docker-compose up -d --no-deps --build fe'
+                sh 'docker rmi -f frontend_fe || true'  // 기존 이미지 강제 삭제 (실패해도 계속 진행)
+                sh 'docker-compose build --no-cache fe' // 캐시 없이 새로 빌드
+                sh 'docker-compose up -d fe'            // 컨테이너 시작
             }
         }
     }

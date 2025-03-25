@@ -6,8 +6,13 @@ COPY package*.json ./
 RUN npm install
 # 전체 소스 복사 후 빌드 (Vite의 기본 빌드 명령어)
 
-COPY .env ./
+# 캐시 비활성화를 위한 더미데이터 추가
+ARG CACHE_BUST=$(date +%s)
+ENV CACHE_BUST=${CACHE_BUST}
+
+
 COPY . .
+COPY .env ./
 RUN npm run build
 
 # 2단계: Production Stage - 정적 파일을 제공하기 위해 serve 사용
