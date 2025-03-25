@@ -9,6 +9,24 @@ pipeline {
                 checkout scm
             }
         }
+        // 환경 변수 설정 -> OAuth용 credentials 추가
+        stage('Setup Environment Variables') {
+            steps {
+                echo "api key 환경 변수 설정 중..."
+                withCredentials([file(credentialsId: 'openai_api_key', variable: 'ENV_FILE')]) {
+                    // 환경 변수 파일을 작업 디렉토리에 임시로 저장
+                    sh 'cat $ENV_FILE > ${WORKSPACE}/.env'
+
+                    // 환경 변수 파일이 생성되었는지 확인
+                    sh 'echo "환경 변수 파일이 생성되었습니다."'
+
+                    // 환경 변수 내용 확인 (마스킹 처리 없이)
+                    sh 'echo "환경 변수 파일 내용:" && cat ${WORKSPACE}/.env'
+
+                    sh 'ls -la ${WORKSPACE}/'
+                }
+            }
+        }
         stage('Prepare Environment') {
             steps {
                 echo "네트워크 e203 확인 및 생성..."
