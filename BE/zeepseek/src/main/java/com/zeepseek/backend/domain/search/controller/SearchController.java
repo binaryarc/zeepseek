@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,11 +21,11 @@ public class SearchController {
      * GET /api/v1/property/search?keyword={keyword}&page={page}&size={size}
      * 쿼리 파라미터로 키워드, 페이지 번호, 페이지 사이즈를 받아 검색 결과를 반환합니다.
      */
-    @GetMapping()
-    public ResponseEntity<KeywordResponse> searchProperties(
-            @RequestParam("keyword") String keyword,
-            @RequestParam("page") int page,
-            @RequestParam("size") int size) {
+    @PostMapping()
+    public ResponseEntity<KeywordResponse> searchProperties(@RequestBody Map<String, Object> request) {
+        String keyword = (String) request.get("keyword");
+        int page = (int) request.get("page");
+        int size = (int) request.get("size");
 
         KeywordResponse results = searchService.searchProperties(keyword, page, size);
         return ResponseEntity.ok(results);
@@ -32,15 +33,14 @@ public class SearchController {
 
     /**
      * GET /api/v1/search/mapper?guName={guName}&dongName={dongName}&page={page}&size={size}
-     * 쿼리 파라미터로 guName, dongName, 페이지 번호, 페이지 사이즈를 받아
-     * 해당 조건에 맞는 검색 결과를 반환합니다.
+     * 쿼리 파라미터를 Map으로 받아 해당 조건에 맞는 검색 결과를 반환합니다.
      */
-    @GetMapping("/mapper")
-    public ResponseEntity<KeywordResponse> searchPropertiesByGuAndDong(
-            @RequestParam("guName") String guName,
-            @RequestParam("dongName") String dongName,
-            @RequestParam("page") int page,
-            @RequestParam("size") int size) {
+    @PostMapping("/mapper")
+    public ResponseEntity<KeywordResponse> searchPropertiesByGuAndDong(@RequestBody Map<String, Object> request) {
+        String guName = (String) request.get("guName");
+        String dongName = (String) request.get("dongName");
+        int page = (int) request.get("page");
+        int size = (int) request.get("size");
 
         KeywordResponse results = searchService.searchPropertiesByGuAndDong(guName, dongName, page, size);
         return ResponseEntity.ok(results);
