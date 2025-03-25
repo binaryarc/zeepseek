@@ -2,7 +2,6 @@ package com.zeepseek.backend.domain.recommend.service;
 
 import com.zeepseek.backend.domain.property.exception.PropertyNotFoundException;
 import com.zeepseek.backend.domain.property.model.Property;
-import com.zeepseek.backend.domain.property.dto.response.PropertySummaryDto;
 import com.zeepseek.backend.domain.property.service.PropertyService;
 import com.zeepseek.backend.domain.recommend.dto.request.UserRecommendationRequestDto;
 import com.zeepseek.backend.domain.recommend.dto.response.DetailedRecommendationResponseDto;
@@ -45,16 +44,14 @@ public class RecommendationServiceImpl implements RecommendationService {
             throw new RecommendationException("No recommendations received from Python API.");
         }
 
-        // 각 추천 항목(propertyId)로 DB에서 상세조회 후 PropertySummaryDto 생성
+        // 각 추천 항목(propertyId)로 DB에서 전체 매물 정보를 조회
         List<RecommendationDto> recList = originalResponse.getRecommendedProperties();
-        List<PropertySummaryDto> detailedProperties = new ArrayList<>();
+        List<Property> detailedProperties = new ArrayList<>();
 
         for (RecommendationDto rec : recList) {
             try {
                 Property property = propertyService.getPropertyDetail(rec.getPropertyId());
-                // PropertySummaryDto 생성 (필요에 따라 상세 정보를 포함하도록 확장 가능)
-                PropertySummaryDto summaryDto = new PropertySummaryDto(property.getPropertyId(), property.getLatitude(), property.getLongitude());
-                detailedProperties.add(summaryDto);
+                detailedProperties.add(property);
             } catch (PropertyNotFoundException ex) {
                 logger.warn("Property not found for id: {}", rec.getPropertyId());
             }
