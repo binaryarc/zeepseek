@@ -44,4 +44,7 @@ zeepApi.interceptors.response.use(
   }
 );
 
+// AI 매물 추천 api
+
+
 export default zeepApi;

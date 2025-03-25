@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import "./Map.css";
 import CurrentLocationLabel from "./currentlocation/CurrentLocationLabel";
 import SaleCountMarkers from "./salecountmarkers/SaleCountMarkers";
+import ClusteringMarkers from "./clusteringmarkers/ClusteringMarkers";
 
 const Map = () => {
   const [map, setMap] = useState(null); // 👈 map 객체 저장용 상태
@@ -126,7 +127,8 @@ const Map = () => {
       {map && (
         <>
           <CurrentLocationLabel map={map} />
-          <SaleCountMarkers map={map} /> {/* 👈 여기 추가 */}
+          {/* <SaleCountMarkers map={map} /> 👈 여기 추가 */}
+          <ClusteringMarkers map={map} />
         </>
       )}
     </div>

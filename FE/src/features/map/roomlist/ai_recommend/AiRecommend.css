@@ -1,6 +1,10 @@
   .ai-filter-container {
     padding: 1rem;
     padding-top: 0%;
+    height: 70vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
 
   .recommend-title {
