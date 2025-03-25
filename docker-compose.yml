@@ -9,6 +9,7 @@ services:
       - MYSQL_HOST=host.docker.internal
       - MONGO_HOST=host.docker.internal
       - ELASTICSEARCH_HOST=host.docker.internal
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: always

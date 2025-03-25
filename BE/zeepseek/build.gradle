@@ -24,6 +24,8 @@ repositories {
 }
 
 dependencies {
+
+	implementation 'io.github.cdimascio:java-dotenv:5.1.1'
 	// Spring Boot 핵심 스타터
 	implementation 'org.springframework.boot:spring-boot-starter-web'                // 웹 애플리케이션 개발을 위한 스타터
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'           // JPA 데이터 액세스 레이어 구현
@@ -36,7 +38,8 @@ dependencies {
 	runtimeOnly 'com.mysql:mysql-connector-j'                                        // MySQL 연결 드라이버
 
 //	implementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.17.0'   // elasticsearch 자바 클라이언트 라이브러리
-
+	// spring webflux
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	// 보안 및 인증 관련
 	implementation 'org.springframework.boot:spring-boot-starter-security'           // 스프링 시큐리티 기능 구현
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'      // OAuth2 클라이언트 구현
