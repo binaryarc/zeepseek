@@ -35,6 +35,27 @@ pipeline {
         }
     }
     post {
+        success {
+            script {
+                def mattermostWebhook = 'https://meeting.ssafy.com/hooks/w6gseydkrtbcugisw5o8kfg3pa'
+                def payload = """{
+                    "text": "Jenkins Job '${env.JOB_NAME}' 빌드 성공! 배포가 완료되었습니다."
+                }"""
+                sh "curl -i -X POST -H 'Content-Type: application/json' -d '${payload}' ${mattermostWebhook}"
+            }
+        }
+        failure {
+            script {
+                // Mattermost Incoming Webhook URL
+                def mattermostWebhook = 'https://meeting.ssafy.com/hooks/w6gseydkrtbcugisw5o8kfg3pa'
+                // 전송할 메시지 내용 (원하는 메시지로 변경 가능)
+                def payload = """{
+                    "text": "Jenkins Job '${env.JOB_NAME}'에서 빌드 에러 발생! 확인이 필요합니다."
+                }"""
+                // curl 명령어를 이용해 HTTP POST 요청 전송
+                sh "curl -i -X POST -H 'Content-Type: application/json' -d '${payload}' ${mattermostWebhook}"
+            }
+        }
         always {
             echo "Backend Pipeline 완료."
         }
