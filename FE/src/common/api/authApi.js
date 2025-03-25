@@ -5,7 +5,7 @@ import zeepApi from "./api";
 // OAuth 로그인 (카카오 & 네이버)
 export const oauthLogin = async (authorizationCode, provider) => {
   try {
-    const response = await zeepApi.post("/api/v1/auth/login", {
+    const response = await zeepApi.post("/auth/login", {
       authorizationCode,
       provider,
     });
