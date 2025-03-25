@@ -30,7 +30,7 @@ const router = createBrowserRouter(
 
       {/* 소셜 로그인 콜백 라우트 추가 */}
       <Route path="/kakao/callback" element={<KakaoRedirectHandler />} />
-      <Route path="/naver/callback" element={<NaverRedirectHandler />} />
+      <Route path="/auth/naver/callback" element={<NaverRedirectHandler />} />
     </>
   ),
   { basename: "/"} // 라우트가 /api/경로 파일을 처리하지 않도록 선언
