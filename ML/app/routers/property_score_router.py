@@ -88,13 +88,16 @@ def recalculate_incomplete():
 
 
 class UserCategoryScore(BaseModel):
-    transportScore: float
-    restaurantScore: float
-    healthScore: float
-    convenienceScore: float
-    cafeScore: float
-    chickenScore: float
-    leisureScore: float
+    transport_score: float = Field(..., alias="transportScore")
+    restaurant_score: float = Field(..., alias="restaurantScore")
+    health_score: float = Field(..., alias="healthScore")
+    convenience_score: float = Field(..., alias="convenienceScore")
+    cafe_score: float = Field(..., alias="cafeScore")
+    chicken_score: float = Field(..., alias="chickenScore")
+    leisure_score: float = Field(..., alias="leisureScore")
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 @router.post("/recommend", summary="Recommend top 5 properties based on user's category scores")
