@@ -37,9 +37,9 @@ pipeline {
     post {
         success {
             script {
-                def mattermostWebhook = 'https://meeting.ssafy.com/hooks/w6gseydkrtbcugisw5o8kfg3pa'
+                def mattermostWebhook = 'https://meeting.ssafy.com/hooks/7wymxz3oztnfino8nt3sfc5dyo'
                 def payload = """{
-                    "text": "Jenkins Job '${env.JOB_NAME}' 빌드 성공! 배포가 완료되었습니다."
+                    "text": "## Jenkins 빌드 알림\n**Job:** \`${env.JOB_NAME}\`\n:rocket: **빌드 성공!** 배포가 완료되었습니다.\n\n자세한 정보는 Jenkins 콘솔 로그를 확인하세요."
                 }"""
                 sh "curl -i -X POST -H 'Content-Type: application/json' -d '${payload}' ${mattermostWebhook}"
             }
@@ -47,10 +47,10 @@ pipeline {
         failure {
             script {
                 // Mattermost Incoming Webhook URL
-                def mattermostWebhook = 'https://meeting.ssafy.com/hooks/w6gseydkrtbcugisw5o8kfg3pa'
+                def mattermostWebhook = 'https://meeting.ssafy.com/hooks/7wymxz3oztnfino8nt3sfc5dyo'
                 // 전송할 메시지 내용 (원하는 메시지로 변경 가능)
                 def payload = """{
-                    "text": "Jenkins Job '${env.JOB_NAME}'에서 빌드 에러 발생! 확인이 필요합니다."
+                    "text": "## Jenkins 빌드 알림\n**Job:** \`${env.JOB_NAME}\`\n:warning: **빌드 에러 발생!** 확인이 필요합니다.\n\n자세한 로그는 Jenkins 콘솔 로그를 확인하세요.\n\n*에러 발생 시 즉각적인 확인 바랍니다.*"
                 }"""
                 // curl 명령어를 이용해 HTTP POST 요청 전송
                 sh "curl -i -X POST -H 'Content-Type: application/json' -d '${payload}' ${mattermostWebhook}"
