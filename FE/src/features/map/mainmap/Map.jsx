@@ -163,8 +163,7 @@ const Map = () => {
       {map && (
         <>
           <CurrentLocationLabel map={map} />
-          {/* <SaleCountMarkers map={map} /> 👈 여기 추가 */}
-          <ClusteringMarkers map={map} />
+          <SaleCountMarkers map={map} />
         </>
       )}
     </div>

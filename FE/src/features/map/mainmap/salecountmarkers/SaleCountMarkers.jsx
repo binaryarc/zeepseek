@@ -6,29 +6,36 @@ import {
   fetchDongPropertyCounts,
   fetchGuPropertyCounts,
 } from "../../../../common/api/api";
-// import { useState } from "react";
+import { useState } from "react";
+import GridClusterMarkers from "./GridClustering/GridClustering";
 
 
 
 function SaleCountMarkers({ map }) {
   const overlaysRef = useRef([]); // ✅ useRef로 오버레이 관리
   // const [dongId, setDongId] = useState(null);
+  const [level, setLevel] = useState(null);
 
   useEffect(() => {
     if (!map || !window.kakao) return;
 
     const drawMarkers = async () => {
-      const level = map.getLevel();
-      const isGuLevel = level >= 6;
+      const currentLevel = map.getLevel();
+      setLevel(currentLevel)
 
-      // ✅ 기존 오버레이 모두 제거
-      overlaysRef.current.forEach((o) => o.setMap(null));
-      overlaysRef.current = [];
+      if (currentLevel <= 3) {
+        // ✅ 기존 오버레이 모두 제거
+        overlaysRef.current.forEach((o) => o.setMap(null));
+        overlaysRef.current = [];
+        return
+      }
 
-      const targetData = isGuLevel ? guData : dongData;
+
+
+      const targetData = (currentLevel >= 6) ? guData : dongData;
 
       // 📌 API 요청
-      const countData = isGuLevel
+      const countData = (currentLevel >= 6)
         ? await fetchGuPropertyCounts()
         : await fetchDongPropertyCounts();
 
@@ -36,13 +43,16 @@ function SaleCountMarkers({ map }) {
       const countMap = {};
       countData.forEach((item) => {
         // console.log('11',countData)
-        if (isGuLevel) {
+        if (currentLevel >= 6) {
           countMap[item.guName] = item.propertyCount;
-        } else {
+        } else if (currentLevel > 3) {
           // console.log(item.dongId)
           countMap[String(item.dongId)] = item.propertyCount;
         }
       });
+
+      overlaysRef.current.forEach((o) => o.setMap(null));
+      overlaysRef.current = [];
 
       targetData.forEach((region) => {
         // console.log(targetData)
@@ -53,9 +63,9 @@ function SaleCountMarkers({ map }) {
         const displayName = splitName[splitName.length - 1];
 
         let count = 0;
-        if (isGuLevel) {
+        if (currentLevel >= 6) {
           count = countMap[region.name] || 0;
-        } else {
+        } else if (currentLevel > 3) {
           // console.log(region)
           const dongId = region.dongId;
           count = countMap[dongId] || 0;
@@ -85,11 +95,13 @@ function SaleCountMarkers({ map }) {
 
     return () => {
       overlaysRef.current.forEach((o) => o.setMap(null));
+      overlaysRef.current = [];
       window.kakao.maps.event.removeListener(map, "idle", drawMarkers);
     };
   }, [map]);
 
-  return null;
+
+  return level <= 3 ? <GridClusterMarkers map={map} /> : null;
 }
 
 export default SaleCountMarkers;
