@@ -23,12 +23,17 @@ const roomListSlice = createSlice({
   name: "roomList",
   initialState: {
     rooms: [],
+    currentPage: 1,
+    pageSize: 15,
     currentDongId: null,
     loading: false,
     searchLock: false, // ✅ 중복 요청 방지용
     selectedPropertyId: null,
   },
   reducers: {
+    setCurrentPage: (state, action) => {
+      state.currentPage = action.payload;
+    },
     // ✅ 현재 지도 중심 dongId 저장 (중복 요청 방지용)
     setCurrentDongId: (state, action) => {
       state.currentDongId = action.payload;
@@ -49,6 +54,7 @@ const roomListSlice = createSlice({
       .addCase(fetchRoomList.fulfilled, (state, action) => {
         state.rooms = action.payload || [];
         state.loading = false;
+        state.currentPage = 1; // ✅ 검색 시 항상 첫 페이지로 초기화
       })
       .addCase(fetchRoomListByBounds.pending, (state) => {
         state.loading = true;
@@ -56,6 +62,7 @@ const roomListSlice = createSlice({
       .addCase(fetchRoomListByBounds.fulfilled, (state, action) => {
         state.rooms = action.payload || [];
         state.loading = false;
+        state.currentPage = 1;
       })
       .addCase(fetchRoomList.rejected, (state) => {
         state.loading = false;
@@ -66,5 +73,5 @@ const roomListSlice = createSlice({
   },
 });
 
-export const { setCurrentDongId,setSearchLock, setSelectedPropertyId } = roomListSlice.actions;
+export const { setCurrentPage, setCurrentDongId,setSearchLock, setSelectedPropertyId } = roomListSlice.actions;
 export default roomListSlice.reducer;
