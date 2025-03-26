@@ -74,15 +74,15 @@ function MainSearchbar() {
 
   return (
     <div className="main-searchbox">
-      <input
-        type="text"
-        placeholder="지역, 매물번호를 검색하세요!"
-        value={searchText}
-        onChange={(e) => setSearchText(e.target.value)}
-        onKeyDown={handleKeyDown}
-      />
-      <FiSearch className="search-icon" onClick={handleSearch} />
-    </div>
+  <input
+    type="text"
+    placeholder="지역, 매물번호를 검색하세요!"
+    value={searchText}
+    onChange={(e) => setSearchText(e.target.value)}
+    onKeyDown={handleKeyDown}
+  />
+  <FiSearch className="search-icon" onClick={handleSearch} />
+</div>
   );
 }
 

@@ -7,17 +7,19 @@ import { useNavigate } from 'react-router-dom';
 function App() {
   const navigate = useNavigate();
 
+  const handleAnimationEnd = () => {
+    navigate('/main');
+  };
+
   return (
     <>
       <div className="app-container">
       <img
         src={zeepseek}
         alt="zeepseek 로고"
-        className="logo"
-        onClick={() => navigate("/main")}
+        className="intro-logo"
+        onAnimationEnd={handleAnimationEnd}
       />
-      {/* <button onClick={sendTestRequest}>get test</button>
-      <button onClick={sendTestPost}>post test</button> */}
     </div>
     </>
   )
