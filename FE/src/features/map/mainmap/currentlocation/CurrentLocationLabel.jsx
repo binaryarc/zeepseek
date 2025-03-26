@@ -5,7 +5,6 @@ import { useRef } from "react";
 import {
   setCurrentDongId,
   fetchRoomListByBounds,
-  setSearchLock,
 } from "../../../../store/slices/roomListSlice";
 
 function CurrentLocationLabel({ map }) {
@@ -40,26 +39,41 @@ function CurrentLocationLabel({ map }) {
             const guName = regionData.region_2depth_name;
             const dongName = regionData.region_3depth_name.replaceAll(".", "·");
 
-            // ✅ 현재 저장된 dongId와 다르면 요청
-            if (dongCode && dongCode !== currentDongId) {
-              if (searchLockRef.current) {
-                // 🔓 검색으로 인한 이동이면 그냥 무시
-                dispatch(setSearchLock(false));
-                console.log("검색으로 인한 이동이라 무시합니다.");
-              } else {
-                console.log("여기로 너 안오잖아");
-                dispatch(setCurrentDongId(dongCode));
-                console.log(dongName);
-                dispatch(fetchRoomListByBounds({ guName, dongName }));
-              }
-            }
-
             // UI에 표시할 동/구 이름 설정
             if (level >= 6) {
               setLocationName(regionData.region_2depth_name); // 구
             } else {
               setLocationName(regionData.region_3depth_name); // 동
             }
+
+            // ✅ 여기서 검색 이동이면 무시
+            if (window.isMovingBySearch) {
+              console.log("🔒 검색 이동 중 → fetchRoomListByBounds 무시", dongName);
+              return;
+            }
+
+            // ✅ 지도 직접 이동이면 실행
+            if (dongCode && dongCode !== currentDongId) {
+              console.log("🔓 지도 이동 중 → fetchRoomListByBounds 실행", dongName);
+              dispatch(setCurrentDongId(dongCode));
+              dispatch(fetchRoomListByBounds({ guName, dongName }));
+            }
+
+            // // ✅ 현재 저장된 dongId와 다르면 요청
+            // if (dongCode && dongCode !== currentDongId) {
+            //   if (searchLockRef.current) {
+            //     // 🔓 검색으로 인한 이동이면 그냥 무시
+            //     dispatch(setSearchLock(false));
+            //     console.log("검색으로 인한 이동이라 무시합니다.");
+            //   } else {
+            //     console.log("여기로 너 안오잖아");
+            //     dispatch(setCurrentDongId(dongCode));
+            //     console.log(dongName);
+            //     dispatch(fetchRoomListByBounds({ guName, dongName }));
+            //   }
+            // }
+
+            
           }
         }
       );
