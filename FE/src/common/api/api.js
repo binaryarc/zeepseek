@@ -42,7 +42,7 @@ export const fetchDongPropertyCounts = async () => {
 };
 
 // ✅ 매물 검색 요청 (keyword 기반)
-export const searchProperties = async (keyword, page = 1, size = 50) => {
+export const searchProperties = async (keyword, page = 1, size = 10000) => {
   try {
     const res = await zeepApi.post("/search", {
       keyword,
