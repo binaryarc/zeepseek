@@ -24,10 +24,11 @@ public class SearchController {
     @PostMapping()
     public ResponseEntity<KeywordResponse> searchProperties(@RequestBody Map<String, Object> request) {
         String keyword = (String) request.get("keyword");
+        String filter = (String) request.get("filter");
         int page = (int) request.get("page");
         int size = (int) request.get("size");
 
-        KeywordResponse results = searchService.searchProperties(keyword, page, size);
+        KeywordResponse results = searchService.searchProperties(keyword, page, size, filter);
         return ResponseEntity.ok(results);
     }
 
@@ -39,10 +40,11 @@ public class SearchController {
     public ResponseEntity<KeywordResponse> searchPropertiesByGuAndDong(@RequestBody Map<String, Object> request) {
         String guName = (String) request.get("guName");
         String dongName = (String) request.get("dongName");
+        String roomTypeFilter = (String) request.get("filter");
         int page = (int) request.get("page");
         int size = (int) request.get("size");
 
-        KeywordResponse results = searchService.searchPropertiesByGuAndDong(guName, dongName, page, size);
+        KeywordResponse results = searchService.searchPropertiesByGuAndDong(guName, dongName, page, size, roomTypeFilter);
         return ResponseEntity.ok(results);
     }
 }
