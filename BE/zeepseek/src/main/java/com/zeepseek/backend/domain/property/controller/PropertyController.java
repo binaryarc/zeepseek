@@ -101,7 +101,26 @@ public class PropertyController {
         return ResponseEntity.ok(properties);
     }
 
+    // 특정 구의 원룸(혹은 1룸, 2룸) 매물 조회 API: GET /api/v1/property/gu/{guName}/one-room
+    @GetMapping("/gu/{guName}/one-room")
+    public ResponseEntity<List<Property>> getOneRoomPropertiesByGu(@PathVariable String guName) {
+        List<Property> properties = propertyService.getOneRoomPropertiesByGuName(guName);
+        return ResponseEntity.ok(properties);
+    }
 
+    // 특정 구의 빌라 및 주택 매물 조회 API: GET /api/v1/property/gu/{guName}/house
+    @GetMapping("/gu/{guName}/house")
+    public ResponseEntity<List<Property>> getHousePropertiesByGu(@PathVariable String guName) {
+        List<Property> properties = propertyService.getHousePropertiesByGuName(guName);
+        return ResponseEntity.ok(properties);
+    }
+
+    // 특정 구의 오피스텔 매물 조회 API: GET /api/v1/property/gu/{guName}/office
+    @GetMapping("/gu/{guName}/office")
+    public ResponseEntity<List<Property>> getOfficePropertiesByGu(@PathVariable String guName) {
+        List<Property> properties = propertyService.getOfficePropertiesByGuName(guName);
+        return ResponseEntity.ok(properties);
+    }
 
 
 }

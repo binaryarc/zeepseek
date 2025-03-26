@@ -27,4 +27,8 @@ public interface PropertyService {
 
     // 해당 동에 있는 오피스텔 부동산 조회
     List<Property> getOfficePropertiesByDongId(Integer dongId);
+
+    List<Property> getOneRoomPropertiesByGuName(String guName);
+    List<Property> getHousePropertiesByGuName(String guName);
+    List<Property> getOfficePropertiesByGuName(String guName);
 }
