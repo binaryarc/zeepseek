@@ -100,6 +100,8 @@ const Map = () => {
               polygonsRef.current.push(polygon);
 
               window.kakao.maps.event.addListener(polygon, "click", () => {
+                mapInstance.setCenter(center);
+
                 // 기존 마커 제거
                 if (markerRef.current) markerRef.current.setMap(null);
                 const marker = new window.kakao.maps.Marker({
