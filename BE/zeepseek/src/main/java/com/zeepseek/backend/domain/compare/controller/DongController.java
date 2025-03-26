@@ -3,11 +3,13 @@ package com.zeepseek.backend.domain.compare.controller;
 import com.zeepseek.backend.domain.compare.document.DongInfoDocs;
 import com.zeepseek.backend.domain.compare.service.DongService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/dong")
 @RequiredArgsConstructor
@@ -32,6 +34,7 @@ public class DongController {
     @GetMapping("/{dongId}")
     public ResponseEntity<DongInfoDocs> getDongDetail(@PathVariable("dongId") Integer dongId) {
         DongInfoDocs dong = dongService.getDongDetail(dongId);
+        log.info(dongId.toString());
         return dong != null ? ResponseEntity.ok(dong) : ResponseEntity.notFound().build();
     }
 }

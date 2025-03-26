@@ -26,6 +26,6 @@ public class DongService {
      * dongId를 기반으로 해당 동의 상세 정보를 반환
      */
     public DongInfoDocs getDongDetail(Integer dongId) {
-        return dongRepository.findById(dongId).orElse(null);
+        return dongRepository.findByDongId(dongId);
     }
 }
