@@ -6,7 +6,7 @@ import java.util.List;
 public class RecommendationResponseDto {
 
     @JsonProperty("recommended_properties")
-    private List<Integer> recommendedProperties;
+    private List<RecommendationDto> recommendedProperties;
 
     private int totalElements;
     private int totalPages;
@@ -15,18 +15,18 @@ public class RecommendationResponseDto {
     public RecommendationResponseDto() {
     }
 
-    public RecommendationResponseDto(List<Integer> recommendedProperties, int totalElements, int totalPages, int currentPage) {
+    public RecommendationResponseDto(List<RecommendationDto> recommendedProperties, int totalElements, int totalPages, int currentPage) {
         this.recommendedProperties = recommendedProperties;
         this.totalElements = totalElements;
         this.totalPages = totalPages;
         this.currentPage = currentPage;
     }
 
-    public List<Integer> getRecommendedProperties() {
+    public List<RecommendationDto> getRecommendedProperties() {
         return recommendedProperties;
     }
 
-    public void setRecommendedProperties(List<Integer> recommendedProperties) {
+    public void setRecommendedProperties(List<RecommendationDto> recommendedProperties) {
         this.recommendedProperties = recommendedProperties;
     }
 

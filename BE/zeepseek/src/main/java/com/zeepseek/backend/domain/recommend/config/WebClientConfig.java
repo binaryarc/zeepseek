@@ -16,8 +16,8 @@ public class WebClientConfig {
 
     @Bean
     public WebClient recommendationWebClient(WebClient.Builder webClientBuilder) {
+        // 최종 URL: {host}:{port}/recommend
         String baseUrl = String.format("%s:%d/recommend", recommendationApiHost, recommendationApiPort);
-
         return webClientBuilder
                 .baseUrl(baseUrl)
                 .build();
