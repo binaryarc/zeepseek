@@ -24,10 +24,11 @@ public class SearchController {
     @PostMapping()
     public ResponseEntity<KeywordResponse> searchProperties(@RequestBody Map<String, Object> request) {
         String keyword = (String) request.get("keyword");
+        String filter = (String) request.get("filter");
         int page = (int) request.get("page");
         int size = (int) request.get("size");
 
-        KeywordResponse results = searchService.searchProperties(keyword, page, size);
+        KeywordResponse results = searchService.searchProperties(keyword, page, size, filter);
         return ResponseEntity.ok(results);
     }
 
