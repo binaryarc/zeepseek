@@ -31,4 +31,8 @@ public interface PropertyService {
     List<Property> getOneRoomPropertiesByGuName(String guName);
     List<Property> getHousePropertiesByGuName(String guName);
     List<Property> getOfficePropertiesByGuName(String guName);
+
+    List<Property> getOneRoomProperties();
+    List<Property> getHouseProperties();
+    List<Property> getOfficeProperties();
 }
