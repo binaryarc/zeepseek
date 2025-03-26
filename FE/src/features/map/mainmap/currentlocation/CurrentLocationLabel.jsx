@@ -5,7 +5,6 @@ import { useRef } from "react";
 import {
   setCurrentDongId,
   fetchRoomListByBounds,
-  setSearchLock,
 } from "../../../../store/slices/roomListSlice";
 
 function CurrentLocationLabel({ map }) {
