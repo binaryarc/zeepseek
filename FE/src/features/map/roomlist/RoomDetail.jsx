@@ -9,6 +9,9 @@ import floor from "../../../assets/images/detail_png/floor.png";
 import room from "../../../assets/images/detail_png/room.png";
 import size from "../../../assets/images/detail_png/size.png";
 import direction from "../../../assets/images/detail_png/direction.png";
+import close from "../../../assets/images/detail_png/close.png";
+// import phone from "../../../assets/images/detail_png/phone.png";
+// import chat from "../../../assets/images/detail_png/chat.png";
 
 const RoomDetail = ({ propertyId }) => {
   const [detail, setDetail] = useState(null);
@@ -24,52 +27,62 @@ const RoomDetail = ({ propertyId }) => {
     fetchDetail();
   }, [propertyId]);
 
+  const formatFee = (fee) => {
+    if (!fee || fee === 0) return "없음";
+    return `${Math.round(fee / 10000)}만원`;
+  };
+
   if (!detail) return null; // 아직 로딩 중
 
   return (
     <div className="room-detail">
-      <button
-        className="close-btn"
+      <img
+        src={close}
+        alt="닫기"
         onClick={() => dispatch(setSelectedPropertyId(null))}
-      >
-        X
-      </button>
+        className="close-btn"
+      />
       <img
         src={detail.imageUrl || defaultImage}
         alt="매물 이미지"
         className="detail-image"
       />
-      <div className="detail-info">
-        <p>{detail.address}</p>
-        <h2>
-          {detail.contractType} {detail.price}
-        </h2>
-        <p>관리비: {detail.maintenanceFee?.toLocaleString() || "없음"}원</p>
-        <hr />
+      {/* <div className="detail-scrollable"> */}
+        <div className="detail-info">
+          <p className="detail-address">{detail.address}</p>
+          <h2>
+            {detail.contractType} {detail.price}
+          </h2>
+          <p>관리비 {formatFee(detail.maintenanceFee)}</p>
+          <hr />
+          <div className="detail-description">{detail.description}</div>
+          <div className="detail-line">
+            <img src={date} alt="날짜 아이콘" className="detail-icons" />
+            <p>{detail.moveInDate}</p>
+          </div>
 
-        <p>{detail.description}</p>
-        <div className="detail-line">
-          <img src={date} alt="날짜 아이콘" className="detail-icons" />
-          <p>{detail.moveInDate}</p>
-        </div>
+          <div className="detail-line">
+            <img src={size} alt="면적 아이콘" className="detail-icons" />
+            <p>{detail.area}</p>
+          </div>
 
-        <div className="detail-line">
-          <img src={size} alt="면적 아이콘" className="detail-icons" />
-          <p>{detail.area}</p>
-        </div>
-
-        <div className="detail-line">
-          <img src={floor} alt="층수 아이콘" className="detail-icons" />
-          <p>{detail.floorInfo}</p>
-        </div>
-        <div className="detail-line">
-          <img src={room} alt="방욕실 아이콘" className="detail-icons" />
-          <p>{detail.roomBathCount}</p>
-        </div>
-        <div className="detail-line">
-          <img src={direction} alt="방향" className="detail-icons" />
-          <p>{detail.direction}</p>
-        </div>
+          <div className="detail-line">
+            <img src={floor} alt="층수 아이콘" className="detail-icons" />
+            <p>{detail.floorInfo}</p>
+          </div>
+          <div className="detail-line">
+            <img src={room} alt="방욕실 아이콘" className="detail-icons" />
+            <p>{detail.roomBathCount}</p>
+          </div>
+          <div className="detail-line">
+            <img src={direction} alt="방향" className="detail-icons" />
+            <p>{detail.direction}</p>
+          </div>
+        {/* </div> */}
+        {/* <div className="detail-fixed-footer">
+          <img src={phone} alt="전화" />
+          <img src={chat} alt="메시지" />
+        </div> */}
       </div>
     </div>
   );
