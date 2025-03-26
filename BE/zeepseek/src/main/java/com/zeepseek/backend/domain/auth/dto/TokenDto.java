@@ -15,4 +15,5 @@ public class TokenDto {
     private Long accessTokenExpireTime;
     private Long refreshTokenExpireTime;
     private Integer isFirst; // 첫 로그인 여부 (API 명세에 따라 필요)
+    private UserDto user;
 }

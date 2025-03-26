@@ -20,7 +20,7 @@ public class AuthController {
     /**
      * 소셜 로그인 처리
      */
-    @PostMapping("/login")
+    @PostMapping("/sessions")
     public ResponseEntity<ApiResponse<TokenDto>> socialLogin(@RequestBody SocialLoginRequest request) {
         log.info("=== 소셜 로그인 요청 시작 ===");
         log.info("인증 코드: {}", request.getAuthorizationCode());
@@ -45,7 +45,7 @@ public class AuthController {
     /**
      * 로그아웃 - access token 무효화
      */
-    @PostMapping("/logout")
+    @DeleteMapping("/sessions")
     public ResponseEntity<ApiResponse<Void>> logout(@RequestHeader("Authorization") String authHeader) {
         // Bearer 접두사 제거
         String accessToken = authHeader.replace("Bearer ", "");
@@ -65,7 +65,7 @@ public class AuthController {
     /**
      * 회원 정보 수정
      */
-    @PatchMapping("/update")
+    @PatchMapping("/{idx}}")
     public ResponseEntity<ApiResponse<UserDto>> updateUser(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestBody UserDto userDto) {
@@ -76,7 +76,7 @@ public class AuthController {
     /**
      * 회원 탈퇴
      */
-    @DeleteMapping("/delete")
+    @DeleteMapping("/{idx}}")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         authService.deleteUser(userPrincipal.getId());
         return ResponseEntity.ok(ApiResponse.success("계정이 삭제되었습니다.", null));
