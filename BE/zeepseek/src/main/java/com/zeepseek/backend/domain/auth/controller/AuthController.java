@@ -65,7 +65,7 @@ public class AuthController {
     /**
      * 회원 정보 수정
      */
-    @PatchMapping("/{idx}}")
+    @PatchMapping("/{idx}")
     public ResponseEntity<ApiResponse<UserDto>> updateUser(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestBody UserDto userDto) {
@@ -76,7 +76,7 @@ public class AuthController {
     /**
      * 회원 탈퇴
      */
-    @DeleteMapping("/{idx}}")
+    @DeleteMapping("/{idx}")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         authService.deleteUser(userPrincipal.getId());
         return ResponseEntity.ok(ApiResponse.success("계정이 삭제되었습니다.", null));
