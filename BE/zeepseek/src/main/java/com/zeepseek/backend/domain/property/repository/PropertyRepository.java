@@ -33,4 +33,13 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
 
     @Query("SELECT p FROM Property p WHERE p.roomType = '%오피스텔%' AND p.dongId = :dongId")
     List<Property> findOfficeByDongId(@Param("dongId") Integer dongId);
+
+    @Query("SELECT p FROM Property p WHERE (p.roomBathCount LIKE '1/%' OR p.roomBathCount LIKE '2/%') AND p.guName = :guName")
+    List<Property> findOneRoomByGuName(@Param("guName") String guName);
+
+    @Query("SELECT p FROM Property p WHERE (p.roomType = '빌라' OR p.roomType LIKE '%주택') AND p.guName = :guName")
+    List<Property> findHouseByGuName(@Param("guName") String guName);
+
+    @Query("SELECT p FROM Property p WHERE p.roomType = '오피스텔' AND p.guName = :guName")
+    List<Property> findOfficeByGuName(@Param("guName") String guName);
 }
