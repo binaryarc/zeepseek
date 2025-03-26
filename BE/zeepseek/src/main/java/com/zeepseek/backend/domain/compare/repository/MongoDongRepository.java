@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface MongoDongRepository extends MongoRepository<DongInfoDocs, Integer> {
     List<DongInfoDocs> findByNameContainingIgnoreCase(String name);
+    DongInfoDocs findByDongId(Integer dongId);
 }
