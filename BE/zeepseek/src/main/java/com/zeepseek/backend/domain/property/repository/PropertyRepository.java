@@ -5,6 +5,7 @@ import com.zeepseek.backend.domain.property.dto.response.DongPropertyCountDto;
 import com.zeepseek.backend.domain.property.dto.response.GuPropertyCountDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -24,4 +25,12 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
 
     List<Property> findByGuName(String guName);
 
+    @Query("SELECT p FROM Property p WHERE (p.roomBathCount LIKE '1/%' OR p.roomBathCount LIKE '2/%') AND p.dongId = :dongId")
+    List<Property> findOneRoomByDongId(@Param("dongId") Integer dongId);
+
+    @Query("SELECT p FROM Property p WHERE (p.roomType = '%빌라%' OR p.roomType LIKE '%주택%') AND p.dongId = :dongId")
+    List<Property> findHouseByDongId(@Param("dongId") Integer dongId);
+
+    @Query("SELECT p FROM Property p WHERE p.roomType = '%오피스텔%' AND p.dongId = :dongId")
+    List<Property> findOfficeByDongId(@Param("dongId") Integer dongId);
 }

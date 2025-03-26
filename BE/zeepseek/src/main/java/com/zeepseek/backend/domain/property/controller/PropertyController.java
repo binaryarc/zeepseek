@@ -68,18 +68,40 @@ public class PropertyController {
 
     // 특정 동의 매물 전체 조회 API: GET /api/v1/property/dong/{dongId}
     @GetMapping("/dong/{dongId}")
-    public ResponseEntity<List<PropertySummaryDto>> getPropertiesByDong(@PathVariable Integer dongId) {
-        List<PropertySummaryDto> properties = propertyService.getPropertiesByDong(dongId);
+    public ResponseEntity<List<Property>> getPropertiesByDong(@PathVariable Integer dongId) {
+        List<Property> properties = propertyService.getPropertiesByDong(dongId);
         return ResponseEntity.ok(properties);
     }
 
     // 특정 구의 매물 조회 API: GET /api/v1/property/gu/{guName}
     @GetMapping("/gu/{guName}")
-    public ResponseEntity<List<PropertySummaryDto>> getPropertiesByGu(@PathVariable String guName) {
-        List<PropertySummaryDto> properties = propertyService.getPropertiesByGu(guName);
+    public ResponseEntity<List<Property>> getPropertiesByGu(@PathVariable String guName) {
+        List<Property> properties = propertyService.getPropertiesByGu(guName);
         return ResponseEntity.ok(properties);
     }
 
-    // 추천 API: POST /api/v1/property/recommend?page=0&size=5
-    // 사용자 카테고리 점수를 받아 Python FastAPI 추천 시스템과 연동하여 추천 매물 목록을 페이지네이션 처리해서 반환
+    // 특정 동의 원룸(혹은 1룸, 2룸) 매물 조회 API: GET /api/v1/property/dong/{dongId}/one-room
+    @GetMapping("/dong/{dongId}/one-room")
+    public ResponseEntity<List<Property>> getOneRoomPropertiesByDong(@PathVariable Integer dongId) {
+        List<Property> properties = propertyService.getOneRoomPropertiesByDongId(dongId);
+        return ResponseEntity.ok(properties);
+    }
+
+    // 특정 동의 빌라 및 주택 매물 조회 API: GET /api/v1/property/dong/{dongId}/house
+    @GetMapping("/dong/{dongId}/house")
+    public ResponseEntity<List<Property>> getHousePropertiesByDong(@PathVariable Integer dongId) {
+        List<Property> properties = propertyService.getHousePropertiesByDongId(dongId);
+        return ResponseEntity.ok(properties);
+    }
+
+    // 특정 동의 오피스텔 매물 조회 API: GET /api/v1/property/dong/{dongId}/office
+    @GetMapping("/dong/{dongId}/office")
+    public ResponseEntity<List<Property>> getOfficePropertiesByDong(@PathVariable Integer dongId) {
+        List<Property> properties = propertyService.getOfficePropertiesByDongId(dongId);
+        return ResponseEntity.ok(properties);
+    }
+
+
+
+
 }
