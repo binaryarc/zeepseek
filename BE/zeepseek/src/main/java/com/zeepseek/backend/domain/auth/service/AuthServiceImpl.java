@@ -207,57 +207,45 @@ public class AuthServiceImpl implements AuthService {
         user.setIsFirst(0);
         User updatedUser = userRepository.save(user);
 
-        // 매물 고려사항 처리
         if (profileDto.getPropertyPreferences() != null && !profileDto.getPropertyPreferences().isEmpty()) {
+            Map<String, Float> preferences = profileDto.getPropertyPreferences();
+
             // 새 선호도 객체 생성
-            UserPreferences preferences = UserPreferences.builder()
+            UserPreferences userPreferences = UserPreferences.builder()
                     .user(user)
-                    .safe(0.0f)
-                    .leisure(0.0f)
-                    .restaurant(0.0f)
-                    .health(0.0f)
-                    .convenience(0.0f)
-                    .transport(0.0f)
-                    .cafe(0.0f)
+                    .safe(preferences.getOrDefault("safe", 0.0f))
+                    .leisure(preferences.getOrDefault("leisure", 0.0f))
+                    .restaurant(preferences.getOrDefault("restaurant", 0.0f))
+                    .health(preferences.getOrDefault("health", 0.0f))
+                    .convenience(preferences.getOrDefault("convenience", 0.0f))
+                    .transport(preferences.getOrDefault("transport", 0.0f))
+                    .cafe(preferences.getOrDefault("cafe", 0.0f))
                     .build();
 
-            // 선택된 항목 1.0으로 설정
-            for (String preference : profileDto.getPropertyPreferences()) {
-                switch (preference.toLowerCase()) {
-                    case "안전":
-                    case "safe":
-                        preferences.setSafe(1.0f);
-                        break;
-                    case "여가":
-                    case "leisure":
-                        preferences.setLeisure(1.0f);
-                        break;
-                    case "식당":
-                    case "restaurant":
-                        preferences.setRestaurant(1.0f);
-                        break;
-                    case "건강":
-                    case "health":
-                        preferences.setHealth(1.0f);
-                        break;
-                    case "편의":
-                    case "convenience":
-                        preferences.setConvenience(1.0f);
-                        break;
-                    case "교통":
-                    case "transport":
-                        preferences.setTransport(1.0f);
-                        break;
-                    case "카페":
-                    case "cafe":
-                        preferences.setCafe(1.0f);
-                        break;
-                    default:
-                        log.warn("Unknown preference: {}", preference);
-                }
+            // 한국어 키도 지원 (필요시)
+            if (preferences.containsKey("안전")) {
+                userPreferences.setSafe(preferences.get("안전"));
+            }
+            if (preferences.containsKey("여가")) {
+                userPreferences.setLeisure(preferences.get("여가"));
+            }
+            if (preferences.containsKey("식당")) {
+                userPreferences.setRestaurant(preferences.get("식당"));
+            }
+            if (preferences.containsKey("건강")) {
+                userPreferences.setHealth(preferences.get("건강"));
+            }
+            if (preferences.containsKey("편의")) {
+                userPreferences.setConvenience(preferences.get("편의"));
+            }
+            if (preferences.containsKey("교통")) {
+                userPreferences.setTransport(preferences.get("교통"));
+            }
+            if (preferences.containsKey("카페")) {
+                userPreferences.setCafe(preferences.get("카페"));
             }
 
-            userPreferencesRepository.save(preferences);
+            userPreferencesRepository.save(userPreferences);
         }
 
         // 업데이트된 사용자 정보 반환
@@ -266,7 +254,7 @@ public class AuthServiceImpl implements AuthService {
                 .nickname(updatedUser.getNickname())
                 .gender(updatedUser.getGender())
                 .age(updatedUser.getAge())
-                .isFirst(updatedUser.getIsFirst()) // 이제 0으로 설정됨
+                .isFirst(updatedUser.getIsFirst())
                 .isSeller(updatedUser.getIsSeller())
                 .provider(updatedUser.getProvider())
                 .build();
@@ -343,10 +331,17 @@ public class AuthServiceImpl implements AuthService {
 
         try {
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
-            return jsonNode.get("access_token").asText();
+            JsonNode accessTokenNode = jsonNode.get("access_token");
+
+            if (accessTokenNode == null) {
+                log.error("네이버 응답에 access_token이 없습니다. 응답 내용: {}", response.getBody());
+                throw new AuthException("네이버 액세스 토큰 획득 실패: 토큰이 응답에 포함되지 않음");
+            }
+
+            return accessTokenNode.asText();
         } catch (JsonProcessingException e) {
-            log.error("카카오 액세스 토큰 파싱 실패", e);
-            throw new AuthException("카카오 액세스 토큰 획득 실패");
+            log.error("네이버 액세스 토큰 파싱 실패", e);
+            throw new AuthException("네이버 액세스 토큰 획득 실패");
         }
     }
 
@@ -441,6 +436,9 @@ public class AuthServiceImpl implements AuthService {
         params.add("redirect_uri", naverRedirectUri);
         params.add("code", authorizationCode);
 
+        // 파라미터 로깅 추가
+        log.info("네이버 토큰 요청 파라미터: {}", params);
+
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 
         ResponseEntity<String> response = restTemplate.exchange(
@@ -450,9 +448,19 @@ public class AuthServiceImpl implements AuthService {
                 String.class
         );
 
+        // 응답 로깅 추가
+        log.info("네이버 API 응답: {}", response.getBody());
+
         try {
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
-            return jsonNode.get("access_token").asText();
+            JsonNode accessTokenNode = jsonNode.get("access_token");
+
+            if (accessTokenNode == null) {
+                log.error("네이버 응답에 access_token이 없습니다. 응답 내용: {}", response.getBody());
+                throw new AuthException("네이버 액세스 토큰 획득 실패: 토큰이 응답에 포함되지 않음");
+            }
+
+            return accessTokenNode.asText();
         } catch (JsonProcessingException e) {
             log.error("네이버 액세스 토큰 파싱 실패", e);
             throw new AuthException("네이버 액세스 토큰 획득 실패");
