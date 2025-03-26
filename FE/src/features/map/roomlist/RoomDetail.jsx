@@ -42,12 +42,13 @@ const RoomDetail = ({ propertyId }) => {
         onClick={() => dispatch(setSelectedPropertyId(null))}
         className="close-btn"
       />
+      <div className="detail-scrollable">
       <img
         src={detail.imageUrl || defaultImage}
         alt="매물 이미지"
         className="detail-image"
       />
-      {/* <div className="detail-scrollable"> */}
+      
         <div className="detail-info">
           <p className="detail-address">{detail.address}</p>
           <h2>
@@ -56,6 +57,7 @@ const RoomDetail = ({ propertyId }) => {
           <p>관리비 {formatFee(detail.maintenanceFee)}</p>
           <hr />
           <div className="detail-description">{detail.description}</div>
+          
           <div className="detail-line">
             <img src={date} alt="날짜 아이콘" className="detail-icons" />
             <p>{detail.moveInDate}</p>
@@ -78,11 +80,12 @@ const RoomDetail = ({ propertyId }) => {
             <img src={direction} alt="방향" className="detail-icons" />
             <p>{detail.direction}</p>
           </div>
-        {/* </div> */}
-        {/* <div className="detail-fixed-footer">
-          <img src={phone} alt="전화" />
-          <img src={chat} alt="메시지" />
-        </div> */}
+            {/* <div className="detail-fixed-footer">
+            <img src={phone} alt="전화" />
+            <img src={chat} alt="메시지" />
+          </div> */}
+        </div>
+        
       </div>
     </div>
   );

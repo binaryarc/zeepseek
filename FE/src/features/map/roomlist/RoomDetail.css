@@ -1,7 +1,8 @@
 .room-detail {
     position: absolute;
-    top: 6rem;
-    width: 22rem;
+    top: 13vh;
+    width: 24rem;
+    height: 83vh;
     background: white;
     z-index: 1000;
     /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); */
@@ -13,19 +14,32 @@
   }
   
   .detail-image {
-    width: 350px;
+    width: 380px;
     height: 280px;
     /* max-height: 300px; */
     margin-bottom: 3px;
   }
   
   .room-detail h2 {
-    font-size: 25px;
+    font-size: 22px;
     margin-top: 13px;
     margin-bottom: 13px;
     font-family: KOROAD;
   }
   
+  .detail-info {
+    overflow-y: auto;
+  }
+
+
+  .detail-info p {
+    font-size: 12px;
+    margin: 4px 0;
+    margin-top: 2.5%;
+    margin-bottom: 3%;
+    font-family: KOROAD;
+  }
+
   .detail-address {
     font-size: 13px;
     margin: 0;
@@ -37,20 +51,6 @@
     margin-bottom: 5px;
   }
 
-  .detail-info p {
-    font-size: 12px;
-    margin: 4px 0;
-    margin-top: 2.5%;
-    margin-bottom: 2%;
-    font-family: KOROAD;
-  }
-
-  /* .room-detail p {
-    font-size: 14px;
-    margin: 4px 0;
-    margin-bottom: 2.5%;
-    font-family: KOROAD;
-} */
 
 .close-btn {
     position: absolute;
@@ -79,11 +79,11 @@
     margin-bottom: 2px;
   }
   
-  /* .detail-fixed-footer {
+  .detail-fixed-footer {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    height: 40px;
+    height: 30px;
     border-top: 1px solid #eee;
     background-color: linear-gradient(180deg, rgba(255, 255, 255, 0.00) 0%, rgba(255, 255, 255, 0.01) 9%, #F4F4F4 19%);
     position: sticky;
@@ -95,4 +95,6 @@
     width: 28px;
     height: 28px;
     cursor: pointer;
-  } */
+  }
+
+  
