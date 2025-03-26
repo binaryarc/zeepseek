@@ -1,11 +1,12 @@
 package com.zeepseek.backend.domain.dong.document;
 
-import jakarta.persistence.Id;
+import org.springframework.data.annotation.Id;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -14,7 +15,7 @@ import java.util.List;
 public class DongInfoDocs {
 
     @Id
-    private Integer dongId;
+    private int dongId;
 
     private String name;
     private String guName;
@@ -33,7 +34,7 @@ public class DongInfoDocs {
     private String summary;
 
     // 동네 댓글 목록
-    private List<DongComment> comments;
+    private List<DongComment> comments = new ArrayList<>();
 
     @Getter
     @Setter
