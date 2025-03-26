@@ -331,10 +331,17 @@ public class AuthServiceImpl implements AuthService {
 
         try {
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
-            return jsonNode.get("access_token").asText();
+            JsonNode accessTokenNode = jsonNode.get("access_token");
+
+            if (accessTokenNode == null) {
+                log.error("네이버 응답에 access_token이 없습니다. 응답 내용: {}", response.getBody());
+                throw new AuthException("네이버 액세스 토큰 획득 실패: 토큰이 응답에 포함되지 않음");
+            }
+
+            return accessTokenNode.asText();
         } catch (JsonProcessingException e) {
-            log.error("카카오 액세스 토큰 파싱 실패", e);
-            throw new AuthException("카카오 액세스 토큰 획득 실패");
+            log.error("네이버 액세스 토큰 파싱 실패", e);
+            throw new AuthException("네이버 액세스 토큰 획득 실패");
         }
     }
 
@@ -440,7 +447,14 @@ public class AuthServiceImpl implements AuthService {
 
         try {
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
-            return jsonNode.get("access_token").asText();
+            JsonNode accessTokenNode = jsonNode.get("access_token");
+
+            if (accessTokenNode == null) {
+                log.error("네이버 응답에 access_token이 없습니다. 응답 내용: {}", response.getBody());
+                throw new AuthException("네이버 액세스 토큰 획득 실패: 토큰이 응답에 포함되지 않음");
+            }
+
+            return accessTokenNode.asText();
         } catch (JsonProcessingException e) {
             log.error("네이버 액세스 토큰 파싱 실패", e);
             throw new AuthException("네이버 액세스 토큰 획득 실패");
