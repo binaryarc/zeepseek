@@ -38,6 +38,7 @@ public class DongController {
         log.info(dongId.toString());
         return dong != null ? ResponseEntity.ok(dong) : ResponseEntity.notFound().build();
     }
+
     /**
      * dongId를 기반으로 댓글 목록 조회 API
      * 요청 예: GET /api/v1/dong/123/comment
@@ -62,16 +63,14 @@ public class DongController {
     }
 
     /**
-     * dongId와 닉네임을 기반으로 댓글 삭제 API
-     * 요청 예: DELETE /api/v1/dong/123/comment?nickname=작성자닉네임
+     * dongId와 commentId를 기반으로 댓글 삭제 API
+     * 요청 예: DELETE /api/v1/dong/123/comment?commentId=1
      */
     @DeleteMapping("/{dongId}/comment")
     public ResponseEntity<DongInfoDocs> deleteDongComment(
             @PathVariable("dongId") Integer dongId,
-            @RequestParam("nickname") String nickname) {
-        DongInfoDocs updatedDong = dongService.deleteDongComment(dongId, nickname);
+            @RequestParam("commentId") int commentId) {
+        DongInfoDocs updatedDong = dongService.deleteDongCommentById(dongId, commentId);
         return ResponseEntity.ok(updatedDong);
     }
-
-
 }
