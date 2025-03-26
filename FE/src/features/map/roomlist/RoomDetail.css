@@ -48,7 +48,7 @@
 
   .detail-description {
     font-size: 10px;
-    margin-bottom: 5px;
+    margin-bottom: 12px;
   }
 
 
@@ -67,16 +67,16 @@
   }
 
   .detail-icons {
-    width: 20px; 
-    height: 20px;
-    margin-right: 8px; /* 텍스트와 간격 */
+    width: 25px; 
+    height: 25px;
+    margin-right: 11px; /* 텍스트와 간격 */
     vertical-align: middle; /* 텍스트와 세로 정렬 */
   }
   
   .detail-line {
     display: flex;
     align-items: center;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
   }
   
   .detail-fixed-footer {

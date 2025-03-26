@@ -1,0 +1,63 @@
+.mypage-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #fdfcf7;
+    height: 100vh;
+  }
+  
+  .mypage-card {
+    background: white;
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+    border-radius: 20px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.05);
+    text-align: center;
+    width: 300px;
+    margin-bottom: 2rem;
+  }
+  
+  .mypage-profile-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: url('/path-to-profile.png') center/cover no-repeat;
+    margin: 0 auto 1rem;
+  }
+  
+  .social-circle {
+    background-color: #00c73c;
+    color: white;
+    font-weight: bold;
+    border-radius: 50%;
+    padding: 4px 8px;
+  }
+  
+  .mypage-buttons button {
+    background: #f1fad3;
+    border: 2px solid #87cd6c;
+    border-radius: 15px;
+    padding: 1rem;
+    margin: 0.5rem;
+    width: 200px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .mypage-footer {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .logout-btn,
+  .withdraw-btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    border: none;
+    background: #f4e4b2;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
