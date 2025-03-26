@@ -53,11 +53,23 @@ function Searchbar() {
             const { x, y } = result[0];
             const latLng = new window.kakao.maps.LatLng(y, x);
             const map = window.map;
-            if (map) map.setCenter(latLng);
+            // 검색 결과로 지도 이동
+            if (map) {
+              // ✅ 이동 전 플래그 켜기
+              window.isMovingBySearch = true;
+
+              map.setCenter(latLng);
+
+              // ✅ 다음 idle 발생 전에 false로 꺼줌 (약간의 delay로)
+              setTimeout(() => {
+                window.isMovingBySearch = false;
+              }, 500);
+            }
             // 💡 강제로 idle 이벤트 트리거
-            setTimeout(() => {
-              window.kakao.maps.event.trigger(map, "idle");
-            }, 50); // 500ms 정도면 충분
+            // setTimeout(() => {
+            //   window.kakao.maps.event.trigger(map, "idle");
+            // }, 50); // 500ms 정도면 충분
+            // map.setCenter(latLng);
           }
         });
 
