@@ -14,7 +14,7 @@ const RoomList = () => {
   };
 
   // ✅ Redux 상태에서 매물 리스트, 로딩 상태 가져오기
-  const { rooms, loading, keyword } = useSelector((state) => state.roomList);
+  const { rooms, loading, keyword, selectedPropertyId } = useSelector((state) => state.roomList);
   
   return (
     <div className="room-list">
@@ -42,8 +42,14 @@ const RoomList = () => {
         rooms.map((room) => (
           <div
           key={room.propertyId}
-          className="room-item"
-          onClick={() => dispatch(setSelectedPropertyId(room.propertyId))}
+           className={`room-item ${selectedPropertyId === room.propertyId ? "selected" : ""}`}
+          onClick={() => {
+            if (room.propertyId === selectedPropertyId) {
+              dispatch(setSelectedPropertyId(null)); // 같은 매물 클릭 시 닫기
+            } else {
+              dispatch(setSelectedPropertyId(room.propertyId)); // 새로운 매물 선택
+            }
+          }}          
         >
             <img src={room.imageUrl || defaultImage} alt="매물 이미지" />
             <div>

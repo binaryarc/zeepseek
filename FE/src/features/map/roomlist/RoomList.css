@@ -85,3 +85,9 @@
     color: gray;
     font-size: 14px;
   }
+
+  .room-item.selected {
+    background-color: #fdf6e3; /* 연한 노란 배경 */
+    border-left: 4px solid #f9b233; /* 강조 선 */
+  }
+  

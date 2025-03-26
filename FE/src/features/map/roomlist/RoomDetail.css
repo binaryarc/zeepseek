@@ -1,43 +1,66 @@
 .room-detail {
     position: absolute;
-    top: 80px;
-    width: 420px;
+    top: 6rem;
+    width: 22rem;
     background: white;
     z-index: 1000;
     /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); */
-    padding: 1rem;
+    padding: 0.8rem;
     font-family: 'KOROAD_Bold';
+    border: solid 0.01px black;
+    margin-left: 1px;
+    /* overflow: hidden; */
   }
   
-  /* .room-detail img {
-    width: 100%;
-    height: 100%;
-    max-height: 300px;
-    margin-bottom: 10px;
-  } */
+  .detail-image {
+    width: 350px;
+    height: 280px;
+    /* max-height: 300px; */
+    margin-bottom: 3px;
+  }
   
   .room-detail h2 {
-    font-size: 27px;
-    margin-bottom: 10px;
+    font-size: 25px;
+    margin-top: 13px;
+    margin-bottom: 13px;
     font-family: KOROAD;
   }
   
-  .room-detail p {
+  .detail-address {
+    font-size: 13px;
+    margin: 0;
+    
+  }
+
+  .detail-description {
+    font-size: 10px;
+    margin-bottom: 5px;
+  }
+
+  .detail-info p {
+    font-size: 12px;
+    margin: 4px 0;
+    margin-top: 2.5%;
+    margin-bottom: 2%;
+    font-family: KOROAD;
+  }
+
+  /* .room-detail p {
     font-size: 14px;
     margin: 4px 0;
     margin-bottom: 2.5%;
     font-family: KOROAD;
-}
+} */
 
 .close-btn {
     position: absolute;
-    top: 0px;         
-    right: -30px;
-    background: white;
-    border: #ccc;
+    top: -1px;         
+    right: -35px;
+    background: rgb(131, 85, 85);
+    border:  #ccc;
     font-size: 16px;
-    width: 32px;
-    height: 32px;
+    width: 35px;
+    height: 35px;
     cursor: pointer;
     /* box-shadow: 0 2px 6px rgba(0,0,0,0.2); */
     z-index: 1001;
@@ -53,6 +76,23 @@
   .detail-line {
     display: flex;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 2px;
   }
   
+  /* .detail-fixed-footer {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 40px;
+    border-top: 1px solid #eee;
+    background-color: linear-gradient(180deg, rgba(255, 255, 255, 0.00) 0%, rgba(255, 255, 255, 0.01) 9%, #F4F4F4 19%);
+    position: sticky;
+    bottom: 0;
+
+  }
+  
+  .detail-fixed-footer img {
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+  } */
