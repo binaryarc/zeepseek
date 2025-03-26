@@ -1,0 +1,12 @@
+.kakao-button{
+    border: none;
+    padding: 0 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.kakao {
+    width: 250px;
+}

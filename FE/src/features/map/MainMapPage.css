@@ -1,0 +1,30 @@
+/* 전체 페이지 */
+.map-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  
+  /* 네비게이션 아래 컨텐츠 */
+  .map-content {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+  
+  /* 왼쪽 매물 리스트 */
+  .room-list {
+    width: 30%;
+    max-width: 400px;
+    background-color: #f8f8f8;
+    /* padding: 20px; */
+    overflow-y: auto;
+    border-right: 1px solid #ddd;
+  }
+  
+  /* 오른쪽 지도 */
+  .map-container {
+    flex: 1;
+    height: 100%;
+  }
+  
