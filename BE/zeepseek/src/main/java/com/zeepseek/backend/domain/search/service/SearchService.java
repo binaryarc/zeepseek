@@ -52,13 +52,20 @@ public class SearchService {
                                 .analyzer("custom_normalizer")
                         ));
 
-                        // roomType 필터가 존재하면 필터 조건 추가
+                        // roomType 필터 조건 추가
                         if (roomTypeFilter != null && !roomTypeFilter.isEmpty()) {
                             if ("원룸/투룸".equals(roomTypeFilter)) {
                                 // computedRoomType 필드가 "원룸" 또는 "투룸"인 경우를 OR 조건으로 추가
                                 b.filter(f -> f.bool(bf -> bf
                                         .should(s -> s.term(t -> t.field("computedRoomType.keyword").value("원룸")))
                                         .should(s -> s.term(t -> t.field("computedRoomType.keyword").value("투룸")))
+                                        .minimumShouldMatch("1")
+                                ));
+                            } else if ("주택/빌라".equals(roomTypeFilter)) {
+                                // roomType 필드가 "빌라" 또는 "상가주택"인 경우를 OR 조건으로 추가
+                                b.filter(f -> f.bool(bf -> bf
+                                        .should(s -> s.term(t -> t.field("roomType.keyword").value("빌라")))
+                                        .should(s -> s.term(t -> t.field("roomType.keyword").value("상가주택")))
                                         .minimumShouldMatch("1")
                                 ));
                             } else {
@@ -91,13 +98,14 @@ public class SearchService {
 
     /**
      * guName과 dongName이 정확하게 일치하는 경우의 데이터만 조회하는 메서드
-     * @param guName   검색할 guName 값
-     * @param dongName 검색할 dongName 값
-     * @param page     페이지 번호 (1부터 시작)
-     * @param size     페이지 당 결과 수
+     * @param guName           검색할 guName 값
+     * @param dongName         검색할 dongName 값
+     * @param page             페이지 번호 (1부터 시작)
+     * @param size             페이지 당 결과 수
+     * @param roomTypeFilter   roomType 필터 조건 (예: "원룸/투룸", "빌라/주택" 등)
      * @return 검색 결과 리스트
      */
-    public KeywordResponse searchPropertiesByGuAndDong(String guName, String dongName, int page, int size) {
+    public KeywordResponse searchPropertiesByGuAndDong(String guName, String dongName, int page, int size, String roomTypeFilter) {
         int from = (page - 1) * size;
 
         try {
@@ -106,12 +114,33 @@ public class SearchService {
                     .from(from)
                     .size(size)
                     .trackTotalHits(t -> t.enabled(true))
-                    .query(q -> q.bool(b -> b
-                            .must(List.of(
-                                    Query.of(qb -> qb.term(t -> t.field("guName").value(guName))),
-                                    Query.of(qb -> qb.match(t -> t.field("dongName").query(dongName)))
-                            ))
-                    ))
+                    .query(q -> q.bool(b -> {
+                        // guName과 dongName이 정확하게 일치하는 조건
+                        b.must(List.of(
+                                Query.of(qb -> qb.term(t -> t.field("guName").value(guName))),
+                                Query.of(qb -> qb.match(t -> t.field("dongName").query(dongName)))
+                        ));
+
+                        // roomType 필터 조건 추가
+                        if (roomTypeFilter != null && !roomTypeFilter.isEmpty()) {
+                            if ("원룸/투룸".equals(roomTypeFilter)) {
+                                b.filter(f -> f.bool(bf -> bf
+                                        .should(s -> s.term(t -> t.field("computedRoomType.keyword").value("원룸")))
+                                        .should(s -> s.term(t -> t.field("computedRoomType.keyword").value("투룸")))
+                                        .minimumShouldMatch("1")
+                                ));
+                            } else if ("주택/빌라".equals(roomTypeFilter)) {
+                                b.filter(f -> f.bool(bf -> bf
+                                        .should(s -> s.term(t -> t.field("roomType.keyword").value("빌라")))
+                                        .should(s -> s.term(t -> t.field("roomType.keyword").value("상가주택")))
+                                        .minimumShouldMatch("1")
+                                ));
+                            } else {
+                                b.filter(f -> f.term(t -> t.field("roomType.keyword").value(roomTypeFilter)));
+                            }
+                        }
+                        return b;
+                    }))
             );
 
             SearchResponse<SearchProperty> searchResponse = elasticsearchClient.search(searchRequest, SearchProperty.class);
