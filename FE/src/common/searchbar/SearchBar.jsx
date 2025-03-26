@@ -113,7 +113,7 @@ function Searchbar() {
       {isLoggedIn ? (
         <div className="nav-right">
           <div className="nav-menu">
-            <span onClick={() => navigate("/map")}>지도</span>
+            <span onClick={() => "/map"}>지도</span>
             <span onClick={() => navigate("/post-room")}>방 내놓기</span>
             <span onClick={() => navigate("/wishlist")}>찜</span>
           </div>
