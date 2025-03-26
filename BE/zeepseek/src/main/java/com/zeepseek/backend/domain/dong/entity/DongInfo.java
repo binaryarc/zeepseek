@@ -1,10 +1,9 @@
-package com.zeepseek.backend.domain.compare.entity;
+package com.zeepseek.backend.domain.dong.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 

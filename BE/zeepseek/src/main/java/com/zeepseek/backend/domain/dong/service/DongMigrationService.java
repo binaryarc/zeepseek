@@ -1,11 +1,10 @@
-package com.zeepseek.backend.domain.compare.service;
+package com.zeepseek.backend.domain.dong.service;
 
-import com.zeepseek.backend.domain.compare.document.DongInfoDocs;
-import com.zeepseek.backend.domain.compare.entity.DongInfo;
-import com.zeepseek.backend.domain.compare.repository.MongoDongRepository;
-import com.zeepseek.backend.domain.compare.repository.MySQLDongRepository;
+import com.zeepseek.backend.domain.dong.document.DongInfoDocs;
+import com.zeepseek.backend.domain.dong.entity.DongInfo;
+import com.zeepseek.backend.domain.dong.repository.MongoDongRepository;
+import com.zeepseek.backend.domain.dong.repository.MySQLDongRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

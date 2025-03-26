@@ -1,7 +1,6 @@
-package com.zeepseek.backend.domain.compare.service;
+package com.zeepseek.backend.domain.dong.service;
 
-import com.zeepseek.backend.domain.compare.entity.DongInfo;
-import lombok.RequiredArgsConstructor;
+import com.zeepseek.backend.domain.dong.entity.DongInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;

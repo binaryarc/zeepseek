@@ -1,6 +1,6 @@
-package com.zeepseek.backend.domain.compare.controller;
+package com.zeepseek.backend.domain.dong.controller;
 
-import com.zeepseek.backend.domain.compare.service.DongMigrationService;
+import com.zeepseek.backend.domain.dong.service.DongMigrationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

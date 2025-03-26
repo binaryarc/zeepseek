@@ -1,6 +1,6 @@
-package com.zeepseek.backend.domain.compare.repository;
+package com.zeepseek.backend.domain.dong.repository;
 
-import com.zeepseek.backend.domain.compare.document.DongInfoDocs;
+import com.zeepseek.backend.domain.dong.document.DongInfoDocs;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
