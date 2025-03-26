@@ -14,8 +14,17 @@ public interface PropertyService {
     Property getPropertyDetail(Long id);
     List<PropertySummaryDto> getAllPropertySummaries();
     Page<PropertySummaryDto> getPropertySummaries(Pageable pageable);
-    List<PropertySummaryDto> getPropertiesByDong(Integer dongId);
-    List<PropertySummaryDto> getPropertiesByGu(String guName);
+    List<Property> getPropertiesByDong(Integer dongId);
+    List<Property> getPropertiesByGu(String guName);
     List<DongPropertyCountDto> countPropertiesByDong();
     List<GuPropertyCountDto> countPropertiesByGu();
+
+    // 해당 동에 있는 원룸(혹은 1룸, 2룸)의 부동산 조회
+    List<Property> getOneRoomPropertiesByDongId(Integer dongId);
+
+    // 해당 동에 있는 빌라나 주택 부동산 조회
+    List<Property> getHousePropertiesByDongId(Integer dongId);
+
+    // 해당 동에 있는 오피스텔 부동산 조회
+    List<Property> getOfficePropertiesByDongId(Integer dongId);
 }

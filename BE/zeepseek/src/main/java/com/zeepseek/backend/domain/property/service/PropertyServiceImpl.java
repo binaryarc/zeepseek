@@ -57,25 +57,21 @@ public class PropertyServiceImpl implements PropertyService {
     }
 
     @Override
-    public List<PropertySummaryDto> getPropertiesByDong(Integer dongId) {
+    public List<Property> getPropertiesByDong(Integer dongId) {
         List<Property> properties = propertyRepository.findByDongId(dongId);
         if (!properties.isEmpty()) {
             logger.info("Found {} properties for dongId {}", properties.size(), dongId);
         } else {
             logger.info("No properties found for dongId {}", dongId);
         }
-        return properties.stream()
-                .map(p -> new PropertySummaryDto(p.getPropertyId(), p.getLatitude(), p.getLongitude()))
-                .collect(Collectors.toList());
+        return properties;
     }
 
     @Override
-    public List<PropertySummaryDto> getPropertiesByGu(String guName) {
+    public List<Property> getPropertiesByGu(String guName) {
         List<Property> properties = propertyRepository.findByGuName(guName);
         logger.info("Found {} properties for guName {}", properties.size(), guName);
-        return properties.stream()
-                .map(p -> new PropertySummaryDto(p.getPropertyId(), p.getLatitude(), p.getLongitude()))
-                .collect(Collectors.toList());
+        return properties;
     }
 
     @Override
@@ -94,5 +90,41 @@ public class PropertyServiceImpl implements PropertyService {
             logger.info("Counting properties by gu: {} records", counts.size());
         }
         return counts;
+    }
+
+    // 해당 동에 있는 원룸(혹은 1룸, 2룸)의 부동산 조회
+    @Override
+    public List<Property> getOneRoomPropertiesByDongId(Integer dongId) {
+        List<Property> properties = propertyRepository.findOneRoomByDongId(dongId);
+        if (!properties.isEmpty()) {
+            logger.info("Found {} one-room properties for dongId {}", properties.size(), dongId);
+        } else {
+            logger.info("No one-room properties found for dongId {}", dongId);
+        }
+        return properties;
+    }
+
+    // 해당 동에 있는 빌라나 주택 부동산 조회
+    @Override
+    public List<Property> getHousePropertiesByDongId(Integer dongId) {
+        List<Property> properties = propertyRepository.findHouseByDongId(dongId);
+        if (!properties.isEmpty()) {
+            logger.info("Found {} house properties for dongId {}", properties.size(), dongId);
+        } else {
+            logger.info("No house properties found for dongId {}", dongId);
+        }
+        return properties;
+    }
+
+    // 해당 동에 있는 오피스텔 부동산 조회
+    @Override
+    public List<Property> getOfficePropertiesByDongId(Integer dongId) {
+        List<Property> properties = propertyRepository.findOfficeByDongId(dongId);
+        if (!properties.isEmpty()) {
+            logger.info("Found {} office properties for dongId {}", properties.size(), dongId);
+        } else {
+            logger.info("No office properties found for dongId {}", dongId);
+        }
+        return properties;
     }
 }
