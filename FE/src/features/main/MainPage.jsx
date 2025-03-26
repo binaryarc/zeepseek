@@ -7,7 +7,10 @@ import recommend_estate from "../../assets/images/main_png/recommend_estate.png"
 import oneroom from "../../assets/images/main_png/oneroom.png";
 import officetel from "../../assets/images/main_png/officetel.png";
 import villa from "../../assets/images/main_png/villa.png";
+import Searchbar from "../../common/searchbar/SearchBar";
 import "./MainPage.css";
+import MainSearchbar from "../../common/searchbar/MainSearchBar";
+
 
 function MainPage() {
   const navigate = useNavigate();
@@ -18,11 +21,7 @@ function MainPage() {
       <img src={zeepseek} alt="zeepseek 로고" className="main-logo" />
       {/* 메인 헤더 */}
       <header className="main-header">
-        <input
-          type="text"
-          placeholder="지역, 단지, 매물번호를 검색하세요!"
-          className="main-search-bar"
-        />
+        <MainSearchbar />
       </header>
 
       {/* 버튼 섹션 */}
