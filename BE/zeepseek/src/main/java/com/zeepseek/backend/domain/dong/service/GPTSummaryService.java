@@ -1,5 +1,6 @@
 package com.zeepseek.backend.domain.dong.service;
 
+import com.zeepseek.backend.domain.dong.document.DongInfoDocs;
 import com.zeepseek.backend.domain.dong.entity.DongInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -55,6 +56,39 @@ public class GPTSummaryService {
         }
         // API 호출 실패 시 기본 요약문 반환
         return dong.getName() + " 동은 안전하고 여가 시설이 잘 갖추어져 있습니다.";
+    }
+
+    public String getSummaryForDongCompare(DongInfoDocs dong1, DongInfoDocs dong2) {
+        String prompt = String.format("%s(%s)의 특징과 장점을 3줄 요약해줘. 마무리를 반드시 지어야 해.",
+                dong1.getName(), dong1.getGuName());
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", "gpt-3.5-turbo"); // Updated model
+        requestBody.put("messages", List.of(
+                Map.of("role", "user", "content", prompt)
+        ));
+        requestBody.put("max_tokens", 200);
+        requestBody.put("temperature", 0.7);
+
+        try {
+            // Use the newer chat completions endpoint
+            OpenAiResponse response = webClient.post()
+                    .uri("/chat/completions")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + openAiApiKey)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToMono(OpenAiResponse.class)
+                    .block();
+
+            if (response != null && response.getChoices() != null && !response.getChoices().isEmpty()) {
+                return response.getChoices().get(0).getMessage().getContent().trim();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // API 호출 실패 시 기본 요약문 반환
+        return dong1.getName() + " 동은 안전하고 여가 시설이 잘 갖추어져 있습니다.";
     }
 
     // Updated OpenAI API response mapping class
