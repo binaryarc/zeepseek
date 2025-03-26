@@ -123,4 +123,27 @@ public class PropertyController {
     }
 
 
+    // --- 전체 구/동 기준 타입별 조회 (신규 추가) ---
+
+    // 전체 원룸 매물 조회 API: GET /api/v1/property/type/one-room
+    @GetMapping("/type/one-room")
+    public ResponseEntity<List<Property>> getAllOneRoomProperties() {
+        List<Property> properties = propertyService.getOneRoomProperties();
+        return ResponseEntity.ok(properties);
+    }
+
+    // 전체 빌라/주택 매물 조회 API: GET /api/v1/property/type/house
+    @GetMapping("/type/house")
+    public ResponseEntity<List<Property>> getAllHouseProperties() {
+        List<Property> properties = propertyService.getHouseProperties();
+        return ResponseEntity.ok(properties);
+    }
+
+    // 전체 오피스텔 매물 조회 API: GET /api/v1/property/type/office
+    @GetMapping("/type/office")
+    public ResponseEntity<List<Property>> getAllOfficeProperties() {
+        List<Property> properties = propertyService.getOfficeProperties();
+        return ResponseEntity.ok(properties);
+    }
+
 }

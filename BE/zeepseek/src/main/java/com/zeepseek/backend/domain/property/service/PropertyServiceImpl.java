@@ -148,4 +148,25 @@ public class PropertyServiceImpl implements PropertyService {
         logger.info("Found {} office properties for guName {}", properties.size(), guName);
         return properties;
     }
+
+    @Override
+    public List<Property> getOneRoomProperties() {
+        List<Property> properties = propertyRepository.findOneRoomProperties();
+        logger.info("Found {} one-room properties for all regions", properties.size());
+        return properties;
+    }
+
+    @Override
+    public List<Property> getHouseProperties() {
+        List<Property> properties = propertyRepository.findHouseProperties();
+        logger.info("Found {} house properties for all regions", properties.size());
+        return properties;
+    }
+
+    @Override
+    public List<Property> getOfficeProperties() {
+        List<Property> properties = propertyRepository.findOfficeProperties();
+        logger.info("Found {} office properties for all regions", properties.size());
+        return properties;
+    }
 }
