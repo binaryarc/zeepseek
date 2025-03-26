@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Setter
 @Document(collection = "dong_compare_info")
 public class DongCompareDocs {
+
     @Id
     private Integer compareId;
 
