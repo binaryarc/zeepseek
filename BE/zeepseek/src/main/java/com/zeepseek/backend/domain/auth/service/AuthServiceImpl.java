@@ -436,6 +436,9 @@ public class AuthServiceImpl implements AuthService {
         params.add("redirect_uri", naverRedirectUri);
         params.add("code", authorizationCode);
 
+        // 파라미터 로깅 추가
+        log.info("네이버 토큰 요청 파라미터: {}", params);
+
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 
         ResponseEntity<String> response = restTemplate.exchange(
@@ -444,6 +447,9 @@ public class AuthServiceImpl implements AuthService {
                 request,
                 String.class
         );
+
+        // 응답 로깅 추가
+        log.info("네이버 API 응답: {}", response.getBody());
 
         try {
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
