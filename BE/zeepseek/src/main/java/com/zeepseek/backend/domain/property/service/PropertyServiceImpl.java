@@ -192,4 +192,28 @@ public class PropertyServiceImpl implements PropertyService {
         logger.info("Found office property counts for {} dong records", counts.size());
         return counts;
     }
+
+    // 구별 원룸 매물 개수
+    @Override
+    public List<GuPropertyCountDto> countOneRoomPropertiesByGu() {
+        List<GuPropertyCountDto> counts = propertyRepository.countOneRoomPropertiesByGu();
+        logger.info("Found one-room property counts for {} gu records", counts.size());
+        return counts;
+    }
+
+    // 구별 빌라/주택 매물 개수
+    @Override
+    public List<GuPropertyCountDto> countHousePropertiesByGu() {
+        List<GuPropertyCountDto> counts = propertyRepository.countHousePropertiesByGu();
+        logger.info("Found house property counts for {} gu records", counts.size());
+        return counts;
+    }
+
+    // 구별 오피스텔 매물 개수
+    @Override
+    public List<GuPropertyCountDto> countOfficePropertiesByGu() {
+        List<GuPropertyCountDto> counts = propertyRepository.countOfficePropertiesByGu();
+        logger.info("Found office property counts for {} gu records", counts.size());
+        return counts;
+    }
 }

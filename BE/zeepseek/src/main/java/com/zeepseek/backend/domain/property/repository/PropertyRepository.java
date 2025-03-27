@@ -113,4 +113,22 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
                                              @Param("minLat") double minLat,
                                              @Param("maxLng") double maxLng,
                                              @Param("maxLat") double maxLat);
+
+    // 구별 원룸 매물 개수
+    @Query("SELECT p.guName AS guName, COUNT(p) AS propertyCount " +
+            "FROM Property p WHERE p.roomBathCount LIKE '1/%' OR p.roomBathCount LIKE '2/%' " +
+            "GROUP BY p.guName")
+    List<GuPropertyCountDto> countOneRoomPropertiesByGu();
+
+    // 구별 빌라/주택 매물 개수
+    @Query("SELECT p.guName AS guName, COUNT(p) AS propertyCount " +
+            "FROM Property p WHERE p.roomType = '빌라' OR p.roomType LIKE '%주택%' " +
+            "GROUP BY p.guName")
+    List<GuPropertyCountDto> countHousePropertiesByGu();
+
+    // 구별 오피스텔 매물 개수
+    @Query("SELECT p.guName AS guName, COUNT(p) AS propertyCount " +
+            "FROM Property p WHERE p.roomType = '오피스텔' " +
+            "GROUP BY p.guName")
+    List<GuPropertyCountDto> countOfficePropertiesByGu();
 }
