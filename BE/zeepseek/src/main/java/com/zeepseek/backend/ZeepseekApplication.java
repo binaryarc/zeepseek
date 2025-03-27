@@ -16,8 +16,10 @@ public class ZeepseekApplication {
 
 		// 예: OPENAI_API_KEY 값을 시스템 프로퍼티로 등록
 		String openaiApiKey = dotenv.get("OPENAI_API_KEY");
+		String mongodburi = dotenv.get("MONGODB_URI");
 		if (openaiApiKey != null) {
 			System.setProperty("OPENAI_API_KEY", openaiApiKey);
+			System.setProperty("MONGODB_URI", mongodburi);
 		}
 
 		SpringApplication.run(ZeepseekApplication.class, args);
