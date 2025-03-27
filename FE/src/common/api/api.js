@@ -4,7 +4,7 @@ import store from "../../store/store";
 import { setAccessToken, logout } from "../../store/slices/authSlice";
 
 const zeepApi = axios.create({
-  baseURL: `https://j12e203.p.ssafy.io/api/v1`, // ✅ API 서버 주소
+  baseURL: `http://localhost:8082/api/v1`, // ✅ API 서버 주소
   withCredentials: false, // ✅ 쿠키 포함 요청
 });
 
@@ -42,11 +42,16 @@ export const fetchDongPropertyCounts = async () => {
 };
 
 // ✅ 매물 검색 요청 (keyword 기반)
-export const searchProperties = async (keyword, filter, page = 1, size = 10000) => {
+export const searchProperties = async (
+  keyword,
+  filter,
+  page = 1,
+  size = 10000
+) => {
   try {
     const res = await zeepApi.post("/search", {
       keyword,
-      filter,   // ✅ roomType 필드 추가
+      filter, // ✅ roomType 필드 추가
       page,
       size,
     });
@@ -61,7 +66,7 @@ export const searchProperties = async (keyword, filter, page = 1, size = 10000) 
 export const fetchPropertiesByBounds = async (
   guName,
   dongName,
-  filter,  // ✅ 추가
+  filter, // ✅ 추가
   page = 1,
   size = 10000
 ) => {
@@ -69,7 +74,7 @@ export const fetchPropertiesByBounds = async (
     const res = await zeepApi.post("/search/mapper", {
       guName,
       dongName,
-      filter,  
+      filter,
       page,
       size,
     });
@@ -79,7 +84,6 @@ export const fetchPropertiesByBounds = async (
     return [];
   }
 };
-
 
 // 상세 매물 조회 API
 export const getPropertyDetail = async (propertyId) => {

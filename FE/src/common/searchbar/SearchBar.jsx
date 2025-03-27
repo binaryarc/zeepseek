@@ -11,11 +11,15 @@ import {
   fetchRoomList,
 } from "../../store/slices/roomListSlice";
 import { searchProperties } from "../../common/api/api";
+import { logoutOAuth } from "../../common/api/authApi";
+import { logout } from "../../store/slices/authSlice";
+
 
 function Searchbar() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // 임시 상태
+  const accessToken = useSelector((state) => state.auth.accessToken);
+  const isLoggedIn = !!accessToken;
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchText, setSearchText] = useState("");
   const roomType = useSelector((state) => state.roomList.selectedRoomType);
@@ -34,6 +38,16 @@ function Searchbar() {
   const handleMenuClick = (path) => {
     setShowDropdown(false);
     navigate(path);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutOAuth(accessToken);      // 백엔드에 로그아웃 요청
+      dispatch(logout());                  // Redux 상태 초기화
+      navigate("/main");                 // 로그인 페이지로 이동 (선택)
+    } catch (err) {
+      console.error("로그아웃 실패", err);
+    }
   };
 
   const handleSearch = async () => {
@@ -130,7 +144,7 @@ function Searchbar() {
                 <div onClick={() => handleMenuClick("/profile")}>
                   내 정보 수정
                 </div>
-                <div onClick={() => setIsLoggedIn(false)}>로그아웃</div>
+                <div onClick={handleLogout}>로그아웃</div>
               </div>
             )}
           </div>
