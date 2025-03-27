@@ -70,4 +70,37 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
             "GROUP BY p.dongId")
     List<DongPropertyCountDto> countOfficePropertiesByDong();
 
+    // 셀 범위 내의 모든 매물 조회 (SPATIAL 함수 사용, location 컬럼에 SPATIAL 인덱스가 있어야 함)
+    @Query(value = "SELECT * FROM property WHERE ST_Within(location, ST_MakeEnvelope(:minLng, :minLat, :maxLng, :maxLat))", nativeQuery = true)
+    List<Property> findPropertiesInCell(@Param("minLat") double minLat,
+                                        @Param("maxLat") double maxLat,
+                                        @Param("minLng") double minLng,
+                                        @Param("maxLng") double maxLng);
+
+    // 셀 범위 내의 원룸 매물 조회: room_bath_count이 '1/%' 또는 '2/%'
+    @Query(value = "SELECT * FROM property WHERE ST_Within(location, ST_MakeEnvelope(:minLng, :minLat, :maxLng, :maxLat)) " +
+            "AND (room_bath_count LIKE '1/%' OR room_bath_count LIKE '2/%')", nativeQuery = true)
+    List<Property> findOneRoomPropertiesInCell(@Param("minLat") double minLat,
+                                               @Param("maxLat") double maxLat,
+                                               @Param("minLng") double minLng,
+                                               @Param("maxLng") double maxLng);
+
+    // 셀 범위 내의 오피스텔 매물 조회
+    @Query(value = "SELECT * FROM property WHERE ST_Within(location, ST_MakeEnvelope(:minLng, :minLat, :maxLng, :maxLat)) " +
+            "AND room_type = '오피스텔'", nativeQuery = true)
+    List<Property> findOfficePropertiesInCell(@Param("minLat") double minLat,
+                                              @Param("maxLat") double maxLat,
+                                              @Param("minLng") double minLng,
+                                              @Param("maxLng") double maxLng);
+
+    // 셀 범위 내의 빌라/주택 매물 조회
+    @Query(value = "SELECT * FROM property WHERE ST_Within(location, ST_MakeEnvelope(:minLng, :minLat, :maxLng, :maxLat)) " +
+            "AND (room_type = '빌라' OR room_type LIKE '%주택%')", nativeQuery = true)
+    List<Property> findHousePropertiesInCell(@Param("minLat") double minLat,
+                                             @Param("maxLat") double maxLat,
+                                             @Param("minLng") double minLng,
+                                             @Param("maxLng") double maxLng);
+
+
+
 }

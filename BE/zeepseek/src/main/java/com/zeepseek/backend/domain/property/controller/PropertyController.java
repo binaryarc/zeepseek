@@ -165,4 +165,6 @@ public class PropertyController {
         List<DongPropertyCountDto> counts = propertyService.countOfficePropertiesByDong();
         return ResponseEntity.ok(counts);
     }
+
+
 }
