@@ -1,5 +1,6 @@
 import React, {useState} from "react";
 import "./AiRecommend.css";
+import { fetchAIRecommendedProperties } from "../../../../common/api/api";
 
 const AiRecommend = () => {
 
@@ -14,6 +15,8 @@ const AiRecommend = () => {
         return acc;
       }, {})
     );
+
+    const [recommendedList, setRecommendedList] = useState([]);
   
     const handleSliderChange = (label, value) => {
       setFilterValues((prev) => ({
@@ -21,6 +24,29 @@ const AiRecommend = () => {
         [label]: value,
       }));
     };
+
+    const handleRecommendClick = async () => {
+      const preferenceData = {
+        userId: 123,
+        transportScore: filterValues["대중교통"] / 100,
+        restaurantScore: filterValues["식당"] / 100,
+        healthScore: filterValues["보건"] / 100,
+        convenienceScore: filterValues["편의"] / 100,
+        cafeScore: filterValues["카페"] / 100,
+        chickenScore: filterValues["치킨집"] / 100,
+        leisureScore: filterValues["여가"] / 100,
+        safety: filterValues["안전"] / 100,
+      };
+      
+      console.log("request data: ", preferenceData)
+
+      const result = await fetchAIRecommendedProperties(preferenceData);
+      if (result) {
+        console.log("추천 매물 목록:", result.recommendedProperties);
+        setRecommendedList(result.recommendedProperties);
+      }
+    };
+  
 
   return (
     <div className="ai-filter-container">
@@ -43,7 +69,28 @@ const AiRecommend = () => {
           />
         </div>
       ))}
-      <button className="search-btn">매물 검색</button>
+      <button className="search-btn" onClick={handleRecommendClick}>매물 검색</button>
+
+        {/* 추천 매물 리스트 출력 */}
+        {recommendedList.length > 0 && (
+        <div className="recommend-results">
+          <h4 className="result-title">추천 매물 목록 ({recommendedList.length}건)</h4>
+          <ul className="result-list">
+            {recommendedList.map((item) => (
+              <li key={item.propertyId} className="result-item">
+                <div className="item-header">
+                  <strong>{item.address}</strong>
+                  <span className="price">{item.price}</span>
+                </div>
+                <div className="item-sub">
+                  {item.roomType} / {item.contractType} / {item.roomBathCount} / 관리비: {item.maintenanceFee?.toLocaleString()}원
+                </div>
+                <div className="item-desc">{item.description}</div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   )
 };

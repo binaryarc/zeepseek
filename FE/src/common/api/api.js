@@ -102,12 +102,24 @@ export const fetchGridSaleCountsByType = async (cells, type = "office") => {
 };
 
 
+// AI 추천 API 요청
+export const fetchAIRecommendedProperties = async (preferenceData) => {
+  try {
+    const res = await zeepApi.post("/recommend", preferenceData);
+    return res.data;
+  } catch (error) {
+    console.error("AI 추천 요청 실패:", error);
+    return null;
+  }
+};
+
+
 // 응답 인터셉터
 zeepApi.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-
+    
     // 토큰 만료 시 재발급 시도
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
@@ -128,7 +140,6 @@ zeepApi.interceptors.response.use(
   }
 );
 
-// AI 매물 추천 api
 
 
 export default zeepApi;

@@ -29,3 +29,12 @@
     height: 100%;
   }
   
+
+  .ai-slide-button {
+    position: fixed;
+    bottom: 5%;
+    right: 2%;
+    border-radius: 50%;
+    height: 8%;
+    z-index: 2;
+  }
