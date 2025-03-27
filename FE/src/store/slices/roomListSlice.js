@@ -1,5 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { searchProperties, fetchPropertiesByBounds } from "../../common/api/api"; // ✅ 변경된 부분
+import {
+  searchProperties,
+  fetchPropertiesByBounds,
+} from "../../common/api/api"; // ✅ 변경된 부분
 
 // ✅ keyword 기반 매물 검색 (검색 + 지도 이동 모두 사용)
 export const fetchRoomList = createAsyncThunk(
@@ -10,15 +13,14 @@ export const fetchRoomList = createAsyncThunk(
   }
 );
 
-
 // ✅ 지도 이동 시 bounds 기반 매물 조회 API
 export const fetchRoomListByBounds = createAsyncThunk(
-    "roomList/fetchByBounds",
-    async ({ guName, dongName, filter }) => {
-      const res = await fetchPropertiesByBounds(guName, dongName, filter);
-      return res.properties;
-    }
-  );
+  "roomList/fetchByBounds",
+  async ({ guName, dongName, filter }) => {
+    const res = await fetchPropertiesByBounds(guName, dongName, filter);
+    return res.properties;
+  }
+);
 
 const roomListSlice = createSlice({
   name: "roomList",
@@ -30,7 +32,9 @@ const roomListSlice = createSlice({
     loading: false,
     searchLock: false, // ✅ 중복 요청 방지용
     selectedPropertyId: null,
-    selectedRoomType: "원룸/투룸" // ✅ 선택된 방 종류
+    selectedRoomType: "원룸/투룸", // ✅ 선택된 방 종류
+    currentGuName: null,
+    currentDongName: null,
   },
   reducers: {
     setCurrentPage: (state, action) => {
@@ -50,10 +54,14 @@ const roomListSlice = createSlice({
     setSelectedRoomType: (state, action) => {
       state.selectedRoomType = action.payload;
     },
+    setCurrentGuAndDongName: (state, action) => {
+      state.currentGuName = action.payload.guName;
+      state.currentDongName = action.payload.dongName;
+    },
   },
   extraReducers: (builder) => {
     builder
-    .addCase(fetchRoomList.pending, (state) => {
+      .addCase(fetchRoomList.pending, (state) => {
         state.loading = true;
       })
       .addCase(fetchRoomList.fulfilled, (state, action) => {
@@ -78,5 +86,12 @@ const roomListSlice = createSlice({
   },
 });
 
-export const { setCurrentPage, setCurrentDongId,setSearchLock, setSelectedPropertyId, setSelectedRoomType } = roomListSlice.actions;
+export const {
+  setCurrentPage,
+  setCurrentDongId,
+  setSearchLock,
+  setSelectedPropertyId,
+  setSelectedRoomType,
+  setCurrentGuAndDongName,
+} = roomListSlice.actions;
 export default roomListSlice.reducer;

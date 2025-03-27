@@ -1,9 +1,12 @@
 import React, { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { oauthLogin } from "../../../common/api/authApi";
+import { setAccessToken, setUser } from "../../../store/slices/authSlice";
 
 const NaverRedirectHandler = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const code = searchParams.get("code");
   const state = searchParams.get("state");
@@ -13,7 +16,14 @@ const NaverRedirectHandler = () => {
       if (code && state) {
         try {
           console.log("네이버 로그인 처리 중...", code.substring(0, 5) + "...");
-          await oauthLogin(code, "naver");
+
+          const userInfo = await oauthLogin(code, "naver"); // 응답이 사용자 객체 자체
+          console.log(userInfo.data);
+          const { accessToken, ...user } = userInfo.data;
+
+          dispatch(setAccessToken(accessToken));
+          dispatch(setUser(user)); // accessToken 제외한 나머지
+
           navigate("/main");
         } catch (error) {
           console.error("네이버 로그인 처리 실패:", error);
@@ -26,9 +36,8 @@ const NaverRedirectHandler = () => {
     };
 
     handleNaverLogin();
-  }, [code, state, navigate]);
+  }, [code, state, navigate, dispatch]);
 
-  // 로딩 중 표시
   return <div className="login-processing">네이버 로그인 처리 중...</div>;
 };
 

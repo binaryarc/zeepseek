@@ -7,11 +7,20 @@ import {
   fetchGuPropertyCounts,
 } from "../../../../common/api/api";
 // import { useState } from "react";
-
-
+import { useSelector } from "react-redux";
 
 function SaleCountMarkers({ map }) {
   const overlaysRef = useRef([]); // ✅ useRef로 오버레이 관리
+  const selectedRoomType = useSelector(
+    (state) => state.roomList.selectedRoomType
+  );
+  const roomTypeMap = {
+    "원룸/투룸": "one-room",
+    "주택/빌라": "house",
+    오피스텔: "office",
+  };
+  const filterKey = roomTypeMap[selectedRoomType];
+
   // const [dongId, setDongId] = useState(null);
 
   useEffect(() => {
@@ -27,10 +36,15 @@ function SaleCountMarkers({ map }) {
 
       const targetData = isGuLevel ? guData : dongData;
 
-      // 📌 API 요청
-      const countData = isGuLevel
-        ? await fetchGuPropertyCounts()
-        : await fetchDongPropertyCounts();
+      let countData = [];
+
+      if (isGuLevel) {
+        countData = await fetchGuPropertyCounts();
+      } else {
+        if (!filterKey) return;
+        console.log("dhsl?");
+        countData = await fetchDongPropertyCounts(filterKey); // ✅ 파라미터 전달
+      }
 
       // 📌 데이터 매핑
       const countMap = {};

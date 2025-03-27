@@ -3,12 +3,19 @@ import title from "../../assets/logo/zeeptitle.png";
 import { useNavigate } from "react-router-dom";
 import "./Navbar.css";
 import { FaRegUserCircle } from "react-icons/fa"; // 사람 아이콘
+import { logoutOAuth } from "../api/authApi";
+import { useSelector } from "react-redux";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { logout } from "../../store/slices/authSlice";
 
 function Navbar() {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // 임시 상태
+  const dispatch = useDispatch();
   const [showDropdown, setShowDropdown] = useState(false);
   const nickname = "크롤링하는 크롱님";
+  const accessToken = useSelector((state) => state.auth.accessToken);
+  const isLoggedIn = !!accessToken;
 
   const handleToggleDropdown = () => {
     setShowDropdown((prev) => !prev);
@@ -18,6 +25,20 @@ function Navbar() {
     setShowDropdown(false);
     navigate(path);
   };
+
+  const handleLogout = async () => {
+    try {
+      await logoutOAuth(accessToken);      // 백엔드에 로그아웃 요청
+      dispatch(logout());                  // Redux 상태 초기화
+      navigate("/main");                 // 로그인 페이지로 이동 (선택)
+    } catch (err) {
+      console.error("로그아웃 실패", err);
+    }
+  };
+
+  useEffect(() => {
+    console.log("accessToken:", accessToken);
+  })
 
   return (
     <nav className="nav-navbar">
@@ -47,7 +68,7 @@ function Navbar() {
                 <div onClick={() => handleMenuClick("/profile")}>
                   내 정보 수정
                 </div>
-                <div onClick={() => setIsLoggedIn(false)}>로그아웃</div>
+                <div onClick={handleLogout}>로그아웃</div>
               </div>
             )}
           </div>

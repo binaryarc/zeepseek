@@ -2,20 +2,41 @@ import React, { useState } from "react";
 import "./RoomList.css";
 import AiRecommend from "./ai_recommend/AiRecommend";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchRoomList, setSelectedPropertyId, setCurrentPage, setSelectedRoomType } from "../../../store/slices/roomListSlice";
+import {
+  setSelectedPropertyId,
+  setCurrentPage,
+  setSelectedRoomType,
+  fetchRoomListByBounds,
+} from "../../../store/slices/roomListSlice";
 import defaultImage from "../../../assets/logo/192image.png";
-
 
 const RoomList = () => {
   const [selectedTab, setSelectedTab] = useState("원룸/투룸");
   const dispatch = useDispatch();
+  const { currentGuName, currentDongName } = useSelector(
+    (state) => state.roomList
+  );
   const handleTabClick = (tab) => {
     setSelectedTab(tab);
-    dispatch(setSelectedRoomType(tab)); // ✅ 상태 저장
-    dispatch(fetchRoomList({ keyword: "", roomType: tab })); // 🔁 필터 변경 시 검색
+    dispatch(setSelectedRoomType(tab));
+
+    if (tab === "AI 추천") return;
+
+    if (currentGuName && currentDongName) {
+      console.log(tab)
+      dispatch(
+        fetchRoomListByBounds({
+          guName: currentGuName,
+          dongName: currentDongName,
+          filter: tab,
+        })
+      );
+      console.log(currentDongName, currentGuName, '실행돼썽용용')
+    }
   };
   // ✅ Redux 상태에서 매물 리스트, 로딩 상태 가져오기
-  const { rooms, loading, keyword, selectedPropertyId, currentPage, pageSize} = useSelector((state) => state.roomList);
+  const { rooms, loading, keyword, selectedPropertyId, currentPage, pageSize } =
+    useSelector((state) => state.roomList);
 
   const totalPages = Math.ceil(rooms.length / pageSize);
   const maxPageButtons = 3; // 페이지 버튼 최대 노출 수
@@ -35,7 +56,7 @@ const RoomList = () => {
   //   window.scrollTo({ top: 0, behavior: "smooth" });
   //   dispatch(setCurrentPage(page));
   // };
-  
+
   return (
     <div className="room-list">
       <nav className="room-type">
@@ -91,11 +112,17 @@ const RoomList = () => {
             <button onClick={() => goToPage(1)} disabled={currentPage === 1}>
               &laquo;
             </button>
-            <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
+            <button
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
               &lsaquo;
             </button>
 
-            {Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map((num) => (
+            {Array.from(
+              { length: endPage - startPage + 1 },
+              (_, i) => startPage + i
+            ).map((num) => (
               <button
                 key={num}
                 className={num === currentPage ? "active" : ""}
@@ -105,10 +132,16 @@ const RoomList = () => {
               </button>
             ))}
 
-            <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>
+            <button
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
               &rsaquo;
             </button>
-            <button onClick={() => goToPage(totalPages)} disabled={currentPage === totalPages}>
+            <button
+              onClick={() => goToPage(totalPages)}
+              disabled={currentPage === totalPages}
+            >
               &raquo;
             </button>
           </div>
