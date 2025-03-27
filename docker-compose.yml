@@ -11,6 +11,8 @@ services:
       - ELASTICSEARCH_HOST=host.docker.internal
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - MONGODB_URI=${MONGODB_URI}
+      - ES_USERNAME=${ES_USERNAME}
+      - ES_PASSWORD=${ES_PASSWORD}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: always
