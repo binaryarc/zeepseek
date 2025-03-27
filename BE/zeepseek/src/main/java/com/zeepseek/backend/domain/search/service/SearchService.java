@@ -66,6 +66,7 @@ public class SearchService {
                                 b.filter(f -> f.bool(bf -> bf
                                         .should(s -> s.term(t -> t.field("roomType.keyword").value("빌라")))
                                         .should(s -> s.term(t -> t.field("roomType.keyword").value("상가주택")))
+                                        .should(s -> s.term(t -> t.field("roomType.keyword").value("단독/다가구")))
                                         .minimumShouldMatch("1")
                                 ));
                             } else {
@@ -133,6 +134,7 @@ public class SearchService {
                                 b.filter(f -> f.bool(bf -> bf
                                         .should(s -> s.term(t -> t.field("roomType.keyword").value("빌라")))
                                         .should(s -> s.term(t -> t.field("roomType.keyword").value("상가주택")))
+                                        .should(s -> s.term(t -> t.field("roomType.keyword").value("단독/다가구")))
                                         .minimumShouldMatch("1")
                                 ));
                             } else {
