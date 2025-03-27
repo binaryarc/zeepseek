@@ -96,8 +96,8 @@ const Map = () => {
                 fillOpacity: 0.02,
               });
 
-              polygon.setMap(map);
-              polygonsRef.current.push(polygon);
+              // polygon.setMap(map);
+              // polygonsRef.current.push(polygon);
 
               window.kakao.maps.event.addListener(polygon, "click", () => {
                 mapInstance.setCenter(center);
@@ -141,7 +141,7 @@ const Map = () => {
                   fillColor: "#F1FAD3"
                 });
               });
-
+              
               // ✅ 마우스 나갈 때 경계선 숨김
               window.kakao.maps.event.addListener(polygon, "mouseout", () => {
                 polygon.setOptions({

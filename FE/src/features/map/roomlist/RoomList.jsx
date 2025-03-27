@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "./RoomList.css";
 import AiRecommend from "./ai_recommend/AiRecommend";
 import { useDispatch, useSelector } from "react-redux";
-import { setSelectedPropertyId, setCurrentPage } from "../../../store/slices/roomListSlice";
+import { fetchRoomList, setSelectedPropertyId, setCurrentPage, setSelectedRoomType } from "../../../store/slices/roomListSlice";
 import defaultImage from "../../../assets/logo/192image.png";
 
 
@@ -11,8 +11,9 @@ const RoomList = () => {
   const dispatch = useDispatch();
   const handleTabClick = (tab) => {
     setSelectedTab(tab);
+    dispatch(setSelectedRoomType(tab)); // ✅ 상태 저장
+    dispatch(fetchRoomList({ keyword: "", roomType: tab })); // 🔁 필터 변경 시 검색
   };
-
   // ✅ Redux 상태에서 매물 리스트, 로딩 상태 가져오기
   const { rooms, loading, keyword, selectedPropertyId, currentPage, pageSize} = useSelector((state) => state.roomList);
 

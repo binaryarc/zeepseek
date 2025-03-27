@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "./SearchBar.css";
 import { FaRegUserCircle } from "react-icons/fa"; // 사람 아이콘
 import { FiSearch } from "react-icons/fi"; // 검색 아이콘
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   setCurrentDongId,
   setSearchLock,
@@ -18,6 +18,7 @@ function Searchbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(true); // 임시 상태
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const roomType = useSelector((state) => state.roomList.selectedRoomType);
   const nickname = "크롤링하는 크롱님";
 
   const handleKeyDown = (e) => {
@@ -77,7 +78,7 @@ function Searchbar() {
         dispatch(setCurrentDongId(null));
 
         // 검색 결과를 rooms에 반영 (덮어쓰기)
-        dispatch(fetchRoomList(searchText));
+        dispatch(fetchRoomList({ keyword: searchText, roomType }));
 
         dispatch(setSearchLock(true)); // 🔐 검색으로 인해 이동 발생
       } else {
