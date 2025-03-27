@@ -7,6 +7,7 @@ import { generateGridCells } from "./useGridCells";
 function GridClustering({ map }) {
   const polygonsRef = useRef([]);
   const overlaysRef = useRef([]);
+  const popupRef = useRef(null);
 
   useEffect(() => {
     if (!map || !window.kakao) return;
@@ -18,6 +19,7 @@ function GridClustering({ map }) {
 
       polygonsRef.current.forEach(p => p.setMap(null));
       overlaysRef.current.forEach(o => o.setMap(null));
+      if (popupRef.current) popupRef.current.setMap(null);
       polygonsRef.current = [];
       overlaysRef.current = [];
 
@@ -46,8 +48,12 @@ function GridClustering({ map }) {
 
       console.log("result: ", result)
 
-      result.forEach(cell => {
-        const { minLat, maxLat, minLng, maxLng, count } = cell;
+      result.forEach(item => {
+        const { cell, properties } = item;
+        const { minLat, maxLat, minLng, maxLng } = cell;
+
+        // grid 안에 매물이 없으면 return
+        if (!properties || properties.length === 0) return;
 
         const rectPath = [
           new window.kakao.maps.LatLng(minLat, minLng),
@@ -71,14 +77,34 @@ function GridClustering({ map }) {
         const centerLng = (minLng + maxLng) / 2;
 
         const content = `
-          <div class="grid-count">${count}</div>
+          <div class="grid-count-wrapper">
+            <div class="grid-count">${properties.length}</div>
+          </div>
         `;
 
         const overlay = new window.kakao.maps.CustomOverlay({
           position: new window.kakao.maps.LatLng(centerLat, centerLng),
           content,
-          yAnchor: 1,
+          xAnchor: 0.5,
+          yAnchor: 0.5,
           map,
+        });
+
+        window.kakao.maps.event.addListener(overlay, "click", () => {
+          if (popupRef.current) popupRef.current.setMap(null);
+
+          const listHtml = properties
+            .map(p => `<li>${p.address} - ${p.price}</li>`) // 필요 시 더 상세하게 구성 가능
+            .join("");
+
+          const popup = new window.kakao.maps.CustomOverlay({
+            position: new window.kakao.maps.LatLng(centerLat, centerLng),
+            content: `<div class="property-popup"><ul>${listHtml}</ul></div>`,
+            yAnchor: 1,
+            map,
+          });
+
+          popupRef.current = popup;
         });
 
         overlaysRef.current.push(overlay);
@@ -91,6 +117,7 @@ function GridClustering({ map }) {
     return () => {
       polygonsRef.current.forEach(p => p.setMap(null));
       overlaysRef.current.forEach(o => o.setMap(null));
+      if (popupRef.current) popupRef.current.setMap(null);
       polygonsRef.current = [];
       overlaysRef.current = [];
       window.kakao.maps.event.removeListener(map, "idle", drawGridClusters);
