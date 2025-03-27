@@ -1,44 +1,25 @@
 import { useEffect, useRef } from "react";
+import { fetchGridSaleCountsByType } from "../../../../../common/api/api";
 import "./GridClustering.css";
+import { generateGridCells } from "./useGridCells";
 
-// ✅ 랜덤 매물 데이터 생성 함수
-const generateRandomSaleData = (count = 500) => {
-  const latMin = 37.48;
-  const latMax = 37.62;
-  const lngMin = 126.90;
-  const lngMax = 127.03;
 
-  const data = [];
-  for (let i = 0; i < count; i++) {
-    const lat = Math.random() * (latMax - latMin) + latMin;
-    const lng = Math.random() * (lngMax - lngMin) + lngMin;
-    data.push({ id: i + 1, lat, lng });
-  }
-  return data;
-};
-
-function GridClusterMarkers({ map }) {
+function GridClustering({ map }) {
   const polygonsRef = useRef([]);
   const overlaysRef = useRef([]);
 
   useEffect(() => {
     if (!map || !window.kakao) return;
 
-    const drawGridMarkers = () => {
+    const drawGridClusters = async () => {
+      
       const level = map.getLevel();
+      if (level > 3) return;
 
-      if (level > 3) return; // ✅ 3이하일 때만 그리기
-
-
-      // 지도에서 기존 폴리곤 및 오버레이 제거
       polygonsRef.current.forEach(p => p.setMap(null));
       overlaysRef.current.forEach(o => o.setMap(null));
       polygonsRef.current = [];
       overlaysRef.current = [];
-      
-
-      const saleData = generateRandomSaleData(500);
-      const gridMap = new Map();
 
       const proj = map.getProjection();
       const bounds = map.getBounds();
@@ -51,38 +32,22 @@ function GridClusterMarkers({ map }) {
       const latPerPx = Math.abs(ne.getLat() - sw.getLat()) / Math.abs(nePoint.y - swPoint.y);
       const lngPerPx = Math.abs(ne.getLng() - sw.getLng()) / Math.abs(nePoint.x - swPoint.x);
 
-      const gridSizePx = 80; // 원하는 픽셀 크기
+      const gridSizePx = 80;
       const gridSizeLat = latPerPx * gridSizePx;
       const gridSizeLng = lngPerPx * gridSizePx;
 
+      const cells = generateGridCells(bounds, gridSizeLat, gridSizeLng);
 
-      saleData.forEach(({ lat, lng }) => {
-        const latIdx = Math.floor(lat / gridSizeLat);
-        const lngIdx = Math.floor(lng / gridSizeLng);
-        const key = `${latIdx}_${lngIdx}`;
-        const cell = gridMap.get(key) || {
-          count: 0,
-          latSum: 0,
-          lngSum: 0,
-        };
-        cell.count++;
-        cell.latSum += lat;
-        cell.lngSum += lng;
-        gridMap.set(key, cell);
-      });
+      const selectedType = "one-room";
 
-      for (const [key, cell] of gridMap.entries()) {
-        if (cell.count === 0) continue;
+      console.log("grid: ", cells)
 
-        const [latIdx, lngIdx] = key.split("_").map(Number);
+      const result = await fetchGridSaleCountsByType(cells, selectedType);
 
-        // const latIdx = +key.split("_")[0];
-        // const lngIdx = +key.split("_")[1];
+      console.log("result: ", result)
 
-        const minLat = latIdx * gridSizeLat;
-        const maxLat = (latIdx + 1) * gridSizeLat;
-        const minLng = lngIdx * gridSizeLng;
-        const maxLng = (lngIdx + 1) * gridSizeLng;
+      result.forEach(cell => {
+        const { minLat, maxLat, minLng, maxLng, count } = cell;
 
         const rectPath = [
           new window.kakao.maps.LatLng(minLat, minLng),
@@ -102,11 +67,11 @@ function GridClusterMarkers({ map }) {
         polygon.setMap(map);
         polygonsRef.current.push(polygon);
 
-        const centerLat = cell.latSum / cell.count;
-        const centerLng = cell.lngSum / cell.count;
+        const centerLat = (minLat + maxLat) / 2;
+        const centerLng = (minLng + maxLng) / 2;
 
         const content = `
-          <div class="grid-count">${cell.count}</div>
+          <div class="grid-count">${count}</div>
         `;
 
         const overlay = new window.kakao.maps.CustomOverlay({
@@ -117,22 +82,22 @@ function GridClusterMarkers({ map }) {
         });
 
         overlaysRef.current.push(overlay);
-      }
+      });
     };
 
-    drawGridMarkers();
-    window.kakao.maps.event.addListener(map, "idle", drawGridMarkers);
+    drawGridClusters();
+    window.kakao.maps.event.addListener(map, "idle", drawGridClusters);
 
     return () => {
       polygonsRef.current.forEach(p => p.setMap(null));
       overlaysRef.current.forEach(o => o.setMap(null));
       polygonsRef.current = [];
       overlaysRef.current = [];
-      window.kakao.maps.event.removeListener(map, "idle", drawGridMarkers);
+      window.kakao.maps.event.removeListener(map, "idle", drawGridClusters);
     };
   }, [map]);
 
   return null;
 }
 
-export default GridClusterMarkers;
+export default GridClustering;

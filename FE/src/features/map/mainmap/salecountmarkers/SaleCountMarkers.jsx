@@ -7,7 +7,7 @@ import {
   fetchGuPropertyCounts,
 } from "../../../../common/api/api";
 import { useState } from "react";
-import GridClusterMarkers from "./GridClustering/GridClustering";
+import GridClustering from "./GridClustering/GridClustering";
 
 
 
@@ -101,7 +101,7 @@ function SaleCountMarkers({ map }) {
   }, [map]);
 
 
-  return level <= 3 ? <GridClusterMarkers map={map} /> : null;
+  return level <= 3 ? <GridClustering map={map} /> : null;
 }
 
 export default SaleCountMarkers;
