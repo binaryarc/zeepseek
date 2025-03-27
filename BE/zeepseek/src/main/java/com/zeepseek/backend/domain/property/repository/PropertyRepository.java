@@ -70,7 +70,11 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
             "GROUP BY p.dongId")
     List<DongPropertyCountDto> countOfficePropertiesByDong();
 
-    @Query(value = "SELECT * FROM property WHERE ST_Within(location, ST_SetSRID(ST_MakeEnvelope(:minLng, :minLat, :maxLng, :maxLat), 4326))", nativeQuery = true)
+    @Query(value = "SELECT * FROM property WHERE ST_Within(location, " +
+            "ST_GeomFromText(CONCAT('POLYGON((', :minLat, ' ', :minLng, ', ', " +
+            "              :minLat, ' ', :maxLng, ', ', :maxLat, ' ', :maxLng, ', ', " +
+            "              :maxLat, ' ', :minLng, ', ', :minLat, ' ', :minLng, '))'), 4326))",
+            nativeQuery = true)
     List<Property> findPropertiesInCell(@Param("minLng") double minLng,
                                         @Param("minLat") double minLat,
                                         @Param("maxLng") double maxLng,
@@ -88,15 +92,23 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
                                                @Param("maxLat") double maxLat);
 
 
-    @Query(value = "SELECT * FROM property WHERE ST_Within(location, ST_SetSRID(ST_MakeEnvelope(:minLng, :minLat, :maxLng, :maxLat), 4326)) " +
-            "AND room_type = '오피스텔'", nativeQuery = true)
+    @Query(value = "SELECT * FROM property WHERE ST_Within(location, " +
+            "ST_GeomFromText(CONCAT('POLYGON((', :minLat, ' ', :minLng, ', ', " +
+            "              :minLat, ' ', :maxLng, ', ', :maxLat, ' ', :maxLng, ', ', " +
+            "              :maxLat, ' ', :minLng, ', ', :minLat, ' ', :minLng, '))'), 4326)) " +
+            "AND room_type = '오피스텔'",
+            nativeQuery = true)
     List<Property> findOfficePropertiesInCell(@Param("minLng") double minLng,
                                               @Param("minLat") double minLat,
                                               @Param("maxLng") double maxLng,
                                               @Param("maxLat") double maxLat);
 
-    @Query(value = "SELECT * FROM property WHERE ST_Within(location, ST_SetSRID(ST_MakeEnvelope(:minLng, :minLat, :maxLng, :maxLat), 4326)) " +
-            "AND (room_type = '빌라' OR room_type LIKE '%주택%')", nativeQuery = true)
+    @Query(value = "SELECT * FROM property WHERE ST_Within(location, " +
+            "ST_GeomFromText(CONCAT('POLYGON((', :minLat, ' ', :minLng, ', ', " +
+            "              :minLat, ' ', :maxLng, ', ', :maxLat, ' ', :maxLng, ', ', " +
+            "              :maxLat, ' ', :minLng, ', ', :minLat, ' ', :minLng, '))'), 4326)) " +
+            "AND (room_type = '빌라' OR room_type LIKE '%주택%')",
+            nativeQuery = true)
     List<Property> findHousePropertiesInCell(@Param("minLng") double minLng,
                                              @Param("minLat") double minLat,
                                              @Param("maxLng") double maxLng,
