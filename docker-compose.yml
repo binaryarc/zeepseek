@@ -7,8 +7,8 @@ services:
       - "8081:8081"
     environment:
       - MYSQL_HOST=host.docker.internal
-      - MONGO_HOST=host.docker.internal
-      - ELASTICSEARCH_HOST=host.docker.internal
+      - MONGO_HOST=mongodb
+      - ELASTICSEARCH_HOST=elasticsearch
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - MONGODB_URI=${MONGODB_URI}
       - ES_USERNAME=${ES_USERNAME}
