@@ -51,4 +51,23 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
 
     @Query("SELECT p FROM Property p WHERE p.roomType = '오피스텔'")
     List<Property> findOfficeProperties();
+
+    // 동별 원룸 매물 개수
+    @Query("SELECT p.dongId AS dongId, COUNT(p) AS propertyCount " +
+            "FROM Property p WHERE p.roomBathCount LIKE '1/%' OR p.roomBathCount LIKE '2/%' " +
+            "GROUP BY p.dongId")
+    List<DongPropertyCountDto> countOneRoomPropertiesByDong();
+
+    // 동별 빌라/주택 매물 개수
+    @Query("SELECT p.dongId AS dongId, COUNT(p) AS propertyCount " +
+            "FROM Property p WHERE p.roomType = '빌라' OR p.roomType LIKE '%주택%' " +
+            "GROUP BY p.dongId")
+    List<DongPropertyCountDto> countHousePropertiesByDong();
+
+    // 동별 오피스텔 매물 개수
+    @Query("SELECT p.dongId AS dongId, COUNT(p) AS propertyCount " +
+            "FROM Property p WHERE p.roomType = '오피스텔' " +
+            "GROUP BY p.dongId")
+    List<DongPropertyCountDto> countOfficePropertiesByDong();
+
 }
