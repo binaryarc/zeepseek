@@ -101,7 +101,7 @@ function SaleCountMarkers({ map }) {
       overlaysRef.current.forEach((o) => o.setMap(null));
       window.kakao.maps.event.removeListener(map, "idle", drawMarkers);
     };
-  }, [map]);
+  }, [map, filterKey]);
 
   return null;
 }
