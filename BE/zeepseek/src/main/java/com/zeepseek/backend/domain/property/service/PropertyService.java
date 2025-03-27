@@ -1,6 +1,8 @@
 // src/main/java/com/zeepseek/backend/domain/property/service/PropertyService.java
 package com.zeepseek.backend.domain.property.service;
 
+import com.zeepseek.backend.domain.property.dto.request.CellBoundsDto;
+import com.zeepseek.backend.domain.property.dto.response.CellPropertiesDto;
 import com.zeepseek.backend.domain.property.dto.response.DongPropertyCountDto;
 import com.zeepseek.backend.domain.property.dto.response.GuPropertyCountDto;
 import com.zeepseek.backend.domain.property.dto.response.PropertySummaryDto;
@@ -27,4 +29,16 @@ public interface PropertyService {
 
     // 해당 동에 있는 오피스텔 부동산 조회
     List<Property> getOfficePropertiesByDongId(Integer dongId);
+
+    List<Property> getOneRoomPropertiesByGuName(String guName);
+    List<Property> getHousePropertiesByGuName(String guName);
+    List<Property> getOfficePropertiesByGuName(String guName);
+
+    List<Property> getOneRoomProperties();
+    List<Property> getHouseProperties();
+    List<Property> getOfficeProperties();
+
+    List<DongPropertyCountDto> countOneRoomPropertiesByDong();
+    List<DongPropertyCountDto> countHousePropertiesByDong();
+    List<DongPropertyCountDto> countOfficePropertiesByDong();
 }

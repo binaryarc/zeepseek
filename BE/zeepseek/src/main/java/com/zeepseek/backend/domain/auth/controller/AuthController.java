@@ -85,17 +85,14 @@ public class AuthController {
     /**
      * 첫 로그인 시 추가 데이터 처리
      */
-    @PostMapping("/{idx}/profile")
+    @PostMapping("/survey")
     public ResponseEntity<ApiResponse<UserDto>> firstLoginData(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @PathVariable("idx") Integer idx,
             @RequestBody UserProfileDto profileDto) {
-        // userPrincipal.getId()와 idx가 일치하는지 검증 추가
-        if (!userPrincipal.getId().equals(idx)) {
-            return ResponseEntity.status(403).body(ApiResponse.error("권한이 없습니다."));
-        }
-        log.info("첫 로그인 데이터 처리: userId={}, profileDto={}", idx, profileDto);
-        UserDto updatedUser = authService.processFirstLoginData(idx, profileDto);
+
+        Integer userId = userPrincipal.getId();
+        log.info("첫 로그인 데이터 처리: userId={}, profileDto={}", userId, profileDto);
+        UserDto updatedUser = authService.processFirstLoginData(userId, profileDto);
         return ResponseEntity.ok(ApiResponse.success(updatedUser));
     }
 

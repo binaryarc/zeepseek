@@ -101,7 +101,70 @@ public class PropertyController {
         return ResponseEntity.ok(properties);
     }
 
+    // 특정 구의 원룸(혹은 1룸, 2룸) 매물 조회 API: GET /api/v1/property/gu/{guName}/one-room
+    @GetMapping("/gu/{guName}/one-room")
+    public ResponseEntity<List<Property>> getOneRoomPropertiesByGu(@PathVariable String guName) {
+        List<Property> properties = propertyService.getOneRoomPropertiesByGuName(guName);
+        return ResponseEntity.ok(properties);
+    }
 
+    // 특정 구의 빌라 및 주택 매물 조회 API: GET /api/v1/property/gu/{guName}/house
+    @GetMapping("/gu/{guName}/house")
+    public ResponseEntity<List<Property>> getHousePropertiesByGu(@PathVariable String guName) {
+        List<Property> properties = propertyService.getHousePropertiesByGuName(guName);
+        return ResponseEntity.ok(properties);
+    }
+
+    // 특정 구의 오피스텔 매물 조회 API: GET /api/v1/property/gu/{guName}/office
+    @GetMapping("/gu/{guName}/office")
+    public ResponseEntity<List<Property>> getOfficePropertiesByGu(@PathVariable String guName) {
+        List<Property> properties = propertyService.getOfficePropertiesByGuName(guName);
+        return ResponseEntity.ok(properties);
+    }
+
+
+    // --- 전체 구/동 기준 타입별 조회 (신규 추가) ---
+
+    // 전체 원룸 매물 조회 API: GET /api/v1/property/type/one-room
+    @GetMapping("/type/one-room")
+    public ResponseEntity<List<Property>> getAllOneRoomProperties() {
+        List<Property> properties = propertyService.getOneRoomProperties();
+        return ResponseEntity.ok(properties);
+    }
+
+    // 전체 빌라/주택 매물 조회 API: GET /api/v1/property/type/house
+    @GetMapping("/type/house")
+    public ResponseEntity<List<Property>> getAllHouseProperties() {
+        List<Property> properties = propertyService.getHouseProperties();
+        return ResponseEntity.ok(properties);
+    }
+
+    // 전체 오피스텔 매물 조회 API: GET /api/v1/property/type/office
+    @GetMapping("/type/office")
+    public ResponseEntity<List<Property>> getAllOfficeProperties() {
+        List<Property> properties = propertyService.getOfficeProperties();
+        return ResponseEntity.ok(properties);
+    }
+
+    @GetMapping("/count/dong/one-room")
+    public ResponseEntity<List<DongPropertyCountDto>> countOneRoomPropertiesByDong() {
+        List<DongPropertyCountDto> counts = propertyService.countOneRoomPropertiesByDong();
+        return ResponseEntity.ok(counts);
+    }
+
+    // 동별 빌라/주택 매물 개수 조회: GET /api/v1/property/count/dong/house
+    @GetMapping("/count/dong/house")
+    public ResponseEntity<List<DongPropertyCountDto>> countHousePropertiesByDong() {
+        List<DongPropertyCountDto> counts = propertyService.countHousePropertiesByDong();
+        return ResponseEntity.ok(counts);
+    }
+
+    // 동별 오피스텔 매물 개수 조회: GET /api/v1/property/count/dong/office
+    @GetMapping("/count/dong/office")
+    public ResponseEntity<List<DongPropertyCountDto>> countOfficePropertiesByDong() {
+        List<DongPropertyCountDto> counts = propertyService.countOfficePropertiesByDong();
+        return ResponseEntity.ok(counts);
+    }
 
 
 }

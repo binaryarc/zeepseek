@@ -13,7 +13,7 @@ pipeline {
         stage('Setup Environment Variables') {
             steps {
                 echo "api key 환경 변수 설정 중..."
-                withCredentials([file(credentialsId: 'openai_api_key', variable: 'ENV_FILE')]) {
+                withCredentials([file(credentialsId: 'backend_env', variable: 'ENV_FILE')]) {
                     // 환경 변수 파일을 작업 디렉토리에 임시로 저장
                     sh 'cat $ENV_FILE > ${WORKSPACE}/.env'
 

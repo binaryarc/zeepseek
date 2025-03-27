@@ -1,5 +1,7 @@
 package com.zeepseek.backend.domain.property.service;
 
+import com.zeepseek.backend.domain.property.dto.request.CellBoundsDto;
+import com.zeepseek.backend.domain.property.dto.response.CellPropertiesDto;
 import com.zeepseek.backend.domain.property.dto.response.DongPropertyCountDto;
 import com.zeepseek.backend.domain.property.dto.response.GuPropertyCountDto;
 import com.zeepseek.backend.domain.property.dto.response.PropertySummaryDto;
@@ -126,5 +128,68 @@ public class PropertyServiceImpl implements PropertyService {
             logger.info("No office properties found for dongId {}", dongId);
         }
         return properties;
+    }
+
+    @Override
+    public List<Property> getOneRoomPropertiesByGuName(String guName) {
+        List<Property> properties = propertyRepository.findOneRoomByGuName(guName);
+        logger.info("Found {} one-room properties for guName {}", properties.size(), guName);
+        return properties;
+    }
+
+    @Override
+    public List<Property> getHousePropertiesByGuName(String guName) {
+        List<Property> properties = propertyRepository.findHouseByGuName(guName);
+        logger.info("Found {} house properties for guName {}", properties.size(), guName);
+        return properties;
+    }
+
+    @Override
+    public List<Property> getOfficePropertiesByGuName(String guName) {
+        List<Property> properties = propertyRepository.findOfficeByGuName(guName);
+        logger.info("Found {} office properties for guName {}", properties.size(), guName);
+        return properties;
+    }
+
+    @Override
+    public List<Property> getOneRoomProperties() {
+        List<Property> properties = propertyRepository.findOneRoomProperties();
+        logger.info("Found {} one-room properties for all regions", properties.size());
+        return properties;
+    }
+
+    @Override
+    public List<Property> getHouseProperties() {
+        List<Property> properties = propertyRepository.findHouseProperties();
+        logger.info("Found {} house properties for all regions", properties.size());
+        return properties;
+    }
+
+    @Override
+    public List<Property> getOfficeProperties() {
+        List<Property> properties = propertyRepository.findOfficeProperties();
+        logger.info("Found {} office properties for all regions", properties.size());
+        return properties;
+    }
+
+    @Override
+    public List<DongPropertyCountDto> countOneRoomPropertiesByDong() {
+        List<DongPropertyCountDto> counts = propertyRepository.countOneRoomPropertiesByDong();
+        logger.info("Found one-room property counts for {} dong records", counts.size());
+        return counts;
+    }
+
+    @Override
+    public List<DongPropertyCountDto> countHousePropertiesByDong() {
+        List<DongPropertyCountDto> counts = propertyRepository.countHousePropertiesByDong();
+        logger.info("Found house property counts for {} dong records", counts.size());
+        return counts;
+    }
+
+    @Override
+    public List<DongPropertyCountDto> countOfficePropertiesByDong() {
+        List<DongPropertyCountDto> counts = propertyRepository.countOfficePropertiesByDong();
+        logger.info("Found office property counts for {} dong records", counts.size());
+        return counts;
     }
 }

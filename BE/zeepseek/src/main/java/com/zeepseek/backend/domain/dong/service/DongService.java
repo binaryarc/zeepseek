@@ -20,10 +20,8 @@ public class DongService {
 
     /**
      * 동 이름을 포함한 검색 결과 반환
-     * 예: "신당"을 검색하면 "신당동", "신당리" 등 관련 문서 반환
      */
     public List<DongInfoDocs> searchByName(String name) {
-        // findByNameContainingIgnoreCase 메서드는 MongoDongRepository에 미리 정의되어 있다고 가정합니다.
         return dongRepository.findByNameContainingIgnoreCase(name);
     }
 
@@ -47,6 +45,7 @@ public class DongService {
 
     /**
      * dongId를 기반으로 댓글 삽입
+     * 댓글 삽입 시 commentCount를 증가시키고, 그 값을 댓글 id로 할당합니다.
      */
     public DongInfoDocs addDongComment(Integer dongId, DongCommentRequestDto commentRequest) {
         DongInfoDocs doc = dongRepository.findByDongId(dongId);
@@ -61,27 +60,32 @@ public class DongService {
         if (doc.getComments() == null) {
             doc.setComments(new ArrayList<>());
         }
+        // 댓글 삽입 시 commentCount를 증가시키고 그 값을 댓글의 id로 설정
+        int newId = doc.getCommentCount() + 1;
+        comment.setCommentId(newId);
         doc.getComments().add(comment);
+        // 전체 댓글 수 업데이트 (리스트 크기로 설정)
+        doc.setCommentCount(doc.getComments().size());
         return dongRepository.save(doc);
     }
 
     /**
-     * dongId와 닉네임을 기반으로 댓글 삭제 (해당 닉네임의 모든 댓글 삭제)
+     * dongId와 commentId를 기반으로 댓글 삭제
+     * 삭제 후 남은 댓글 갯수를 commentCount에 반영합니다.
      */
-    public DongInfoDocs deleteDongComment(Integer dongId, String nickname) {
+    public DongInfoDocs deleteDongCommentById(Integer dongId, int commentId) {
         DongInfoDocs doc = dongRepository.findByDongId(dongId);
         if (doc == null) {
             throw new RuntimeException("Dong not found with id " + dongId);
         }
         if (doc.getComments() != null) {
             List<DongInfoDocs.DongComment> updatedComments = doc.getComments().stream()
-                    .filter(comment -> !comment.getNickname().equals(nickname))
+                    .filter(comment -> comment.getCommentId() != commentId)
                     .collect(Collectors.toList());
             doc.setComments(updatedComments);
+            doc.setCommentCount(updatedComments.size());
             return dongRepository.save(doc);
         }
         return doc;
     }
-
-
 }
