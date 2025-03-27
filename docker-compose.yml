@@ -10,6 +10,7 @@ services:
       - MONGO_HOST=host.docker.internal
       - ELASTICSEARCH_HOST=host.docker.internal
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MONGODB_URI=${MONGODB_URI}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: always
