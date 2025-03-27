@@ -70,31 +70,27 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
             "GROUP BY p.dongId")
     List<DongPropertyCountDto> countOfficePropertiesByDong();
 
-    // 셀 범위 내의 모든 매물 조회 (SPATIAL 함수 사용, location 컬럼에 SPATIAL 인덱스가 있어야 함)
-    @Query(value = "SELECT * FROM property WHERE ST_Within(location, ST_MakeEnvelope(:minLng, :minLat, :maxLng, :maxLat, 4326))", nativeQuery = true)
+    @Query(value = "SELECT * FROM property WHERE ST_Within(location, ST_SetSRID(ST_MakeEnvelope(:minLng, :minLat, :maxLng, :maxLat), 4326))", nativeQuery = true)
     List<Property> findPropertiesInCell(@Param("minLng") double minLng,
                                         @Param("minLat") double minLat,
                                         @Param("maxLng") double maxLng,
                                         @Param("maxLat") double maxLat);
 
-    // 셀 범위 내의 원룸 매물 조회: room_bath_count이 '1/%' 또는 '2/%'
-    @Query(value = "SELECT * FROM property WHERE ST_Within(location, ST_MakeEnvelope(:minLng, :minLat, :maxLng, :maxLat, 4326)) " +
+    @Query(value = "SELECT * FROM property WHERE ST_Within(location, ST_SetSRID(ST_MakeEnvelope(:minLng, :minLat, :maxLng, :maxLat), 4326)) " +
             "AND (room_bath_count LIKE '1/%' OR room_bath_count LIKE '2/%')", nativeQuery = true)
     List<Property> findOneRoomPropertiesInCell(@Param("minLng") double minLng,
                                                @Param("minLat") double minLat,
                                                @Param("maxLng") double maxLng,
                                                @Param("maxLat") double maxLat);
 
-    // 셀 범위 내의 오피스텔 매물 조회
-    @Query(value = "SELECT * FROM property WHERE ST_Within(location, ST_MakeEnvelope(:minLng, :minLat, :maxLng, :maxLat, 4326)) " +
+    @Query(value = "SELECT * FROM property WHERE ST_Within(location, ST_SetSRID(ST_MakeEnvelope(:minLng, :minLat, :maxLng, :maxLat), 4326)) " +
             "AND room_type = '오피스텔'", nativeQuery = true)
     List<Property> findOfficePropertiesInCell(@Param("minLng") double minLng,
                                               @Param("minLat") double minLat,
                                               @Param("maxLng") double maxLng,
                                               @Param("maxLat") double maxLat);
 
-    // 셀 범위 내의 빌라/주택 매물 조회
-    @Query(value = "SELECT * FROM property WHERE ST_Within(location, ST_MakeEnvelope(:minLng, :minLat, :maxLng, :maxLat, 4326)) " +
+    @Query(value = "SELECT * FROM property WHERE ST_Within(location, ST_SetSRID(ST_MakeEnvelope(:minLng, :minLat, :maxLng, :maxLat), 4326)) " +
             "AND (room_type = '빌라' OR room_type LIKE '%주택%')", nativeQuery = true)
     List<Property> findHousePropertiesInCell(@Param("minLng") double minLng,
                                              @Param("minLat") double minLat,
