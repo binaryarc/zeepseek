@@ -24,20 +24,20 @@ public class PropertyCellsServiceImpl implements PropertyCellsService {
             switch (propertyType.toLowerCase()) {
                 case "one-room":
                     properties = propertyRepository.findOneRoomPropertiesInCell(
-                            cell.getMinLat(), cell.getMaxLat(), cell.getMinLng(), cell.getMaxLng());
+                            cell.getMinLng(), cell.getMinLat(), cell.getMaxLng(), cell.getMaxLat());
                     break;
                 case "office":
                     properties = propertyRepository.findOfficePropertiesInCell(
-                            cell.getMinLat(), cell.getMaxLat(), cell.getMinLng(), cell.getMaxLng());
+                            cell.getMinLng(), cell.getMinLat(), cell.getMaxLng(), cell.getMaxLat());
                     break;
                 case "house":
                     properties = propertyRepository.findHousePropertiesInCell(
-                            cell.getMinLat(), cell.getMaxLat(), cell.getMinLng(), cell.getMaxLng());
+                            cell.getMinLng(), cell.getMinLat(), cell.getMaxLng(), cell.getMaxLat());
                     break;
                 case "all":
                 default:
                     properties = propertyRepository.findPropertiesInCell(
-                            cell.getMinLat(), cell.getMaxLat(), cell.getMinLng(), cell.getMaxLng());
+                            cell.getMinLng(), cell.getMinLat(), cell.getMaxLng(), cell.getMaxLat());
                     break;
             }
             return new CellPropertiesDto(cell, properties);
