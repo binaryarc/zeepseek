@@ -1,5 +1,7 @@
 package com.zeepseek.backend.domain.property.service;
 
+import com.zeepseek.backend.domain.property.dto.request.CellBoundsDto;
+import com.zeepseek.backend.domain.property.dto.response.CellPropertiesDto;
 import com.zeepseek.backend.domain.property.dto.response.DongPropertyCountDto;
 import com.zeepseek.backend.domain.property.dto.response.GuPropertyCountDto;
 import com.zeepseek.backend.domain.property.dto.response.PropertySummaryDto;
