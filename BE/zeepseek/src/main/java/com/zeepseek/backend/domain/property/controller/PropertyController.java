@@ -146,4 +146,23 @@ public class PropertyController {
         return ResponseEntity.ok(properties);
     }
 
+    @GetMapping("/count/dong/one-room")
+    public ResponseEntity<List<DongPropertyCountDto>> countOneRoomPropertiesByDong() {
+        List<DongPropertyCountDto> counts = propertyService.countOneRoomPropertiesByDong();
+        return ResponseEntity.ok(counts);
+    }
+
+    // 동별 빌라/주택 매물 개수 조회: GET /api/v1/property/count/dong/house
+    @GetMapping("/count/dong/house")
+    public ResponseEntity<List<DongPropertyCountDto>> countHousePropertiesByDong() {
+        List<DongPropertyCountDto> counts = propertyService.countHousePropertiesByDong();
+        return ResponseEntity.ok(counts);
+    }
+
+    // 동별 오피스텔 매물 개수 조회: GET /api/v1/property/count/dong/office
+    @GetMapping("/count/dong/office")
+    public ResponseEntity<List<DongPropertyCountDto>> countOfficePropertiesByDong() {
+        List<DongPropertyCountDto> counts = propertyService.countOfficePropertiesByDong();
+        return ResponseEntity.ok(counts);
+    }
 }
