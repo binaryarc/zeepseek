@@ -32,7 +32,7 @@ function GridClustering({ map }) {
       const latPerPx = Math.abs(ne.getLat() - sw.getLat()) / Math.abs(nePoint.y - swPoint.y);
       const lngPerPx = Math.abs(ne.getLng() - sw.getLng()) / Math.abs(nePoint.x - swPoint.x);
 
-      const gridSizePx = 80;
+      const gridSizePx = 160;
       const gridSizeLat = latPerPx * gridSizePx;
       const gridSizeLng = lngPerPx * gridSizePx;
 

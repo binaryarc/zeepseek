@@ -21,7 +21,7 @@ const MainMapPage = () => {
       <button className="ai-slide-button" onClick={() => setIsAiPanelOpen(true)}>AI 추천</button>
 
       {isAiPanelOpen && (
-        <AiSlidePanel onClose={() => setIsAiPanelOpen(false)} />
+        <AiSlidePanel isOpen={isAiPanelOpen} onClose={() => setIsAiPanelOpen(false)} />
       )}
 
 

@@ -1,19 +1,21 @@
 .slide-panel {
   position: fixed;
   top: 0;
-  right: -400px;
-  width: 400px;
+  right: 0;
+  width: 0;
   height: 100vh;
+  overflow: hidden;
   background: white;
   box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
-  transition: right 0.3s ease;
+  transition: width 0.3s ease;
   z-index: 1000;
-  padding: 1rem;
 }
 
 .slide-panel.open {
-  right: 0;
+  width: 400px;
+  padding: 1rem;
 }
+
 
 .close-btn {
   position: absolute;
