@@ -1,8 +1,13 @@
-import zeepApi from "./api";
+import axios from "axios";
 // import { setAccessToken, setUser } from "../../store/authSlice";
 // import store from "../../store/store";
 // // import { setAuth } from "../../store/slices/authSlice";
 // import store from "../../store/store";
+
+const authApi = axios.create({
+  baseURL: `https://j12e203.p.ssafy.io/api/v1`, // ✅ API 서버 주소
+  withCredentials: true, // ✅ 쿠키 포함 요청
+});
 
 // OAuth 로그인 (카카오 & 네이버)
 export const oauthLogin = async (authorizationCode, provider) => {
@@ -23,12 +28,12 @@ export const oauthLogin = async (authorizationCode, provider) => {
 };
 
 export const loginOAuth = async (authorizationCode, provider) => {
-  return await zeepApi.post("/auth/login", {
+  return await authApi.post("/auth/login", {
     authorizationCode,
     provider,
   });
 };
 
 export const refreshAccessToken = async () => {
-  return await zeepApi.post("/auth/refresh"); // refresh_token은 쿠키에서 자동 전송됨
+  return await authApi.post("/auth/refresh"); // refresh_token은 쿠키에서 자동 전송됨
 };

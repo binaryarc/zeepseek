@@ -42,10 +42,11 @@ export const fetchDongPropertyCounts = async () => {
 };
 
 // ✅ 매물 검색 요청 (keyword 기반)
-export const searchProperties = async (keyword, page = 1, size = 10000) => {
+export const searchProperties = async (keyword, filter, page = 1, size = 10000) => {
   try {
     const res = await zeepApi.post("/search", {
       keyword,
+      filter,   // ✅ roomType 필드 추가
       page,
       size,
     });
@@ -60,6 +61,7 @@ export const searchProperties = async (keyword, page = 1, size = 10000) => {
 export const fetchPropertiesByBounds = async (
   guName,
   dongName,
+  filter,  // ✅ 추가
   page = 1,
   size = 10000
 ) => {
@@ -67,6 +69,7 @@ export const fetchPropertiesByBounds = async (
     const res = await zeepApi.post("/search/mapper", {
       guName,
       dongName,
+      filter,  
       page,
       size,
     });
