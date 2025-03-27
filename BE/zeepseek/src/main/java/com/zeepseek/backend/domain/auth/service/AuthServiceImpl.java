@@ -548,6 +548,18 @@ public class AuthServiceImpl implements AuthService {
         // isFirst 플래그 설정
         tokenDto.setIsFirst(user.getIsFirst());
 
+        //사용자 정보 구성
+        UserDto userDto = UserDto.builder()
+                .idx(user.getIdx())
+                .nickname(user.getNickname())
+                .gender(user.getGender())
+                .age(user.getAge())
+                .isFirst(user.getIsFirst())
+                .isSeller(user.getIsSeller())
+                .provider(user.getProvider())
+                .build();
+        tokenDto.setUser(userDto);
+
         return tokenDto;
     }
 }

@@ -45,7 +45,7 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(endpoint -> endpoint.baseUri("/oauth2/authorize"))
-                        .redirectionEndpoint(endpoint -> endpoint.baseUri("/api/v1/auth/redirect"))
+                        .redirectionEndpoint(endpoint -> endpoint.baseUri("/auth/naver/callback"))
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler(oAuth2AuthenticationSuccessHandler)
                         .failureHandler(oAuth2AuthenticationFailureHandler)

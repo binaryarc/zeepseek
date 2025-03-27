@@ -85,22 +85,33 @@ public class AuthController {
     /**
      * 첫 로그인 시 추가 데이터 처리
      */
-    @PostMapping("/first-data")
+    @PostMapping("/{idx}/profile")
     public ResponseEntity<ApiResponse<UserDto>> firstLoginData(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable("idx") Integer idx,
             @RequestBody UserProfileDto profileDto) {
-        log.info("첫 로그인 데이터 처리: userId={}, profileDto={}", userPrincipal.getId(), profileDto);
-        UserDto updatedUser = authService.processFirstLoginData(userPrincipal.getId(), profileDto);
+        // userPrincipal.getId()와 idx가 일치하는지 검증 추가
+        if (!userPrincipal.getId().equals(idx)) {
+            return ResponseEntity.status(403).body(ApiResponse.error("권한이 없습니다."));
+        }
+        log.info("첫 로그인 데이터 처리: userId={}, profileDto={}", idx, profileDto);
+        UserDto updatedUser = authService.processFirstLoginData(idx, profileDto);
         return ResponseEntity.ok(ApiResponse.success(updatedUser));
     }
 
     /**
-     * 현재 사용자 정보 조회 (필요시)
+     * 사용자 정보 조회
      */
-    @GetMapping("/me")
-    public ResponseEntity<ApiResponse<UserDto>> getCurrentUser(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        UserDto userDto = authService.getCurrentUser(userPrincipal.getId());
-        return ResponseEntity.ok(ApiResponse.success(userDto));
+    @GetMapping("/{idx}")
+    public ResponseEntity<ApiResponse<UserDto>> getUserById(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable("idx") Integer idx) {
+        // 자신의 정보만 조회 가능하도록 검증
+        if (!userPrincipal.getId().equals(idx)) {
+            return ResponseEntity.status(403).body(ApiResponse.error("권한이 없습니다."));
+        }
+        UserDto userDto = authService.getCurrentUser(idx);
+        return ResponseEntity.ok(ApiResponse.success("정보 조회 성공",userDto));
     }
 
     /**
@@ -136,5 +147,4 @@ public class AuthController {
             log.info("=== 소셜 로그인 리다이렉트 종료 ===");
         }
     }
-
 }
