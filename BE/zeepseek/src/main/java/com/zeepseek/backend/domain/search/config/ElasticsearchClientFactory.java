@@ -17,6 +17,12 @@ public class ElasticsearchClientFactory {
     @Value("${elasticsearch.host}")
     private String esHost;
 
+    @Value("${elasticsearch.username}")
+    private String esUsername;
+
+    @Value("${elasticsearch.password}")
+    private String esPassword;
+
     @Bean
     public ElasticsearchClient elasticsearchClient() {
         // esHost 값에 따라 호스트가 동적으로 설정됨.
