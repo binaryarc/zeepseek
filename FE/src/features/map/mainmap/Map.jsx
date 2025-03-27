@@ -11,6 +11,7 @@ const Map = () => {
   const geoDataRef = useRef(null); // GeoJSON 데이터를 저장할 ref
   const markerRef = useRef(null);
   const overlayRef = useRef(null);
+  const selectedPolygonRef = useRef(null); 
 
   useEffect(() => {
     const loadGeoJSON = async () => {
@@ -57,7 +58,15 @@ const Map = () => {
             overlayRef.current.setMap(null);
             overlayRef.current = null;
           }
-       
+
+          if (selectedPolygonRef.current) {
+            selectedPolygonRef.current.setOptions({
+              strokeOpacity: 0,
+              fillOpacity: 0.02,
+            });
+            selectedPolygonRef.current = null;
+          }
+
           if (!geoDataRef.current) return;
 
           const bounds = mapInstance.getBounds();
@@ -128,25 +137,43 @@ const Map = () => {
               
                 overlay.setMap(mapInstance);
                 overlayRef.current = overlay;
-              
-                // 나중을 위한 TODO: 해당 동의 매물 리스트 Redux 또는 상위 state에 업데이트
-                // e.g. dispatch(setCurrentDong(feature.properties.ADM_CD))
-              });
+                
+                 // ✅ 선택된 폴리곤 스타일 유지
+                if (selectedPolygonRef.current) {
+                  selectedPolygonRef.current.setOptions({
+                    strokeOpacity: 0,
+                    fillOpacity: 0.02,
+                  });
+                }
 
-              // ✅ 마우스 올릴 때 경계선 표시
-              window.kakao.maps.event.addListener(polygon, "mouseover", () => {
                 polygon.setOptions({
                   strokeOpacity: 1,
                   fillOpacity: 0.5,
                   fillColor: "#F1FAD3"
                 });
+
+                selectedPolygonRef.current = polygon;
               });
-              
-              // ✅ 마우스 나갈 때 경계선 숨김
+                // 나중을 위한 TODO: 해당 동의 매물 리스트 Redux 또는 상위 state에 업데이트
+                // e.g. dispatch(setCurrentDong(feature.properties.ADM_CD))
+    
+
+              // ✅ 마우스 올릴 때 경계선 표시
+              window.kakao.maps.event.addListener(polygon, "mouseover", () => {
+                if (selectedPolygonRef.current === polygon) return; // 선택된 폴리곤이면 무시
+                polygon.setOptions({
+                  strokeOpacity: 1,
+                  fillOpacity: 0.5,
+                  fillColor: "#F1FAD3",
+                });
+              });
+
+              // ✅ 마우스 나갈 때 원래대로
               window.kakao.maps.event.addListener(polygon, "mouseout", () => {
+                if (selectedPolygonRef.current === polygon) return; // 선택된 폴리곤이면 무시
                 polygon.setOptions({
                   strokeOpacity: 0,
-                   fillOpacity: 0.02,       
+                  fillOpacity: 0.02,
                 });
               });
 

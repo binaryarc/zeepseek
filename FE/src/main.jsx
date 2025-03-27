@@ -12,6 +12,7 @@ import App from "./App.jsx";
 import MainPage from "./features/main/MainPage.jsx";
 import LoginPage from "./features/auth/LoginPage.jsx";
 import MainMapPage from "./features/map/MainMapPage.jsx";
+import MyPage from "./features/mypage/MyPage.jsx"
 import FirstLoginSurvey from "./features/main/survey/FirstLoginSurvey.jsx"; 
 // import AuthInitializer from "./store/AuthInitializer.jsx";
 import { Provider } from "react-redux";
@@ -28,6 +29,7 @@ const router = createBrowserRouter(
       <Route path="/main" element={<MainPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/map" element={<MainMapPage />} />
+      <Route path="/mypage" element={<MyPage />} />
       <Route path="/survey" element={<FirstLoginSurvey />} />
 
       {/* 소셜 로그인 콜백 라우트 추가 */}

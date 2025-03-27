@@ -12,7 +12,7 @@ const authApi = axios.create({
 // OAuth 로그인 (카카오 & 네이버)
 export const oauthLogin = async (authorizationCode, provider) => {
   try {
-    const response = await authApi.post("/auth/login", {
+    const response = await zeepApi.post("/auth/sessions", {
       authorizationCode,
       provider,
     });
