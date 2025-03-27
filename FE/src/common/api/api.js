@@ -4,7 +4,7 @@ import store from "../../store/store";
 import { setAccessToken, logout } from "../../store/slices/authSlice";
 
 const zeepApi = axios.create({
-  baseURL: `http://localhost:8082/api/v1`, // ✅ API 서버 주소
+  baseURL: `https://j12e203.p.ssafy.io/api/v1`, // ✅ API 서버 주소
   withCredentials: false, // ✅ 쿠키 포함 요청
 });
 
@@ -30,9 +30,9 @@ export const fetchGuPropertyCounts = async () => {
 };
 
 // 🔹 매물 개수 조회 - 동 단위
-export const fetchDongPropertyCounts = async () => {
+export const fetchDongPropertyCounts = async (filterKey) => {
   try {
-    const res = await zeepApi.get("/property/count/dong");
+    const res = await zeepApi.get(`/property/count/dong/${filterKey}`);
     // console.log("동동별 매물 개수 조회 결과:", res);
     return res.data;
   } catch (err) {

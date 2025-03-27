@@ -5,6 +5,7 @@ import { useRef } from "react";
 import {
   setCurrentDongId,
   fetchRoomListByBounds,
+  setCurrentGuAndDongName
 } from "../../../../store/slices/roomListSlice";
 
 function CurrentLocationLabel({ map }) {
@@ -58,6 +59,7 @@ function CurrentLocationLabel({ map }) {
               console.log("🔓 지도 이동 중 → fetchRoomListByBounds 실행", dongName);
               dispatch(setCurrentDongId(dongCode));
               dispatch(fetchRoomListByBounds({ guName, dongName, filter: selectedRoomType }));
+              dispatch(setCurrentGuAndDongName({ guName, dongName }));
             }
 
             // // ✅ 현재 저장된 dongId와 다르면 요청

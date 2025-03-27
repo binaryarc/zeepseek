@@ -9,6 +9,7 @@ import {
   setCurrentDongId,
   setSearchLock,
   fetchRoomList,
+  setCurrentGuAndDongName,
 } from "../../store/slices/roomListSlice";
 import { searchProperties } from "../../common/api/api";
 import { logoutOAuth } from "../../common/api/authApi";
@@ -75,6 +76,9 @@ function Searchbar() {
 
               map.setCenter(latLng);
 
+              // ✅ 강제로 idle 이벤트 트리거
+              window.kakao.maps.event.trigger(map, "idle");
+
               // ✅ 다음 idle 발생 전에 false로 꺼줌 (약간의 delay로)
               setTimeout(() => {
                 window.isMovingBySearch = false;
@@ -92,9 +96,13 @@ function Searchbar() {
         dispatch(setCurrentDongId(null));
 
         // 검색 결과를 rooms에 반영 (덮어쓰기)
-        dispatch(fetchRoomList({ keyword: searchText, roomType }));
+        dispatch(fetchRoomList({ keyword: searchText, filter: roomType }));
 
         dispatch(setSearchLock(true)); // 🔐 검색으로 인해 이동 발생
+        console.log(first.guName, first.dongName);
+
+        dispatch(setCurrentGuAndDongName({ guName: first.guName, dongName: first.dongName }));
+
       } else {
         alert("검색 결과가 없습니다.");
       }
