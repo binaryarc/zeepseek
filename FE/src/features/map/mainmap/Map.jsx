@@ -72,7 +72,7 @@ const Map = () => {
           const bounds = mapInstance.getBounds();
           const level = mapInstance.getLevel();
 
-          if (level > 6) {
+          if (level > 6 || level <= 3) {
             polygonsRef.current.forEach((polygon) => polygon.setMap(null));
             polygonsRef.current = [];
             return;
