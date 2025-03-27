@@ -169,4 +169,25 @@ public class PropertyServiceImpl implements PropertyService {
         logger.info("Found {} office properties for all regions", properties.size());
         return properties;
     }
+
+    @Override
+    public List<DongPropertyCountDto> countOneRoomPropertiesByDong() {
+        List<DongPropertyCountDto> counts = propertyRepository.countOneRoomPropertiesByDong();
+        logger.info("Found one-room property counts for {} dong records", counts.size());
+        return counts;
+    }
+
+    @Override
+    public List<DongPropertyCountDto> countHousePropertiesByDong() {
+        List<DongPropertyCountDto> counts = propertyRepository.countHousePropertiesByDong();
+        logger.info("Found house property counts for {} dong records", counts.size());
+        return counts;
+    }
+
+    @Override
+    public List<DongPropertyCountDto> countOfficePropertiesByDong() {
+        List<DongPropertyCountDto> counts = propertyRepository.countOfficePropertiesByDong();
+        logger.info("Found office property counts for {} dong records", counts.size());
+        return counts;
+    }
 }

@@ -35,4 +35,8 @@ public interface PropertyService {
     List<Property> getOneRoomProperties();
     List<Property> getHouseProperties();
     List<Property> getOfficeProperties();
+
+    List<DongPropertyCountDto> countOneRoomPropertiesByDong();
+    List<DongPropertyCountDto> countHousePropertiesByDong();
+    List<DongPropertyCountDto> countOfficePropertiesByDong();
 }
