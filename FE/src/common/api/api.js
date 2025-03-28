@@ -121,6 +121,16 @@ export const fetchAIRecommendedProperties = async (preferenceData) => {
   }
 };
 
+export const fetchDongDetail = async (dongId) => {
+  try {
+    const res = await zeepApi.get(`/dong/${dongId}`);
+    return res.data;
+  } catch (err) {
+    console.error("동 상세 정보 조회 실패:", err);
+    return null;
+  }
+};
+
 
 // 응답 인터셉터
 zeepApi.interceptors.response.use(
