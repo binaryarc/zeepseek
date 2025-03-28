@@ -1,0 +1,32 @@
+.compare-page {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .compare-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+  
+  .compare-tabs button {
+    padding: 10px 20px;
+    font-size: 18px;
+    margin: 0 10px;
+    border: none;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .compare-tabs button.active {
+    background-color: #cce9cc;
+    font-weight: bold;
+  }
+  
+  .compare-content {
+    margin-top: 20px;
+  }
+  
