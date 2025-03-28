@@ -8,7 +8,6 @@ import DetailRegion from "../detailregion/DetailRegion";
 import { Provider } from "react-redux";
 import store from "../../../store/store";
 import { fetchRoomListByBounds } from "../../../store/slices/roomListSlice";
-import store from "../../../store/store"; // store 직접 import 필요
 
 const Map = () => {
   const [map, setMap] = useState(null); // 👈 map 객체 저장용 상태
@@ -16,7 +15,7 @@ const Map = () => {
   const geoDataRef = useRef(null); // GeoJSON 데이터를 저장할 ref
   const markerRef = useRef(null);
   const overlayRef = useRef(null);
-  const selectedPolygonRef = useRef(null); 
+  const selectedPolygonRef = useRef(null);
   const selectedDongIdRef = useRef(null);
   const dispatch = useDispatch();
 
@@ -52,7 +51,6 @@ const Map = () => {
 
         // 🌐 지도가 이동할 때마다 보이는 동들만 폴리곤으로 그리기
         window.kakao.maps.event.addListener(mapInstance, "idle", () => {
-          
           if (markerRef.current) {
             markerRef.current.setMap(null);
             markerRef.current = null;
@@ -77,22 +75,26 @@ const Map = () => {
 
           // ✅ 지도 레벨이 4 이상으로 올라갔을 때 매물 리스트 다시 불러오기
           if (level > 3) {
-            const { currentGuName, currentDongName, selectedRoomType } = store.getState().roomList;
+            const { currentGuName, currentDongName, selectedRoomType } =
+              store.getState().roomList;
             if (currentGuName && currentDongName && selectedRoomType) {
               if (level >= 6) {
-                dispatch(fetchRoomListByBounds({
-                  guName: currentGuName,
-                  dongName: "",
-                  filter: selectedRoomType,
-                }));
+                dispatch(
+                  fetchRoomListByBounds({
+                    guName: currentGuName,
+                    dongName: "",
+                    filter: selectedRoomType,
+                  })
+                );
               } else {
-                dispatch(fetchRoomListByBounds({
-                  guName: currentGuName,
-                  dongName: currentDongName,
-                  filter: selectedRoomType,
-                }));
+                dispatch(
+                  fetchRoomListByBounds({
+                    guName: currentGuName,
+                    dongName: currentDongName,
+                    filter: selectedRoomType,
+                  })
+                );
               }
-              
             }
           }
 
@@ -124,7 +126,7 @@ const Map = () => {
                 path,
                 strokeWeight: 0.8,
                 strokeColor: "#3CB371",
-                strokeOpacity: 0,     
+                strokeOpacity: 0,
                 fillColor: "#A2D1FF",
                 fillOpacity: 0.02,
               });
@@ -151,10 +153,10 @@ const Map = () => {
                   return;
                 }
 
-              // ✅ 새로운 동 클릭 시 → 기존 오버레이/마커 제거 후 새로 생성
-              selectedDongIdRef.current = clickedDongId;
+                // ✅ 새로운 동 클릭 시 → 기존 오버레이/마커 제거 후 새로 생성
+                selectedDongIdRef.current = clickedDongId;
                 mapInstance.setCenter(center);
-                
+
                 // 기존 마커 제거
                 if (markerRef.current) markerRef.current.setMap(null);
                 const marker = new window.kakao.maps.Marker({
@@ -162,13 +164,13 @@ const Map = () => {
                   map: mapInstance,
                 });
                 markerRef.current = marker;
-              
+
                 // 기존 오버레이 제거
                 if (overlayRef.current) overlayRef.current.setMap(null);
-              
+
                 const content = document.createElement("div");
                 content.className = "detail-overlay";
-        
+
                 // DetailRegion 컴포넌트 렌더링
                 const root = ReactDOM.createRoot(content);
                 root.render(
@@ -176,17 +178,17 @@ const Map = () => {
                     <DetailRegion dongId={feature.properties.ADM_CD} />
                   </Provider>
                 );
-              
+
                 const overlay = new window.kakao.maps.CustomOverlay({
                   position: center,
                   content,
                   yAnchor: 2,
                 });
-              
+
                 overlay.setMap(mapInstance);
                 overlayRef.current = overlay;
-                
-                 // ✅ 선택된 폴리곤 스타일 유지
+
+                // ✅ 선택된 폴리곤 스타일 유지
                 if (selectedPolygonRef.current) {
                   selectedPolygonRef.current.setOptions({
                     strokeOpacity: 0,
@@ -197,14 +199,13 @@ const Map = () => {
                 polygon.setOptions({
                   strokeOpacity: 1,
                   fillOpacity: 0.5,
-                  fillColor: "#F1FAD3"
+                  fillColor: "#F1FAD3",
                 });
 
                 selectedPolygonRef.current = polygon;
               });
-                // 나중을 위한 TODO: 해당 동의 매물 리스트 Redux 또는 상위 state에 업데이트
-                // e.g. dispatch(setCurrentDong(feature.properties.ADM_CD))
-    
+              // 나중을 위한 TODO: 해당 동의 매물 리스트 Redux 또는 상위 state에 업데이트
+              // e.g. dispatch(setCurrentDong(feature.properties.ADM_CD))
 
               // ✅ 마우스 올릴 때 경계선 표시
               window.kakao.maps.event.addListener(polygon, "mouseover", () => {
@@ -244,7 +245,7 @@ const Map = () => {
         </>
       )}
     </div>
-  );                                                                                                                                                                                                                                                                                                                                                                                              
+  );
 };
 
 export default Map;
