@@ -32,7 +32,7 @@
   /* 스크롤 되는 영역 */
   .room-list-inner {
     overflow-y: auto;
-    height: calc(100vh - 7vh); /* 전체 높이 - nav 높이 (7vh) */
+    height: 70vh;
     padding-right: 8px; /* 스크롤바 밀리지 않게 */
   }
 

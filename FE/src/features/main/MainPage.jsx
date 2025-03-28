@@ -58,7 +58,7 @@ function MainPage() {
             className="main-png-bottom"
           />
         </div>
-        <div className="main-button-bottom">
+        <div className="main-button-bottom" onClick={() => navigate("/compare")}>
           <p className="main-button-text">동네 비교</p>
           <img
             src={compare_estate}

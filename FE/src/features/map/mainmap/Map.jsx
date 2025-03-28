@@ -72,7 +72,7 @@ const Map = () => {
           const bounds = mapInstance.getBounds();
           const level = mapInstance.getLevel();
 
-          if (level > 6) {
+          if (level > 6 || level <= 3) {
             polygonsRef.current.forEach((polygon) => polygon.setMap(null));
             polygonsRef.current = [];
             return;
@@ -192,7 +192,7 @@ const Map = () => {
       {map && (
         <>
           <CurrentLocationLabel map={map} />
-          <SaleCountMarkers map={map} /> {/* 👈 여기 추가 */}
+          <SaleCountMarkers map={map} />
         </>
       )}
     </div>
