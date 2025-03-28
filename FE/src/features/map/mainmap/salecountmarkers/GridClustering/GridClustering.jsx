@@ -2,12 +2,22 @@ import { useEffect, useRef } from "react";
 import { fetchGridSaleCountsByType } from "../../../../../common/api/api";
 import "./GridClustering.css";
 import { generateGridCells } from "./useGridCells";
+import { useSelector } from "react-redux";
 
 
 function GridClustering({ map }) {
   const polygonsRef = useRef([]);
   const overlaysRef = useRef([]);
   const popupRef = useRef(null);
+  const selectedRoomType = useSelector(
+    (state) => state.roomList.selectedRoomType)
+
+  const roomTypeMap = {
+      "원룸/투룸": "one-room",
+      "주택/빌라": "house",
+      "오피스텔": "office",
+    };
+  const filterKey = roomTypeMap[selectedRoomType];
 
   useEffect(() => {
     if (!map || !window.kakao) return;
@@ -40,11 +50,10 @@ function GridClustering({ map }) {
 
       const cells = generateGridCells(bounds, gridSizeLat, gridSizeLng);
 
-      const selectedType = "one-room";
-
       console.log("grid: ", cells)
 
-      const result = await fetchGridSaleCountsByType(cells, selectedType);
+      const result = await fetchGridSaleCountsByType(cells, filterKey);
+      console.log(filterKey)
 
       console.log("result: ", result)
 
@@ -122,7 +131,7 @@ function GridClustering({ map }) {
       overlaysRef.current = [];
       window.kakao.maps.event.removeListener(map, "idle", drawGridClusters);
     };
-  }, [map]);
+  }, [map, selectedRoomType]);
 
   return null;
 }

@@ -98,9 +98,10 @@ export const getPropertyDetail = async (propertyId) => {
 
 
 // grid 위도, 경도 정보 API 통신
-export const fetchGridSaleCountsByType = async (cells, type = "office") => {
+export const fetchGridSaleCountsByType = async (cells, type) => {
   try {
     const res = await zeepApi.post(`/property/cells?type=${type}`, { cells });
+    console.log("유형별 그리드 매물 개수 조회 결과:", type);
     return res.data;
   } catch (error) {
     console.error("유형별 그리드 매물 개수 조회 실패:", error);
