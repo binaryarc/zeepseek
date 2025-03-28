@@ -156,6 +156,7 @@ const Map = () => {
                   position: center,
                   content,
                   yAnchor: 2,
+                  zIndex: 2000,
                 });
               
                 overlay.setMap(mapInstance);
