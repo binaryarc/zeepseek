@@ -23,6 +23,7 @@
 | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566919941/noticon/bwij1af50rjj0fiyjtci.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566557331/noticon/d5hqar2idkoefh6fjtpu.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1567008394/noticon/ohybolu4ensol1gzqas1.png) |
 
 - DB
+
 | MySQL | Elasticsearch | Redis | MongoDB |
 | --- | --- | --- | --- |
 | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566913591/noticon/e2bd9zw78n6zw6his4bd.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1738119093/noticon/wjtjrftibcvlcmfsvvt7.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566913679/noticon/xlnsjihvjxllech0hawu.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1629987704/noticon/u9ewmgf7xxic5us7pnhn.png) |
