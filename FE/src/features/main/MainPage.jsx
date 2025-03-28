@@ -1,4 +1,6 @@
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setSelectedRoomType } from "../../store/slices/roomListSlice";
 import React from "react";
 import Navbar from "../../common/navbar/Navbar";
 import zeepseek from "../../assets/logo/zeep_login.png";
@@ -14,6 +16,12 @@ import MainSearchbar from "../../common/searchbar/MainSearchBar";
 
 function MainPage() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const handleMoveToMap = (roomType) => {
+    dispatch(setSelectedRoomType(roomType));
+    navigate("/map");
+  };
 
   return (
     <div className="main-container">
@@ -27,15 +35,15 @@ function MainPage() {
       {/* 버튼 섹션 */}
 
       <section className="main-button-section-top">
-        <div className="main-button-top" onClick={() => navigate("/map")}>
+        <div className="main-button-top" onClick={() => handleMoveToMap("원룸/투룸")}>
           <p className="main-button-text">원룸 / 투룸</p>
           <img src={oneroom} alt="원룸" className="main-png-top" />
         </div>
-        <div className="main-button-top" onClick={() => navigate("/map")}>
+        <div className="main-button-top" onClick={() => handleMoveToMap("오피스텔")}>
           <p className="main-button-text">오피스텔</p>
           <img src={officetel} alt="오피스텔" className="main-png-top" />
         </div>
-        <div className="main-button-top" onClick={() => navigate("/map")}>
+        <div className="main-button-top" onClick={() => handleMoveToMap("주택/빌라")}>
           <p className="main-button-text">주택 / 빌라</p>
           <img src={villa} alt="주택/빌라" className="main-png-top" />
         </div>

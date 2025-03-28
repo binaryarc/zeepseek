@@ -30,9 +30,9 @@ export const fetchGuPropertyCounts = async () => {
 };
 
 // 🔹 매물 개수 조회 - 동 단위
-export const fetchDongPropertyCounts = async () => {
+export const fetchDongPropertyCounts = async (filterKey) => {
   try {
-    const res = await zeepApi.get("/property/count/dong");
+    const res = await zeepApi.get(`/property/count/dong/${filterKey}`);
     // console.log("동동별 매물 개수 조회 결과:", res);
     return res.data;
   } catch (err) {
@@ -42,10 +42,16 @@ export const fetchDongPropertyCounts = async () => {
 };
 
 // ✅ 매물 검색 요청 (keyword 기반)
-export const searchProperties = async (keyword, page = 1, size = 10000) => {
+export const searchProperties = async (
+  keyword,
+  filter,
+  page = 1,
+  size = 10000
+) => {
   try {
     const res = await zeepApi.post("/search", {
       keyword,
+      filter, // ✅ roomType 필드 추가
       page,
       size,
     });
@@ -60,6 +66,7 @@ export const searchProperties = async (keyword, page = 1, size = 10000) => {
 export const fetchPropertiesByBounds = async (
   guName,
   dongName,
+  filter, // ✅ 추가
   page = 1,
   size = 10000
 ) => {
@@ -67,6 +74,7 @@ export const fetchPropertiesByBounds = async (
     const res = await zeepApi.post("/search/mapper", {
       guName,
       dongName,
+      filter,
       page,
       size,
     });
@@ -76,7 +84,6 @@ export const fetchPropertiesByBounds = async (
     return [];
   }
 };
-
 
 // 상세 매물 조회 API
 export const getPropertyDetail = async (propertyId) => {

@@ -5,6 +5,7 @@ import { useRef } from "react";
 import {
   setCurrentDongId,
   fetchRoomListByBounds,
+  setCurrentGuAndDongName
 } from "../../../../store/slices/roomListSlice";
 
 function CurrentLocationLabel({ map }) {
@@ -13,6 +14,7 @@ function CurrentLocationLabel({ map }) {
   const currentDongId = useSelector((state) => state.roomList.currentDongId);
   const searchLock = useSelector((state) => state.roomList.searchLock);
   const searchLockRef = useRef(searchLock); // ✅ useRef로 감싸서 최신값 유지
+  const selectedRoomType = useSelector((state) => state.roomList.selectedRoomType);
 
   // ✅ searchLock 최신값 반영
   useEffect(() => {
@@ -56,7 +58,8 @@ function CurrentLocationLabel({ map }) {
             if (dongCode && dongCode !== currentDongId) {
               console.log("🔓 지도 이동 중 → fetchRoomListByBounds 실행", dongName);
               dispatch(setCurrentDongId(dongCode));
-              dispatch(fetchRoomListByBounds({ guName, dongName }));
+              dispatch(fetchRoomListByBounds({ guName, dongName, filter: selectedRoomType }));
+              dispatch(setCurrentGuAndDongName({ guName, dongName }));
             }
 
             // // ✅ 현재 저장된 dongId와 다르면 요청

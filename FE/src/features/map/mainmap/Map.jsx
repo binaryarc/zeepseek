@@ -105,8 +105,8 @@ const Map = () => {
                 fillOpacity: 0.02,
               });
 
-              polygon.setMap(map);
-              polygonsRef.current.push(polygon);
+              // polygon.setMap(map);
+              // polygonsRef.current.push(polygon);
 
               window.kakao.maps.event.addListener(polygon, "click", () => {
                 mapInstance.setCenter(center);

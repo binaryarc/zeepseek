@@ -1,8 +1,4 @@
 import zeepApi from "./api";
-// import { setAccessToken, setUser } from "../../store/authSlice";
-// import store from "../../store/store";
-// // import { setAuth } from "../../store/slices/authSlice";
-// import store from "../../store/store";
 
 // OAuth 로그인 (카카오 & 네이버)
 export const oauthLogin = async (authorizationCode, provider) => {
@@ -11,9 +7,6 @@ export const oauthLogin = async (authorizationCode, provider) => {
       authorizationCode,
       provider,
     });
-
-    // Redux 상태 업데이트 (토큰 & 유저 정보 저장)
-    // store.dispatch(setAuth({ accessToken: response.data.accessToken, user: response.data }));
 
     return response.data;
   } catch (error) {
@@ -27,6 +20,17 @@ export const loginOAuth = async (authorizationCode, provider) => {
     authorizationCode,
     provider,
   });
+};
+
+// 로그아웃
+export const logoutOAuth = async (accessToken) => {
+  console.log("로그아웃 요청 accessToken:", accessToken);
+  return await zeepApi.delete("/auth/sessions", {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    withCredentials: true, // HttpOnly 쿠키도 포함되도록
+  })
 };
 
 export const refreshAccessToken = async () => {

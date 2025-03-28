@@ -4,20 +4,26 @@ import { useNavigate } from "react-router-dom";
 import "./SearchBar.css";
 import { FaRegUserCircle } from "react-icons/fa"; // 사람 아이콘
 import { FiSearch } from "react-icons/fi"; // 검색 아이콘
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   setCurrentDongId,
   setSearchLock,
   fetchRoomList,
+  setCurrentGuAndDongName,
 } from "../../store/slices/roomListSlice";
 import { searchProperties } from "../../common/api/api";
+import { logoutOAuth } from "../../common/api/authApi";
+import { logout } from "../../store/slices/authSlice";
+
 
 function Searchbar() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // 임시 상태
+  const accessToken = useSelector((state) => state.auth.accessToken);
+  const isLoggedIn = !!accessToken;
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const roomType = useSelector((state) => state.roomList.selectedRoomType);
   const nickname = "크롤링하는 크롱님";
 
   const handleKeyDown = (e) => {
@@ -33,6 +39,16 @@ function Searchbar() {
   const handleMenuClick = (path) => {
     setShowDropdown(false);
     navigate(path);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutOAuth(accessToken);      // 백엔드에 로그아웃 요청
+      dispatch(logout());                  // Redux 상태 초기화
+      navigate("/main");                 // 로그인 페이지로 이동 (선택)
+    } catch (err) {
+      console.error("로그아웃 실패", err);
+    }
   };
 
   const handleSearch = async () => {
@@ -60,6 +76,9 @@ function Searchbar() {
 
               map.setCenter(latLng);
 
+              // ✅ 강제로 idle 이벤트 트리거
+              window.kakao.maps.event.trigger(map, "idle");
+
               // ✅ 다음 idle 발생 전에 false로 꺼줌 (약간의 delay로)
               setTimeout(() => {
                 window.isMovingBySearch = false;
@@ -77,9 +96,13 @@ function Searchbar() {
         dispatch(setCurrentDongId(null));
 
         // 검색 결과를 rooms에 반영 (덮어쓰기)
-        dispatch(fetchRoomList(searchText));
+        dispatch(fetchRoomList({ keyword: searchText, filter: roomType }));
 
         dispatch(setSearchLock(true)); // 🔐 검색으로 인해 이동 발생
+        console.log(first.guName, first.dongName);
+
+        dispatch(setCurrentGuAndDongName({ guName: first.guName, dongName: first.dongName }));
+
       } else {
         alert("검색 결과가 없습니다.");
       }
@@ -129,7 +152,7 @@ function Searchbar() {
                 <div onClick={() => handleMenuClick("/profile")}>
                   내 정보 수정
                 </div>
-                <div onClick={() => setIsLoggedIn(false)}>로그아웃</div>
+                <div onClick={handleLogout}>로그아웃</div>
               </div>
             )}
           </div>
