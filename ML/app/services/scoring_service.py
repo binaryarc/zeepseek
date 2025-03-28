@@ -45,13 +45,13 @@ def compute_property_score(data: dict, session=None) -> dict:
     """
     lat, lon = data["latitude"], data["longitude"]
     categories = {
-        "transport":    {"alpha":0.5, "beta":0.5},
+        "transport":    {"alpha":0.8, "beta":0.8},
         "restaurant":   {"alpha":0.5, "beta":0.5},
-        "health":       {"alpha":0.6, "beta":0.4},
+        "health":       {"alpha":0.5, "beta":0.5},
         "convenience":  {"alpha":0.5, "beta":0.5},
-        "cafe":         {"alpha":0.4, "beta":0.6},
-        "chicken":      {"alpha":0.4, "beta":0.6},
-        "leisure":      {"alpha":0.5, "beta":0.5}
+        "cafe":         {"alpha":0.5, "beta":0.5},
+        "chicken":      {"alpha":0.2, "beta":0.2},
+        "leisure":      {"alpha":0.5, "beta":0.3}
     }
     result = {}
     for cat, w in categories.items():
