@@ -5,6 +5,8 @@ import CurrentLocationLabel from "./currentlocation/CurrentLocationLabel";
 import SaleCountMarkers from "./salecountmarkers/SaleCountMarkers";
 import ReactDOM from "react-dom/client";
 import DetailRegion from "../detailregion/DetailRegion";
+import { Provider } from "react-redux";
+import store from "../../../store/store";
 import { fetchRoomListByBounds } from "../../../store/slices/roomListSlice";
 import store from "../../../store/store"; // store 직접 import 필요
 
@@ -15,6 +17,7 @@ const Map = () => {
   const markerRef = useRef(null);
   const overlayRef = useRef(null);
   const selectedPolygonRef = useRef(null); 
+  const selectedDongIdRef = useRef(null);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -33,13 +36,9 @@ const Map = () => {
     }&libraries=services&autoload=false`;
     kakaoMapScript.async = true;
 
-    console.log("카카오 API 스크립트 추가 시도:", kakaoMapScript.src);
     document.head.appendChild(kakaoMapScript);
 
-    console.log("카카오 API 키:", import.meta.env.VITE_APP_KAKAO_MAP_API_KEY);
-
     kakaoMapScript.onload = () => {
-      console.log("카카오 SDK 로드됨!");
       window.kakao.maps.load(() => {
         const container = document.getElementById("map");
         const options = {
@@ -134,8 +133,28 @@ const Map = () => {
               // polygonsRef.current.push(polygon);
 
               window.kakao.maps.event.addListener(polygon, "click", () => {
-                mapInstance.setCenter(center);
+                const clickedDongId = feature.properties.ADM_CD;
+                // ✅ 이미 선택된 동이면 → 오버레이 제거 (토글 방식)
+                if (selectedDongIdRef.current === clickedDongId) {
+                  if (overlayRef.current) overlayRef.current.setMap(null);
+                  overlayRef.current = null;
+                  if (markerRef.current) markerRef.current.setMap(null);
+                  markerRef.current = null;
+                  if (selectedPolygonRef.current) {
+                    selectedPolygonRef.current.setOptions({
+                      strokeOpacity: 0,
+                      fillOpacity: 0.02,
+                    });
+                    selectedPolygonRef.current = null;
+                  }
+                  selectedDongIdRef.current = null;
+                  return;
+                }
 
+              // ✅ 새로운 동 클릭 시 → 기존 오버레이/마커 제거 후 새로 생성
+              selectedDongIdRef.current = clickedDongId;
+                mapInstance.setCenter(center);
+                
                 // 기존 마커 제거
                 if (markerRef.current) markerRef.current.setMap(null);
                 const marker = new window.kakao.maps.Marker({
@@ -149,10 +168,14 @@ const Map = () => {
               
                 const content = document.createElement("div");
                 content.className = "detail-overlay";
-              
+        
                 // DetailRegion 컴포넌트 렌더링
                 const root = ReactDOM.createRoot(content);
-                root.render(<DetailRegion dongName={feature.properties.ADM_NM} />);
+                root.render(
+                  <Provider store={store}>
+                    <DetailRegion dongId={feature.properties.ADM_CD} />
+                  </Provider>
+                );
               
                 const overlay = new window.kakao.maps.CustomOverlay({
                   position: center,
