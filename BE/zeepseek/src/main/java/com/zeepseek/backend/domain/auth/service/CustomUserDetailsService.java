@@ -1,8 +1,8 @@
 package com.zeepseek.backend.domain.auth.service;
 
-import com.zeepseek.backend.domain.auth.entity.User;
-import com.zeepseek.backend.domain.auth.entity.UserRole;
-import com.zeepseek.backend.domain.auth.repository.UserRepository;
+import com.zeepseek.backend.domain.user.entity.User;
+import com.zeepseek.backend.domain.user.entity.UserRole;
+import com.zeepseek.backend.domain.user.repository.UserRepository;
 import com.zeepseek.backend.domain.auth.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

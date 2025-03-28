@@ -1,4 +1,4 @@
-package com.zeepseek.backend.domain.auth.dto;
+package com.zeepseek.backend.domain.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 @Builder
@@ -19,5 +18,5 @@ public class UserProfileDto {
     private String location; // 기준 위치 (예: "멀티캠퍼스 역삼")
     
     // 매물 고려사항 (각 항목 선택 여부 - "안전", "편의", "식당" 등)
-    private Map<String, Float> propertyPreferences;;
+    private List<String> preferences;
 }
