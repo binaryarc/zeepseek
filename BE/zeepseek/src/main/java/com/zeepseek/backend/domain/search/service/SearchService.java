@@ -116,11 +116,17 @@ public class SearchService {
                     .size(size)
                     .trackTotalHits(t -> t.enabled(true))
                     .query(q -> q.bool(b -> {
-                        // guName과 dongName이 정확하게 일치하는 조건
-                        b.must(List.of(
-                                Query.of(qb -> qb.term(t -> t.field("guName").value(guName))),
-                                Query.of(qb -> qb.match(t -> t.field("dongName").query(dongName)))
-                        ));
+
+                        // must 절에 추가할 조건들을 리스트에 담음
+                        List<Query> mustQueries = new ArrayList<>();
+                        mustQueries.add(Query.of(qb -> qb.term(t -> t.field("guName").value(guName))));
+
+                        // dongName이 null이거나 빈 문자열이 아니면 조건 추가
+                        if (dongName != null && !dongName.isEmpty()) {
+                            mustQueries.add(Query.of(qb -> qb.match(t -> t.field("dongName").query(dongName))));
+                        }
+
+                        b.must(mustQueries);
 
                         // roomType 필터 조건 추가
                         if (roomTypeFilter != null && !roomTypeFilter.isEmpty()) {
