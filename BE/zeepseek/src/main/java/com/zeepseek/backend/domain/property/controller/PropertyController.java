@@ -9,6 +9,7 @@ import com.zeepseek.backend.domain.recommend.service.RecommendationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -53,6 +54,7 @@ public class PropertyController {
     }
 
     // 동별 매물 수 조회 API: GET /api/v1/property/count/dong
+    @Cacheable(value = "dongPropertyCounts", key = "'all'")
     @GetMapping("/count/dong")
     public ResponseEntity<List<DongPropertyCountDto>> countPropertiesByDong() {
         List<DongPropertyCountDto> counts = propertyService.countPropertiesByDong();
@@ -60,6 +62,7 @@ public class PropertyController {
     }
 
     // 구별 매물 수 조회 API: GET /api/v1/property/count/gu
+    @Cacheable(value = "guPropertyCounts", key = "'all'")
     @GetMapping("/count/gu")
     public ResponseEntity<List<GuPropertyCountDto>> countPropertiesByGu() {
         List<GuPropertyCountDto> counts = propertyService.countPropertiesByGu();
