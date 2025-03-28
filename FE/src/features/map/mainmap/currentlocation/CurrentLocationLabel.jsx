@@ -5,16 +5,19 @@ import { useRef } from "react";
 import {
   setCurrentDongId,
   fetchRoomListByBounds,
-  setCurrentGuAndDongName
+  setCurrentGuAndDongName,
 } from "../../../../store/slices/roomListSlice";
+import store from "../../../../store/store";
 
 function CurrentLocationLabel({ map }) {
   const [locationName, setLocationName] = useState("");
   const dispatch = useDispatch();
-  const currentDongId = useSelector((state) => state.roomList.currentDongId);
+  // const currentDongId = useSelector((state) => state.roomList.currentDongId);
   const searchLock = useSelector((state) => state.roomList.searchLock);
   const searchLockRef = useRef(searchLock); // ✅ useRef로 감싸서 최신값 유지
-  const selectedRoomType = useSelector((state) => state.roomList.selectedRoomType);
+  // const selectedRoomType = useSelector(
+  //   (state) => state.roomList.selectedRoomType
+  // );
 
   // ✅ searchLock 최신값 반영
   useEffect(() => {
@@ -34,69 +37,50 @@ function CurrentLocationLabel({ map }) {
         center.getLng(),
         center.getLat(),
         (result, status) => {
-          if (status === window.kakao.maps.services.Status.OK) {
-            console.log(result);
-            const regionData = result[1]; // result[1]은 행정동 정보
-            const dongCode = regionData.code.slice(0, -2); // 👉 행정동 코드 (dongId)
-            const guName = regionData.region_2depth_name;
-            const dongName = regionData.region_3depth_name.replaceAll(".", "·");
+          if (status !== window.kakao.maps.services.Status.OK) return;
 
-            // UI에 표시할 동/구 이름 설정
-            if (level >= 6) {
-              setLocationName(regionData.region_2depth_name); // 구
-            } else {
-              setLocationName(regionData.region_3depth_name); // 동
-            }
+          const regionData = result[1];
+          const dongCode = regionData.code.slice(0, -2);
+          const guName = regionData.region_2depth_name;
+          const dongName = regionData.region_3depth_name.replaceAll(".", "·");
 
-            // ✅ 여기서 검색 이동이면 무시
-            if (window.isMovingBySearch) {
-              console.log("🔒 검색 이동 중 → fetchRoomListByBounds 무시", dongName);
-              return;
-            }
+          // UI 라벨 표시
+          setLocationName(level >= 6 ? guName : dongName);
 
-            // ✅ 지도 직접 이동이면 실행
-            
-            if (dongCode && dongCode !== currentDongId) {
-              console.log("🔓 지도 이동 중 → fetchRoomListByBounds 실행", dongName);
-              dispatch(setCurrentDongId(dongCode));
-              if (level >=6 ) {
-                console.log('구바운드')
-                dispatch(fetchRoomListByBounds({ guName, dongName: '', filter: selectedRoomType }));
-              } else if (level < 6 && level > 3) {
-                console.log('동바운드')
-                dispatch(fetchRoomListByBounds({ guName, dongName, filter: selectedRoomType }));
-              }
-              dispatch(setCurrentGuAndDongName({ guName, dongName }));
-            }
+          const { currentDongId } = store.getState().roomList;
+          const selectedRoomType = store.getState().roomList.selectedRoomType;
 
-            // // ✅ 현재 저장된 dongId와 다르면 요청
-            // if (dongCode && dongCode !== currentDongId) {
-            //   if (searchLockRef.current) {
-            //     // 🔓 검색으로 인한 이동이면 그냥 무시
-            //     dispatch(setSearchLock(false));
-            //     console.log("검색으로 인한 이동이라 무시합니다.");
-            //   } else {
-            //     console.log("여기로 너 안오잖아");
-            //     dispatch(setCurrentDongId(dongCode));
-            //     console.log(dongName);
-            //     dispatch(fetchRoomListByBounds({ guName, dongName }));
-            //   }
-            // }
+          // ✅ 검색 이동이면 fetchRoomListByBounds 하지 않고 넘김
+          if (window.isMovingBySearch) {
+            console.log("🔒 검색 이동 중 → fetchRoomListByBounds 스킵");
+            window.isMovingBySearch = false;
+            return;
+          }
 
-            
+          // ✅ 일반 이동 시 동이 변경되면 fetch
+          if (dongCode && dongCode !== currentDongId) {
+            dispatch(setCurrentDongId(dongCode));
+            dispatch(setCurrentGuAndDongName({ guName, dongName }));
+
+            dispatch(
+              fetchRoomListByBounds({
+                guName,
+                dongName: level >= 6 ? "" : dongName,
+                filter: selectedRoomType,
+              })
+            );
           }
         }
       );
     };
 
-    updateCenterAddress(); // 초기 위치 설정
-    window._idleHandler = updateCenterAddress;
     window.kakao.maps.event.addListener(map, "idle", updateCenterAddress);
+    updateCenterAddress();
 
     return () => {
       window.kakao.maps.event.removeListener(map, "idle", updateCenterAddress);
     };
-  }, [map, currentDongId, dispatch]);
+  }, [map]);
 
   if (!locationName) return null;
 

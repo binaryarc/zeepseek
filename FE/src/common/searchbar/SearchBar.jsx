@@ -52,91 +52,51 @@ function Searchbar() {
 
   const handleSearch = async () => {
     if (!searchText.trim()) return;
-
+  
     try {
       const res = await searchProperties(searchText);
-      console.log("검색결과", res);
       const properties = res?.properties || [];
-
-      if (properties.length > 0) {
-        const first = properties[0];
-        const geocoder = new window.kakao.maps.services.Geocoder();
-
-        geocoder.addressSearch(first.address, (result, status) => {
-          if (status === window.kakao.maps.services.Status.OK) {
-            const { x, y } = result[0];
-            const latLng = new window.kakao.maps.LatLng(y, x);
-            const map = window.map;
-
-            if (map) {
-              // ✅ 검색 이동 전 기존 idle 이벤트 제거 (중복 fetch 방지용)
-              if (window._idleHandler) {
-                window.kakao.maps.event.removeListener(
-                  map,
-                  "idle",
-                  window._idleHandler
-                );
-              }
-
-              // ✅ 검색 이동 중 플래그 ON
-              window.isMovingBySearch = true;
-
-              // 🔍 검색어로 동/구 판별 (정확도 높음)
-              const isGuOnlySearch = searchText.trim().endsWith("구");
-              dispatch(
-                setCurrentGuAndDongName({
-                  guName: first.guName,
-                  dongName: isGuOnlySearch ? "" : first.dongName, // 👈 여기가 포인트!
-                })
-              );
-              const level = isGuOnlySearch ? 6 : 4;
-
-              map.setLevel(level);
-              map.setCenter(latLng);
-
-              // ✅ 약간 delay 후 idle 재등록 및 트리거
-              setTimeout(() => {
-                if (window._idleHandler) {
-                  window.kakao.maps.event.addListener(
-                    map,
-                    "idle",
-                    window._idleHandler
-                  );
-                }
-                window.kakao.maps.event.trigger(map, "idle");
-              }, 300); // 지도 이동 후 안정화 시간 확보
-
-              // ✅ 검색 이동 flag 해제 (조금 더 늦게)
-              setTimeout(() => {
-                window.isMovingBySearch = false;
-              }, 1000);
-            }
-          }
-        });
-
-        // 현재 동 코드를 제거하여 다음 지도 idle 시에 다시 요청될 수 있게 함
-        dispatch(setCurrentDongId(null));
-
-        dispatch(
-          setCurrentGuAndDongName({
-            guName: first.guName,
-            dongName: first.dongName,
-          })
-        );
-        console.log('룸타입', roomType)
-
-        // 검색 결과를 rooms에 반영 (덮어쓰기)
-        dispatch(fetchRoomList({ keyword: searchText, filter: roomType }));
-
-        dispatch(setSearchLock(true)); // 🔐 검색으로 인해 이동 발생
-        console.log(first.guName, first.dongName);
-      } else {
-        alert("검색 결과가 없습니다.");
-      }
+      if (properties.length === 0) return alert("검색 결과가 없습니다.");
+  
+      const first = properties[0];
+      const geocoder = new window.kakao.maps.services.Geocoder();
+  
+      geocoder.addressSearch(first.address, (result, status) => {
+        if (status !== window.kakao.maps.services.Status.OK) return;
+  
+        const { x, y } = result[0];
+        const latLng = new window.kakao.maps.LatLng(y, x);
+        const map = window.map;
+        if (!map) return;
+  
+        // ✅ 검색 이동 시작
+        window.isMovingBySearch = true;
+  
+        const isGuOnlySearch = searchText.trim().endsWith("구");
+        const level = isGuOnlySearch ? 6 : 4;
+  
+        // 상태 갱신
+        dispatch(setCurrentGuAndDongName({
+          guName: first.guName,
+          dongName: isGuOnlySearch ? "" : first.dongName,
+        }));
+        dispatch(setCurrentDongId(null)); // 강제 갱신 유도
+        dispatch(setSearchLock(true));
+  
+        // 지도 이동
+        map.setLevel(level);
+        map.setCenter(latLng);
+      });
+  
+      // ✅ 매물 리스트 요청 (검색 기반)
+      dispatch(fetchRoomList({
+        keyword: searchText,
+        filter: roomType,
+      }));
     } catch (err) {
       console.error("검색 실패:", err);
     }
-  };
+  };  
 
   return (
     <nav className="search-navbar">
