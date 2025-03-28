@@ -44,7 +44,7 @@ pipeline {
             steps {
                 echo "Backend 서비스를 재빌드 및 재배포합니다..."
                 // docker-compose.yml에 정의된 'be' 서비스만 재빌드 및 재시작합니다.
-                sh 'docker-compose up -d --no-deps --build be'
+                sh 'docker-compose up -d --no-deps --build'
             }
         }
     }
