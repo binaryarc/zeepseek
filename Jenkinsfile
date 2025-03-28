@@ -5,7 +5,6 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // SCM 설정이 되어 있으므로 checkout scm만 사용
                 checkout scm
             }
         }
@@ -13,7 +12,6 @@ pipeline {
             steps {
                 echo "API key 환경 변수 설정 중..."
                 withCredentials([file(credentialsId: 'backend_env', variable: 'ENV_FILE')]) {
-                    // 환경 변수 파일을 작업 디렉토리에 저장
                     sh 'cat $ENV_FILE > ${WORKSPACE}/.env'
                     sh 'echo "환경 변수 파일이 생성되었습니다."'
                     sh 'echo "환경 변수 파일 내용:" && cat ${WORKSPACE}/.env'
@@ -37,12 +35,16 @@ pipeline {
         stage('Build & Deploy Backend') {
             steps {
                 echo "Backend 서비스를 재빌드 및 재배포합니다..."
-                // 멀티스테이지 Dockerfile을 활용하여 빌드 (중간 컨테이너 제거 옵션 포함)
                 sh 'docker-compose build --force-rm'
-                // 지정된 서비스만 재시작 (의존 컨테이너는 그대로 사용)
                 sh 'docker-compose up -d --no-deps'
-                // 빌드 후 불필요한 이미지, 컨테이너, 네트워크 정리 (선택 사항)
-                sh 'docker system prune -f'
+                script {
+                    if (currentBuild.number % 5 == 0) {
+                        echo "5회 빌드 주기 도달 - 사용하지 않는 Docker 자원 정리합니다."
+                        sh 'docker system prune -f'
+                    } else {
+                        echo "Docker 정리 건너뜁니다. (빌드 번호: ${currentBuild.number})"
+                    }
+                }
             }
         }
     }
