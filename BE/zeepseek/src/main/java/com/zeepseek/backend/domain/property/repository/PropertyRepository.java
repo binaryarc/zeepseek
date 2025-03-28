@@ -107,7 +107,7 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
             "ST_GeomFromText(CONCAT('POLYGON((', :minLat, ' ', :minLng, ', ', " +
             "              :minLat, ' ', :maxLng, ', ', :maxLat, ' ', :maxLng, ', ', " +
             "              :maxLat, ' ', :minLng, ', ', :minLat, ' ', :minLng, '))'), 4326)) " +
-            "AND (room_type = '빌라' OR room_type LIKE '%주택%' OR roomType = '단독/다가구')",
+            "AND (room_type = '빌라' OR room_type LIKE '%주택%' OR room_type = '단독/다가구')",
             nativeQuery = true)
     List<Property> findHousePropertiesInCell(@Param("minLng") double minLng,
                                              @Param("minLat") double minLat,
