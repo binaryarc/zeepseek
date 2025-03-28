@@ -131,6 +131,21 @@ export const fetchDongDetail = async (dongId) => {
   }
 };
 
+export const fetchPropertyCompare = async (payload) => {
+  try {
+    const token = store.getState().auth.accessToken;
+    const res = await zeepApi.post("/compare/property", payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return res.data;
+  } catch (err) {
+    console.error("매물 비교 실패:", err);
+    return null;
+  }
+};
+
 
 // 응답 인터셉터
 zeepApi.interceptors.response.use(
