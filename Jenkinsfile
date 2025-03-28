@@ -38,8 +38,8 @@ pipeline {
                 sh 'docker-compose build --force-rm'
                 sh 'docker-compose up -d --no-deps'
                 script {
-                    if (currentBuild.number % 5 == 0) {
-                        echo "5회 빌드 주기 도달 - 사용하지 않는 Docker 자원 정리합니다."
+                    if (currentBuild.number % 20 == 0) {
+                        echo "20회 빌드 주기 도달 - 사용하지 않는 Docker 자원 정리합니다."
                         sh 'docker system prune -f'
                     } else {
                         echo "Docker 정리 건너뜁니다. (빌드 번호: ${currentBuild.number})"
