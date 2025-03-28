@@ -5,7 +5,7 @@ import { fetchAIRecommendedProperties } from "../../../../common/api/api";
 const AiRecommend = () => {
 
   const filters = [
-    "안전", "여가", "식당", "보건", "편의", "대중교통", "카페", "치킨집",
+    "여가", "식당", "보건", "편의", "대중교통", "카페", "치킨집",
   ];
 
     // 상태를 key-value 형태로 관리
@@ -17,6 +17,7 @@ const AiRecommend = () => {
     );
 
     const [recommendedList, setRecommendedList] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
   
     const handleSliderChange = (label, value) => {
       setFilterValues((prev) => ({
@@ -35,15 +36,22 @@ const AiRecommend = () => {
         cafeScore: filterValues["카페"] / 100,
         chickenScore: filterValues["치킨집"] / 100,
         leisureScore: filterValues["여가"] / 100,
-        safety: filterValues["안전"] / 100,
+        // safety: filterValues["안전"] / 100,
       };
       
       console.log("request data: ", preferenceData)
 
-      const result = await fetchAIRecommendedProperties(preferenceData);
-      if (result) {
-        console.log("추천 매물 목록:", result.recommendedProperties);
-        setRecommendedList(result.recommendedProperties);
+      setIsLoading(true); // 로딩 시작
+      try {
+        const result = await fetchAIRecommendedProperties(preferenceData);
+        if (result) {
+          console.log("추천 매물 목록:", result.recommendedProperties);
+          setRecommendedList(result.recommendedProperties);
+        }
+      } catch (error) {
+        console.error("추천 실패:", error);
+      } finally {
+        setIsLoading(false); // 로딩 종료
       }
     };
   
@@ -69,27 +77,33 @@ const AiRecommend = () => {
           />
         </div>
       ))}
-      <button className="search-btn" onClick={handleRecommendClick}>매물 검색</button>
+      <button className="recommend-search-btn" onClick={handleRecommendClick}>매물 추천</button>
 
-        {/* 추천 매물 리스트 출력 */}
-        {recommendedList.length > 0 && (
-        <div className="recommend-results">
-          <h4 className="result-title">추천 매물 목록 ({recommendedList.length}건)</h4>
-          <ul className="result-list">
-            {recommendedList.map((item) => (
-              <li key={item.propertyId} className="result-item">
-                <div className="item-header">
-                  <strong>{item.address}</strong>
-                  <span className="price">{item.price}</span>
-                </div>
-                <div className="item-sub">
-                  {item.roomType} / {item.contractType} / {item.roomBathCount} / 관리비: {item.maintenanceFee?.toLocaleString()}원
-                </div>
-                <div className="item-desc">{item.description}</div>
-              </li>
-            ))}
-          </ul>
+      {isLoading ? (
+        <div className="loader-container">
+          <div className="spinner"></div>
+          <p>AI가 매물을 추천 중이에요...</p>
         </div>
+      ) : (
+        recommendedList.length > 0 && (
+          <div className="recommend-results">
+            <h4 className="result-title">추천 매물 목록 ({recommendedList.length}건)</h4>
+            <ul className="result-list">
+              {recommendedList.map((item) => (
+                <li key={item.propertyId} className="result-item">
+                  <div className="item-header">
+                    <strong>{item.address}</strong>
+                    <span className="price">{item.price}</span>
+                  </div>
+                  <div className="item-sub">
+                    {item.roomType} / {item.contractType} / {item.roomBathCount} / 관리비: {item.maintenanceFee?.toLocaleString()}원
+                  </div>
+                  <div className="item-desc">{item.description}</div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
       )}
     </div>
   )
