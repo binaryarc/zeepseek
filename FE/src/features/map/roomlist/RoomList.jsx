@@ -16,6 +16,9 @@ const RoomList = () => {
   const { currentGuName, currentDongName } = useSelector(
     (state) => state.roomList
   );
+
+  const level = window.map?.getLevel();
+
   const handleTabClick = (tab) => {
     setSelectedTab(tab);
     dispatch(setSelectedRoomType(tab));
@@ -24,13 +27,24 @@ const RoomList = () => {
 
     if (currentGuName && currentDongName) {
       console.log(tab)
-      dispatch(
-        fetchRoomListByBounds({
-          guName: currentGuName,
-          dongName: currentDongName,
-          filter: tab,
-        })
-      );
+      if (level < 6 && level > 3) {
+        dispatch(
+          fetchRoomListByBounds({
+            guName: currentGuName,
+            dongName: currentDongName,
+            filter: tab,
+          })
+        );
+      } else if (level >= 6) {
+        dispatch(
+          fetchRoomListByBounds({
+            guName: currentGuName,
+            dongName: "",
+            filter: tab,
+          })
+        );
+      }
+
       console.log(currentDongName, currentGuName, '실행돼썽용용')
     }
   };

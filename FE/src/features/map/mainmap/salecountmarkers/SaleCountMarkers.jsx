@@ -18,7 +18,7 @@ function SaleCountMarkers({ map }) {
   const roomTypeMap = {
     "원룸/투룸": "one-room",
     "주택/빌라": "house",
-    오피스텔: "office",
+    "오피스텔": "office",
   };
   const filterKey = roomTypeMap[selectedRoomType];
 
@@ -50,7 +50,7 @@ function SaleCountMarkers({ map }) {
       let countData = [];
 
       if (currentLevel >= 6) {
-        countData = await fetchGuPropertyCounts();
+        countData = await fetchGuPropertyCounts(filterKey);
       } else if(currentLevel < 6 && currentLevel >= 3) {
         if (!filterKey) return;
         console.log("dhsl?");

@@ -15,7 +15,6 @@ import { searchProperties } from "../../common/api/api";
 import { logoutOAuth } from "../../common/api/authApi";
 import { logout } from "../../store/slices/authSlice";
 
-
 function Searchbar() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -43,9 +42,9 @@ function Searchbar() {
 
   const handleLogout = async () => {
     try {
-      await logoutOAuth(accessToken);      // 백엔드에 로그아웃 요청
-      dispatch(logout());                  // Redux 상태 초기화
-      navigate("/main");                 // 로그인 페이지로 이동 (선택)
+      await logoutOAuth(accessToken); // 백엔드에 로그아웃 요청
+      dispatch(logout()); // Redux 상태 초기화
+      navigate("/main"); // 로그인 페이지로 이동 (선택)
     } catch (err) {
       console.error("로그아웃 실패", err);
     }
@@ -63,46 +62,59 @@ function Searchbar() {
         const first = properties[0];
         const geocoder = new window.kakao.maps.services.Geocoder();
 
-        // 주소를 좌표로 변환하여 지도 이동
         geocoder.addressSearch(first.address, (result, status) => {
           if (status === window.kakao.maps.services.Status.OK) {
             const { x, y } = result[0];
             const latLng = new window.kakao.maps.LatLng(y, x);
             const map = window.map;
-            // 검색 결과로 지도 이동
+        
             if (map) {
-              // ✅ 이동 전 플래그 켜기
+              // ✅ 검색 이동 전 기존 idle 이벤트 제거 (중복 fetch 방지용)
+              if (window._idleHandler) {
+                window.kakao.maps.event.removeListener(map, "idle", window._idleHandler);
+              }
+        
+              // ✅ 검색 이동 중 플래그 ON
               window.isMovingBySearch = true;
-
+        
+              // 🔍 검색어로 동/구 판별 (정확도 높음)
+              const isGuOnlySearch = searchText.trim().endsWith("구");
+              const level = isGuOnlySearch ? 6 : 4;
+              
+              map.setLevel(level);
               map.setCenter(latLng);
-
-              // ✅ 강제로 idle 이벤트 트리거
-              window.kakao.maps.event.trigger(map, "idle");
-
-              // ✅ 다음 idle 발생 전에 false로 꺼줌 (약간의 delay로)
+        
+              // ✅ 약간 delay 후 idle 재등록 및 트리거
+              setTimeout(() => {
+                if (window._idleHandler) {
+                  window.kakao.maps.event.addListener(map, "idle", window._idleHandler);
+                }
+                window.kakao.maps.event.trigger(map, "idle");
+              }, 300); // 지도 이동 후 안정화 시간 확보
+        
+              // ✅ 검색 이동 flag 해제 (조금 더 늦게)
               setTimeout(() => {
                 window.isMovingBySearch = false;
-              }, 500);
+              }, 1000);
             }
-            // 💡 강제로 idle 이벤트 트리거
-            // setTimeout(() => {
-            //   window.kakao.maps.event.trigger(map, "idle");
-            // }, 50); // 500ms 정도면 충분
-            // map.setCenter(latLng);
           }
         });
 
         // 현재 동 코드를 제거하여 다음 지도 idle 시에 다시 요청될 수 있게 함
         dispatch(setCurrentDongId(null));
 
+        dispatch(
+          setCurrentGuAndDongName({
+            guName: first.guName,
+            dongName: first.dongName,
+          })
+        );
+
         // 검색 결과를 rooms에 반영 (덮어쓰기)
         dispatch(fetchRoomList({ keyword: searchText, filter: roomType }));
 
         dispatch(setSearchLock(true)); // 🔐 검색으로 인해 이동 발생
         console.log(first.guName, first.dongName);
-
-        dispatch(setCurrentGuAndDongName({ guName: first.guName, dongName: first.dongName }));
-
       } else {
         alert("검색 결과가 없습니다.");
       }

@@ -58,6 +58,11 @@ const roomListSlice = createSlice({
       state.currentGuName = action.payload.guName;
       state.currentDongName = action.payload.dongName;
     },
+    setRoomsFromGridResult: (state, action) => {
+      const allProperties = action.payload.flatMap(item => item.properties);
+      state.rooms = allProperties;
+      state.currentPage = 1;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -93,5 +98,6 @@ export const {
   setSelectedPropertyId,
   setSelectedRoomType,
   setCurrentGuAndDongName,
+  setRoomsFromGridResult,
 } = roomListSlice.actions;
 export default roomListSlice.reducer;

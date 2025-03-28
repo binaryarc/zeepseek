@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useDispatch } from "react-redux";
 import "./Map.css";
 import CurrentLocationLabel from "./currentlocation/CurrentLocationLabel";
 import SaleCountMarkers from "./salecountmarkers/SaleCountMarkers";
@@ -6,6 +7,8 @@ import ReactDOM from "react-dom/client";
 import DetailRegion from "../detailregion/DetailRegion";
 import { Provider } from "react-redux";
 import store from "../../../store/store";
+import { fetchRoomListByBounds } from "../../../store/slices/roomListSlice";
+import store from "../../../store/store"; // store 직접 import 필요
 
 const Map = () => {
   const [map, setMap] = useState(null); // 👈 map 객체 저장용 상태
@@ -15,6 +18,7 @@ const Map = () => {
   const overlayRef = useRef(null);
   const selectedPolygonRef = useRef(null); 
   const selectedDongIdRef = useRef(null);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const loadGeoJSON = async () => {
@@ -70,6 +74,27 @@ const Map = () => {
 
           const bounds = mapInstance.getBounds();
           const level = mapInstance.getLevel();
+
+          // ✅ 지도 레벨이 4 이상으로 올라갔을 때 매물 리스트 다시 불러오기
+          if (level > 3) {
+            const { currentGuName, currentDongName, selectedRoomType } = store.getState().roomList;
+            if (currentGuName && currentDongName && selectedRoomType) {
+              if (level >= 6) {
+                dispatch(fetchRoomListByBounds({
+                  guName: currentGuName,
+                  dongName: "",
+                  filter: selectedRoomType,
+                }));
+              } else {
+                dispatch(fetchRoomListByBounds({
+                  guName: currentGuName,
+                  dongName: currentDongName,
+                  filter: selectedRoomType,
+                }));
+              }
+              
+            }
+          }
 
           if (level > 6 || level <= 3) {
             polygonsRef.current.forEach((polygon) => polygon.setMap(null));
