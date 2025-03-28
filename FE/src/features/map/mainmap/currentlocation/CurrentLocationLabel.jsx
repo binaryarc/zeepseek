@@ -55,10 +55,17 @@ function CurrentLocationLabel({ map }) {
             }
 
             // ✅ 지도 직접 이동이면 실행
+            
             if (dongCode && dongCode !== currentDongId) {
               console.log("🔓 지도 이동 중 → fetchRoomListByBounds 실행", dongName);
               dispatch(setCurrentDongId(dongCode));
-              dispatch(fetchRoomListByBounds({ guName, dongName, filter: selectedRoomType }));
+              if (level >=6 ) {
+                console.log('구바운드')
+                dispatch(fetchRoomListByBounds({ guName, dongName: '', filter: selectedRoomType }));
+              } else if (level < 6 && level > 3) {
+                console.log('동바운드')
+                dispatch(fetchRoomListByBounds({ guName, dongName, filter: selectedRoomType }));
+              }
               dispatch(setCurrentGuAndDongName({ guName, dongName }));
             }
 
@@ -83,6 +90,7 @@ function CurrentLocationLabel({ map }) {
     };
 
     updateCenterAddress(); // 초기 위치 설정
+    window._idleHandler = updateCenterAddress;
     window.kakao.maps.event.addListener(map, "idle", updateCenterAddress);
 
     return () => {

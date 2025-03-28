@@ -3,11 +3,14 @@ import { fetchGridSaleCountsByType } from "../../../../../common/api/api";
 import "./GridClustering.css";
 import { generateGridCells } from "./useGridCells";
 import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { setRoomsFromGridResult } from "../../../../../store/slices/roomListSlice";
 
 
 function GridClustering({ map }) {
   const polygonsRef = useRef([]);
   const overlaysRef = useRef([]);
+  const dispatch = useDispatch();
   const popupRef = useRef(null);
   const selectedRoomType = useSelector(
     (state) => state.roomList.selectedRoomType)
@@ -56,6 +59,8 @@ function GridClustering({ map }) {
       console.log(filterKey)
 
       console.log("result: ", result)
+
+      dispatch(setRoomsFromGridResult(result));
 
       result.forEach(item => {
         const { cell, properties } = item;
