@@ -60,7 +60,7 @@ dependencies {
 	implementation 'com.fasterxml.jackson.core:jackson-databind'                     // JSON 객체 매핑 (spring-boot-starter-web에 포함될 수 있음)
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'          // Java 8 날짜/시간 타입 지원
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-
+	implementation 'org.springframework:spring-context:5.3.23'
 
 	// Spring WebFlux (WebClient 포함)
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'

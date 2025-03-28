@@ -28,7 +28,7 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
     @Query("SELECT p FROM Property p WHERE (p.roomBathCount LIKE '1/%' OR p.roomBathCount LIKE '2/%') AND p.dongId = :dongId")
     List<Property> findOneRoomByDongId(@Param("dongId") Integer dongId);
 
-    @Query("SELECT p FROM Property p WHERE (p.roomType = '%빌라%' OR p.roomType LIKE '%주택%') AND p.dongId = :dongId")
+    @Query("SELECT p FROM Property p WHERE (p.roomType = '%빌라%' OR p.roomType LIKE '%주택%' OR p.roomType = '단독/다가구') AND p.dongId = :dongId")
     List<Property> findHouseByDongId(@Param("dongId") Integer dongId);
 
     @Query("SELECT p FROM Property p WHERE p.roomType = '%오피스텔%' AND p.dongId = :dongId")
@@ -46,7 +46,7 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
     @Query("SELECT p FROM Property p WHERE p.roomBathCount LIKE '1/%' OR p.roomBathCount LIKE '2/%'")
     List<Property> findOneRoomProperties();
 
-    @Query("SELECT p FROM Property p WHERE p.roomType = '빌라' OR p.roomType LIKE '%주택'")
+    @Query("SELECT p FROM Property p WHERE p.roomType = '빌라' OR p.roomType LIKE '%주택' OR p.roomType = '단독/다가구' ")
     List<Property> findHouseProperties();
 
     @Query("SELECT p FROM Property p WHERE p.roomType = '오피스텔'")
@@ -60,7 +60,7 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
 
     // 동별 빌라/주택 매물 개수
     @Query("SELECT p.dongId AS dongId, COUNT(p) AS propertyCount " +
-            "FROM Property p WHERE p.roomType = '빌라' OR p.roomType LIKE '%주택%' " +
+            "FROM Property p WHERE p.roomType = '빌라' OR p.roomType LIKE '%주택%' OR p.roomType = '단독/다가구' " +
             "GROUP BY p.dongId")
     List<DongPropertyCountDto> countHousePropertiesByDong();
 
@@ -107,7 +107,7 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
             "ST_GeomFromText(CONCAT('POLYGON((', :minLat, ' ', :minLng, ', ', " +
             "              :minLat, ' ', :maxLng, ', ', :maxLat, ' ', :maxLng, ', ', " +
             "              :maxLat, ' ', :minLng, ', ', :minLat, ' ', :minLng, '))'), 4326)) " +
-            "AND (room_type = '빌라' OR room_type LIKE '%주택%')",
+            "AND (room_type = '빌라' OR room_type LIKE '%주택%' OR p.roomType = '단독/다가구')",
             nativeQuery = true)
     List<Property> findHousePropertiesInCell(@Param("minLng") double minLng,
                                              @Param("minLat") double minLat,
@@ -122,7 +122,7 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
 
     // 구별 빌라/주택 매물 개수
     @Query("SELECT p.guName AS guName, COUNT(p) AS propertyCount " +
-            "FROM Property p WHERE p.roomType = '빌라' OR p.roomType LIKE '%주택%' " +
+            "FROM Property p WHERE p.roomType = '빌라' OR p.roomType LIKE '%주택%' OR p.roomType = '단독/다가구' " +
             "GROUP BY p.guName")
     List<GuPropertyCountDto> countHousePropertiesByGu();
 
