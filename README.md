@@ -10,14 +10,7 @@
 
 | **전희성** | **백승훈** | **이진호** | **박수민** | **하건수** | **이원재** |
 | --- | --- | --- | --- | --- | --- |
-| - 팀장 
-- 백엔드 개발
-- 데이터 처리 | - 백엔드 개발
-- 인프라 | - 백엔드 개발
-- 데이터 처리 | - 프론트 개발
-- 데이터 크롤링 | - 프론트 개발
-- 데이터 크롤링 | - 프론트 개발
-- 데이터 처리 |
+| - 팀장 <br>- 백엔드 개발 <br>- 데이터 처리 | - 백엔드 개발 <br>- 인프라 | - 백엔드 개발 <br>- 데이터 처리 | - 프론트 개발 <br>- 데이터 크롤링 | - 프론트 개발 <br>- 데이터 크롤링 | - 프론트 개발<br>- 데이터 처리 |
 
 ---
 
@@ -25,57 +18,37 @@
 
 - frontend
 
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566919941/noticon/bwij1af50rjj0fiyjtci.png)
-
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566557331/noticon/d5hqar2idkoefh6fjtpu.png)
-
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1567008394/noticon/ohybolu4ensol1gzqas1.png)
+| Redux | React | Javascript ES6 |
+| --- | --- | --- |
+| ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566919941/noticon/bwij1af50rjj0fiyjtci.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566557331/noticon/d5hqar2idkoefh6fjtpu.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1567008394/noticon/ohybolu4ensol1gzqas1.png) |
 
 - DB
 
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566913591/noticon/e2bd9zw78n6zw6his4bd.png)
-
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1738119093/noticon/wjtjrftibcvlcmfsvvt7.png)
-
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566913679/noticon/xlnsjihvjxllech0hawu.png)
-
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1629987704/noticon/u9ewmgf7xxic5us7pnhn.png)
+| MySQL | Elasticsearch | Redis | MongoDB |
+| --- | --- | --- | --- |
+| ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566913591/noticon/e2bd9zw78n6zw6his4bd.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1738119093/noticon/wjtjrftibcvlcmfsvvt7.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566913679/noticon/xlnsjihvjxllech0hawu.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1629987704/noticon/u9ewmgf7xxic5us7pnhn.png) |
 
 - Backend
 
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566913897/noticon/xbvewg1m3azbpnrzck1k.png)
-
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566791609/noticon/nen1y11gazeqhejw7nm1.png)
-
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1567008187/noticon/m4oad4rbf65fjszx0did.png)
-
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1635226310/noticon/f0q3lhbfi2qmamrjla4e.png)
-
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566778017/noticon/ytjm1rralodyhvuggrpu.png)
-
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1683870544/noticon/tvx93esgtcbrcnlvoerv.png)
-
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1609094551/noticon/gkcjchloc7f7khlsyyyy.png)
-
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1576325989/noticon/rcwm9dy0hu6cbjowbfwi.png)
-
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1685082263/noticon/jo70lolpscz63hznweoe.png)
-
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566912632/noticon/konazfwbuwdnn43mcqux.png)
+| Java | Python | Spring Boot | scikit | Spring |
+| --- | --- | --- | --- | --- |
+| ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566913897/noticon/xbvewg1m3azbpnrzck1k.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566791609/noticon/nen1y11gazeqhejw7nm1.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1567008187/noticon/m4oad4rbf65fjszx0did.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1635226310/noticon/f0q3lhbfi2qmamrjla4e.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566778017/noticon/ytjm1rralodyhvuggrpu.png) |
+| FastAPI | JPA | Gradle | SpringSecurity | OAuth2 |
+| ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1683870544/noticon/tvx93esgtcbrcnlvoerv.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1609094551/noticon/gkcjchloc7f7khlsyyyy.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1576325989/noticon/rcwm9dy0hu6cbjowbfwi.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1685082263/noticon/jo70lolpscz63hznweoe.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566912632/noticon/konazfwbuwdnn43mcqux.png) |
+| Apache Kafka |
+| ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1599014155/noticon/c5cyndudltka3mddobj5.png) |
 
 - infra
 
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566914173/noticon/kos1xkevxtr81zgwvyoe.svg)
-
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566913255/noticon/xbroxmdmksvebf3v6v8v.gif)
-
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1567128851/noticon/ekuf9zj2kopbmxtvr5rc.png)
+| Amazom EC2 | Docker | Docker Compose |
+| --- | --- | --- |
+| <img src="https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566914173/noticon/kos1xkevxtr81zgwvyoe.png" width="200" height="200" alt="예시 이미지"> | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566913255/noticon/xbroxmdmksvebf3v6v8v.gif) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1567128851/noticon/ekuf9zj2kopbmxtvr5rc.png) |
 
 - Monitoring
 
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1629972026/noticon/msnfa0h6o32dpi7gipyv.png)
-
-![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1687244485/noticon/voyvwrngzlxbs8n6zhsk.png)
+| Grafana | Loki |
+| --- | --- |
+| ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1629972026/noticon/msnfa0h6o32dpi7gipyv.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1687244485/noticon/voyvwrngzlxbs8n6zhsk.png) |
 
 ---
 
