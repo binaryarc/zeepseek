@@ -99,7 +99,7 @@ public class PropertyServiceImpl implements PropertyService {
      * 동별 전체 매물 수를 집계하여 반환합니다.
      */
     @Override
-    @Cacheable(value = "dongCounts", key = "'all'")
+    @Cacheable(value = "dongCounts", key = "'all'", cacheManager = "propertyCacheManager")
     public List<DongPropertyCountDto> countPropertiesByDong() {
         List<DongPropertyCountDto> counts = propertyRepository.countPropertiesByDong();
         if (!counts.isEmpty()) {
@@ -112,7 +112,7 @@ public class PropertyServiceImpl implements PropertyService {
      * 구별 전체 매물 수를 집계하여 반환합니다.
      */
     @Override
-    @Cacheable(value = "guCounts", key = "'all'")
+    @Cacheable(value = "guCounts", key = "'all'", cacheManager = "propertyCacheManager")
     public List<GuPropertyCountDto> countPropertiesByGu() {
         List<GuPropertyCountDto> counts = propertyRepository.countPropertiesByGu();
         if (!counts.isEmpty()) {
@@ -227,7 +227,7 @@ public class PropertyServiceImpl implements PropertyService {
      * 동별 원룸 매물 개수를 집계합니다.
      */
     @Override
-    @Cacheable(value = "dongOneRoomCounts", key = "'all'")
+    @Cacheable(value = "dongOneRoomCounts", key = "'all'", cacheManager = "propertyCacheManager")
     public List<DongPropertyCountDto> countOneRoomPropertiesByDong() {
         List<DongPropertyCountDto> counts = propertyRepository.countOneRoomPropertiesByDong();
         logger.info("Found one-room property counts for {} dong records", counts.size());
@@ -238,7 +238,7 @@ public class PropertyServiceImpl implements PropertyService {
      * 동별 빌라/주택 매물 개수를 집계합니다.
      */
     @Override
-    @Cacheable(value = "dongHouseCounts", key = "'all'")
+    @Cacheable(value = "dongHouseCounts", key = "'all'", cacheManager = "propertyCacheManager")
     public List<DongPropertyCountDto> countHousePropertiesByDong() {
         List<DongPropertyCountDto> counts = propertyRepository.countHousePropertiesByDong();
         logger.info("Found house property counts for {} dong records", counts.size());
@@ -249,7 +249,7 @@ public class PropertyServiceImpl implements PropertyService {
      * 동별 오피스텔 매물 개수를 집계합니다.
      */
     @Override
-    @Cacheable(value = "dongOfficeCounts", key = "'all'")
+    @Cacheable(value = "dongOfficeCounts", key = "'all'", cacheManager = "propertyCacheManager")
     public List<DongPropertyCountDto> countOfficePropertiesByDong() {
         List<DongPropertyCountDto> counts = propertyRepository.countOfficePropertiesByDong();
         logger.info("Found office property counts for {} dong records", counts.size());
@@ -260,7 +260,7 @@ public class PropertyServiceImpl implements PropertyService {
      * 구별 원룸 매물 개수를 집계합니다.
      */
     @Override
-    @Cacheable(value = "guOneRoomCounts", key = "'all'")
+    @Cacheable(value = "guOneRoomCounts", key = "'all'", cacheManager = "propertyCacheManager")
     public List<GuPropertyCountDto> countOneRoomPropertiesByGu() {
         List<GuPropertyCountDto> counts = propertyRepository.countOneRoomPropertiesByGu();
         logger.info("Found one-room property counts for {} gu records", counts.size());
@@ -271,7 +271,7 @@ public class PropertyServiceImpl implements PropertyService {
      * 구별 빌라/주택 매물 개수를 집계합니다.
      */
     @Override
-    @Cacheable(value = "guHouseCounts", key = "'all'")
+    @Cacheable(value = "guHouseCounts", key = "'all'", cacheManager = "propertyCacheManager")
     public List<GuPropertyCountDto> countHousePropertiesByGu() {
         List<GuPropertyCountDto> counts = propertyRepository.countHousePropertiesByGu();
         logger.info("Found house property counts for {} gu records", counts.size());
@@ -282,7 +282,7 @@ public class PropertyServiceImpl implements PropertyService {
      * 구별 오피스텔 매물 개수를 집계합니다.
      */
     @Override
-    @Cacheable(value = "guOfficeCounts", key = "'all'")
+    @Cacheable(value = "guOfficeCounts", key = "'all'", cacheManager = "propertyCacheManager")
     public List<GuPropertyCountDto> countOfficePropertiesByGu() {
         List<GuPropertyCountDto> counts = propertyRepository.countOfficePropertiesByGu();
         logger.info("Found office property counts for {} gu records", counts.size());

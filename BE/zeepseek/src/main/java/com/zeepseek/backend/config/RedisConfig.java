@@ -1,12 +1,15 @@
-package com.zeepseek.backend.domain.property.config;
+package com.zeepseek.backend.config;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 
 import java.time.Duration;
 
@@ -14,8 +17,20 @@ import java.time.Duration;
 @EnableCaching
 public class RedisConfig {
 
+    /**
+     * Property 용 redis
+     */
     @Bean
-    public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+    @Primary
+    public RedisConnectionFactory propertyredisConnectionFactory() {
+        // 예: 호스트명은 redis1, 포트는 6379
+        return new LettuceConnectionFactory("property_redis", 6379);
+    }
+
+
+
+    @Bean
+    public CacheManager propertyCacheManager(@Qualifier("propertyredisConnectionFactory") RedisConnectionFactory connectionFactory) {
         // 캐시 엔트리 TTL을 20분으로 설정
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(20))
@@ -24,4 +39,6 @@ public class RedisConfig {
                 .cacheDefaults(config)
                 .build();
     }
+
+
 }
