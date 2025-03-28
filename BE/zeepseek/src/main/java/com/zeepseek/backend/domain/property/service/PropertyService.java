@@ -41,4 +41,9 @@ public interface PropertyService {
     List<DongPropertyCountDto> countOneRoomPropertiesByDong();
     List<DongPropertyCountDto> countHousePropertiesByDong();
     List<DongPropertyCountDto> countOfficePropertiesByDong();
+
+    // 구별 원룸, 빌라/주택, 오피스텔 매물 개수 구하기
+    List<GuPropertyCountDto> countOneRoomPropertiesByGu();
+    List<GuPropertyCountDto> countHousePropertiesByGu();
+    List<GuPropertyCountDto> countOfficePropertiesByGu();
 }
