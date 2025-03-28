@@ -25,7 +25,7 @@ const RoomList = () => {
 
     if (tab === "AI 추천") return;
 
-    if (currentGuName && currentDongName) {
+    if (currentGuName && (currentDongName || currentDongName === "")) {
       console.log(tab)
       if (level < 6 && level > 3) {
         dispatch(
