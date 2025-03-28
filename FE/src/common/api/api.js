@@ -18,9 +18,9 @@ const zeepApi = axios.create({
 // });
 
 // 🔹 매물 개수 조회 - 구 단위
-export const fetchGuPropertyCounts = async () => {
+export const fetchGuPropertyCounts = async (filterKey) => {
   try {
-    const res = await zeepApi.get("/property/count/gu");
+    const res = await zeepApi.get(`/property/count/gu/${filterKey}`);
     // console.log("구별 매물 개수 조회 결과:", res);
     return res.data;
   } catch (err) {
