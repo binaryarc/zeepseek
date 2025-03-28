@@ -40,7 +40,7 @@
 
 | Amazom EC2 | Docker | Docker Compose |
 | --- | --- | --- |
-| ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566914173/noticon/kos1xkevxtr81zgwvyoe.svg) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566913255/noticon/xbroxmdmksvebf3v6v8v.gif) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1567128851/noticon/ekuf9zj2kopbmxtvr5rc.png) |
+| ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566914173/noticon/kos1xkevxtr81zgwvyoe.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566913255/noticon/xbroxmdmksvebf3v6v8v.gif) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1567128851/noticon/ekuf9zj2kopbmxtvr5rc.png) |
 
 - Monitoring
 
