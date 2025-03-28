@@ -67,31 +67,45 @@ function Searchbar() {
             const { x, y } = result[0];
             const latLng = new window.kakao.maps.LatLng(y, x);
             const map = window.map;
-        
+
             if (map) {
               // ✅ 검색 이동 전 기존 idle 이벤트 제거 (중복 fetch 방지용)
               if (window._idleHandler) {
-                window.kakao.maps.event.removeListener(map, "idle", window._idleHandler);
+                window.kakao.maps.event.removeListener(
+                  map,
+                  "idle",
+                  window._idleHandler
+                );
               }
-        
+
               // ✅ 검색 이동 중 플래그 ON
               window.isMovingBySearch = true;
-        
+
               // 🔍 검색어로 동/구 판별 (정확도 높음)
               const isGuOnlySearch = searchText.trim().endsWith("구");
+              dispatch(
+                setCurrentGuAndDongName({
+                  guName: first.guName,
+                  dongName: isGuOnlySearch ? "" : first.dongName, // 👈 여기가 포인트!
+                })
+              );
               const level = isGuOnlySearch ? 6 : 4;
-              
+
               map.setLevel(level);
               map.setCenter(latLng);
-        
+
               // ✅ 약간 delay 후 idle 재등록 및 트리거
               setTimeout(() => {
                 if (window._idleHandler) {
-                  window.kakao.maps.event.addListener(map, "idle", window._idleHandler);
+                  window.kakao.maps.event.addListener(
+                    map,
+                    "idle",
+                    window._idleHandler
+                  );
                 }
                 window.kakao.maps.event.trigger(map, "idle");
               }, 300); // 지도 이동 후 안정화 시간 확보
-        
+
               // ✅ 검색 이동 flag 해제 (조금 더 늦게)
               setTimeout(() => {
                 window.isMovingBySearch = false;
@@ -109,6 +123,7 @@ function Searchbar() {
             dongName: first.dongName,
           })
         );
+        console.log('룸타입', roomType)
 
         // 검색 결과를 rooms에 반영 (덮어쓰기)
         dispatch(fetchRoomList({ keyword: searchText, filter: roomType }));
