@@ -35,12 +35,14 @@
 | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566913897/noticon/xbvewg1m3azbpnrzck1k.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566791609/noticon/nen1y11gazeqhejw7nm1.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1567008187/noticon/m4oad4rbf65fjszx0did.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1635226310/noticon/f0q3lhbfi2qmamrjla4e.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566778017/noticon/ytjm1rralodyhvuggrpu.png) |
 | FastAPI | JPA | Gradle | SpringSecurity | OAuth2 |
 | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1683870544/noticon/tvx93esgtcbrcnlvoerv.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1609094551/noticon/gkcjchloc7f7khlsyyyy.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1576325989/noticon/rcwm9dy0hu6cbjowbfwi.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1685082263/noticon/jo70lolpscz63hznweoe.png) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566912632/noticon/konazfwbuwdnn43mcqux.png) |
+| Apache Kafka |
+| ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1599014155/noticon/c5cyndudltka3mddobj5.png) |
 
 - infra
 
 | Amazom EC2 | Docker | Docker Compose |
 | --- | --- | --- |
-| <img src="https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566914173/noticon/kos1xkevxtr81zgwvyoe.png" width="250" height="250" alt="예시 이미지"> | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566913255/noticon/xbroxmdmksvebf3v6v8v.gif) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1567128851/noticon/ekuf9zj2kopbmxtvr5rc.png) |
+| <img src="https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566914173/noticon/kos1xkevxtr81zgwvyoe.png" width="200" height="200" alt="예시 이미지"> | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1566913255/noticon/xbroxmdmksvebf3v6v8v.gif) | ![](https://noticon-static.tammolo.com/dgggcrkxq/image/upload/v1567128851/noticon/ekuf9zj2kopbmxtvr5rc.png) |
 
 - Monitoring
 
