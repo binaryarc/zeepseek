@@ -1,9 +1,0 @@
-recommendation:
-  api:
-    host: http://recommend  # Docker 내부 서비스 이름
-    port: 8000              # FastAPI 컨테이너의 포트
-
-logging:
-  level:
-    com.zeepseek.backend.domain.recommend: DEBUG
-    org.springframework.web.reactive.function.client: DEBUG
