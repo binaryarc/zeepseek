@@ -131,6 +131,7 @@ export const fetchDongDetail = async (dongId) => {
   }
 };
 
+// 동네 비교 api => AI 비교 요약 내용만 존재()
 export const fetchPropertyCompare = async (payload) => {
   try {
     const token = store.getState().auth.accessToken;
@@ -145,6 +146,21 @@ export const fetchPropertyCompare = async (payload) => {
     return null;
   }
 };
+
+export const fetchRegionScore = async (regionName) => {
+  const response = await fetch(`/api/v1/region/score?name=${encodeURIComponent(regionName)}`);
+  return await response.json();
+};
+
+export const fetchRegionSummary = async (region1, region2) => {
+  const response = await fetch(`/api/v1/region/summary`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ region1, region2 }),
+  });
+  return await response.json();
+};
+
 
 
 // 응답 인터셉터

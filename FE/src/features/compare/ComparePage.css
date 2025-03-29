@@ -1,32 +1,41 @@
-.compare-page {
-    padding: 30px;
+  .compare-page {
+    padding: 60px 30px 30px;
     max-width: 1200px;
     margin: 0 auto;
   }
-  
+
+  /* 탭 + 컨테이너 세트 */
+  .compare-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* 탭 버튼 */
   .compare-tabs {
     display: flex;
-    justify-content: center;
-    margin-bottom: 24px;
+    gap: 10px;
+    margin-bottom: 0; /* 여백 없애기 */
   }
-  
+
   .compare-tabs button {
     padding: 10px 20px;
-    font-size: 18px;
-    margin: 0 10px;
+    font-size: 16px;
     border: none;
     background-color: #f0f0f0;
     cursor: pointer;
-    border-radius: 8px;
-    transition: all 0.2s ease-in-out;
+    border-radius: 8px 8px 0 0; /* 상단 둥글게, 하단은 네모 */
   }
-  
+
   .compare-tabs button.active {
     background-color: #cce9cc;
     font-weight: bold;
   }
-  
-  .compare-content {
-    margin-top: 20px;
+
+  /* 컨테이너 */
+  .compare-content-container {
+    background-color: #cce9cc; /* active tab과 동일 */
+    padding: 20px;
+    border-radius: 0 12px 12px 12px; /* 상단 좌측은 탭과 연결 */
+    width: 100%;
   }
-  
