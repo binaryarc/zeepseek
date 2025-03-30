@@ -131,7 +131,7 @@ export const fetchDongDetail = async (dongId) => {
   }
 };
 
-// 동네 비교 api => AI 비교 요약 내용만 존재()
+// 매물 비교 용 api(아직 안됨, 다시 만들어야 함)
 export const fetchPropertyCompare = async (payload) => {
   try {
     const token = store.getState().auth.accessToken;
@@ -147,19 +147,28 @@ export const fetchPropertyCompare = async (payload) => {
   }
 };
 
+// 동네 점수 부르는 api => 지금 쓸 수 없음, 아마 안쓸듯
 export const fetchRegionScore = async (regionName) => {
   const response = await fetch(`/api/v1/region/score?name=${encodeURIComponent(regionName)}`);
   return await response.json();
 };
 
+// 동네 비교 api => AI 비교 요약 내용만 존재()
 export const fetchRegionSummary = async (region1, region2) => {
-  const response = await fetch(`/api/v1/region/summary`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ region1, region2 }),
-  });
-  return await response.json();
+  try {
+    const response = await zeepApi.post('/dong/compare/dong', 
+      {
+        "dong1": region1,
+        "dong2": region2
+      })
+    console.log("동네 비교 요약 성공: ", response)
+    return response;
+  } catch (error) {
+    console.error("동네 비교 요약 api 통신 실패: ", error)
+    return [];
+  }
 };
+
 
 
 

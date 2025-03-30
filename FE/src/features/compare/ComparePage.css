@@ -1,6 +1,6 @@
   .compare-page {
-    padding: 60px 30px 30px;
-    max-width: 1200px;
+    padding-top: 5vh;
+    width: 80vw;
     margin: 0 auto;
   }
 
@@ -30,12 +30,4 @@
   .compare-tabs button.active {
     background-color: #cce9cc;
     font-weight: bold;
-  }
-
-  /* 컨테이너 */
-  .compare-content-container {
-    background-color: #cce9cc; /* active tab과 동일 */
-    padding: 20px;
-    border-radius: 0 12px 12px 12px; /* 상단 좌측은 탭과 연결 */
-    width: 100%;
   }

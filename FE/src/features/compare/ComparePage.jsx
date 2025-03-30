@@ -28,10 +28,8 @@ const ComparePage = () => {
             </button>
           </div>
 
-          {/* 컨테이너: 탭 아래에 붙음 */}
-          <div className="compare-content-container">
-            {activeTab === "region" ? <RegionCompare /> : <EstateCompare />}
-          </div>
+          {/* 여기서는 어떤 컴포넌트를 보여줄지만 결정 */}
+          {activeTab === "region" ? <RegionCompare /> : <EstateCompare />}
         </div>
       </div>
     </div>
