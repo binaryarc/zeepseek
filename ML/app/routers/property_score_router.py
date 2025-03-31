@@ -22,7 +22,7 @@ from app.services.recommend_service_with_ai import recommend_properties
 router = APIRouter()
 
 class NewPropertyData(BaseModel):
-    property_id: int  # 필드명 변경: propertyId -> property_id
+    property_id: int
     latitude: float
     longitude: float
 
