@@ -27,8 +27,9 @@ function RegionCompare() {
         ]);
         setRegionScores({ [selectedRegion1]: data1, [selectedRegion2]: data2 });
 
-        const summaryResult = await fetchRegionSummary(selectedRegion1, selectedRegion2);
-        setSummary(summaryResult?.result);
+        const summaryResult = await fetchRegionSummary(11620685, 11680510);
+        setSummary(summaryResult?.data?.compareSummary);
+        console.log("summaryResult", summaryResult?.data?.compareSummary)
       } catch (err) {
         console.error('비교 데이터 로딩 실패:', err);
       } finally {
