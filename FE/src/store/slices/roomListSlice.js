@@ -63,6 +63,10 @@ const roomListSlice = createSlice({
       state.rooms = allProperties;
       state.currentPage = 1;
     },
+    setGridRoomList: (state, action) => {
+      state.rooms = action.payload;
+      state.currentPage = 1;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -99,5 +103,6 @@ export const {
   setSelectedRoomType,
   setCurrentGuAndDongName,
   setRoomsFromGridResult,
+  setGridRoomList,
 } = roomListSlice.actions;
 export default roomListSlice.reducer;
