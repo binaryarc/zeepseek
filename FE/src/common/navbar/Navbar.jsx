@@ -13,7 +13,8 @@ function Navbar() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [showDropdown, setShowDropdown] = useState(false);
-  const nickname = "크롤링하는 크롱님";
+  const user =useSelector((state) => state.auth.user)
+  const nickname = user?.nickname || '로그인 유저';
   const accessToken = useSelector((state) => state.auth.accessToken);
   const isLoggedIn = !!accessToken;
 
@@ -58,7 +59,7 @@ function Navbar() {
           </div>
           <div className="nav-user-area" onClick={handleToggleDropdown}>
             <FaRegUserCircle size={22} style={{ marginRight: "6px" }} />
-            <span className="nav-nickname">{nickname}</span>
+            <span className="nav-nickname">{nickname}님</span>
             {showDropdown && (
               <div className="nav-dropdown">
                 <div onClick={() => handleMenuClick("/mypage")}>마이페이지</div>
