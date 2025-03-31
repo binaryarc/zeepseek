@@ -74,6 +74,7 @@ public class ElasticsearchDataMigrationService {
                         .index("properties")
                         .id(String.valueOf(searchProperty.getPropertyId()))
                         .document(searchProperty)
+                        .pipeline("room_type_pipeline")
                 ));
             }
 

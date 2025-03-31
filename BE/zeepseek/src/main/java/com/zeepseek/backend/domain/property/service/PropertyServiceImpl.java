@@ -3,7 +3,9 @@ package com.zeepseek.backend.domain.property.service;
 import com.zeepseek.backend.domain.property.dto.request.CellBoundsDto;
 import com.zeepseek.backend.domain.property.dto.response.CellPropertiesDto;
 import com.zeepseek.backend.domain.property.dto.response.DongPropertyCountDto;
+import com.zeepseek.backend.domain.property.dto.response.DongPropertyCountDtoImpl;
 import com.zeepseek.backend.domain.property.dto.response.GuPropertyCountDto;
+import com.zeepseek.backend.domain.property.dto.response.GuPropertyCountDtoImpl;
 import com.zeepseek.backend.domain.property.dto.response.PropertySummaryDto;
 import com.zeepseek.backend.domain.property.exception.PropertyNotFoundException;
 import com.zeepseek.backend.domain.property.model.Property;
@@ -11,6 +13,7 @@ import com.zeepseek.backend.domain.property.repository.PropertyRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -77,24 +80,29 @@ public class PropertyServiceImpl implements PropertyService {
     }
 
     @Override
+    @Cacheable(value = "dongCounts", key = "'all'", cacheManager = "propertyCacheManager")
     public List<DongPropertyCountDto> countPropertiesByDong() {
         List<DongPropertyCountDto> counts = propertyRepository.countPropertiesByDong();
         if (!counts.isEmpty()) {
             logger.info("Counting properties by dong: {} records", counts.size());
         }
-        return counts;
+        return counts.stream()
+                .map(c -> new DongPropertyCountDtoImpl(c.getDongId(), c.getPropertyCount()))
+                .collect(Collectors.toList());
     }
 
     @Override
+    @Cacheable(value = "guCounts", key = "'all'", cacheManager = "propertyCacheManager")
     public List<GuPropertyCountDto> countPropertiesByGu() {
         List<GuPropertyCountDto> counts = propertyRepository.countPropertiesByGu();
         if (!counts.isEmpty()) {
             logger.info("Counting properties by gu: {} records", counts.size());
         }
-        return counts;
+        return counts.stream()
+                .map(c -> new GuPropertyCountDtoImpl(c.getGuName(), c.getPropertyCount()))
+                .collect(Collectors.toList());
     }
 
-    // 해당 동에 있는 원룸(혹은 1룸, 2룸)의 부동산 조회
     @Override
     public List<Property> getOneRoomPropertiesByDongId(Integer dongId) {
         List<Property> properties = propertyRepository.findOneRoomByDongId(dongId);
@@ -106,7 +114,6 @@ public class PropertyServiceImpl implements PropertyService {
         return properties;
     }
 
-    // 해당 동에 있는 빌라나 주택 부동산 조회
     @Override
     public List<Property> getHousePropertiesByDongId(Integer dongId) {
         List<Property> properties = propertyRepository.findHouseByDongId(dongId);
@@ -118,7 +125,6 @@ public class PropertyServiceImpl implements PropertyService {
         return properties;
     }
 
-    // 해당 동에 있는 오피스텔 부동산 조회
     @Override
     public List<Property> getOfficePropertiesByDongId(Integer dongId) {
         List<Property> properties = propertyRepository.findOfficeByDongId(dongId);
@@ -173,23 +179,62 @@ public class PropertyServiceImpl implements PropertyService {
     }
 
     @Override
+    @Cacheable(value = "dongOneRoomCounts", key = "'all'", cacheManager = "propertyCacheManager")
     public List<DongPropertyCountDto> countOneRoomPropertiesByDong() {
         List<DongPropertyCountDto> counts = propertyRepository.countOneRoomPropertiesByDong();
         logger.info("Found one-room property counts for {} dong records", counts.size());
-        return counts;
+        return counts.stream()
+                .map(c -> new DongPropertyCountDtoImpl(c.getDongId(), c.getPropertyCount()))
+                .collect(Collectors.toList());
     }
 
     @Override
+    @Cacheable(value = "dongHouseCounts", key = "'all'", cacheManager = "propertyCacheManager")
     public List<DongPropertyCountDto> countHousePropertiesByDong() {
         List<DongPropertyCountDto> counts = propertyRepository.countHousePropertiesByDong();
         logger.info("Found house property counts for {} dong records", counts.size());
-        return counts;
+        return counts.stream()
+                .map(c -> new DongPropertyCountDtoImpl(c.getDongId(), c.getPropertyCount()))
+                .collect(Collectors.toList());
     }
 
     @Override
+    @Cacheable(value = "dongOfficeCounts", key = "'all'", cacheManager = "propertyCacheManager")
     public List<DongPropertyCountDto> countOfficePropertiesByDong() {
         List<DongPropertyCountDto> counts = propertyRepository.countOfficePropertiesByDong();
         logger.info("Found office property counts for {} dong records", counts.size());
-        return counts;
+        return counts.stream()
+                .map(c -> new DongPropertyCountDtoImpl(c.getDongId(), c.getPropertyCount()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Cacheable(value = "guOneRoomCounts", key = "'all'", cacheManager = "propertyCacheManager")
+    public List<GuPropertyCountDto> countOneRoomPropertiesByGu() {
+        List<GuPropertyCountDto> counts = propertyRepository.countOneRoomPropertiesByGu();
+        logger.info("Found one-room property counts for {} gu records", counts.size());
+        return counts.stream()
+                .map(c -> new GuPropertyCountDtoImpl(c.getGuName(), c.getPropertyCount()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Cacheable(value = "guHouseCounts", key = "'all'", cacheManager = "propertyCacheManager")
+    public List<GuPropertyCountDto> countHousePropertiesByGu() {
+        List<GuPropertyCountDto> counts = propertyRepository.countHousePropertiesByGu();
+        logger.info("Found house property counts for {} gu records", counts.size());
+        return counts.stream()
+                .map(c -> new GuPropertyCountDtoImpl(c.getGuName(), c.getPropertyCount()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Cacheable(value = "guOfficeCounts", key = "'all'", cacheManager = "propertyCacheManager")
+    public List<GuPropertyCountDto> countOfficePropertiesByGu() {
+        List<GuPropertyCountDto> counts = propertyRepository.countOfficePropertiesByGu();
+        logger.info("Found office property counts for {} gu records", counts.size());
+        return counts.stream()
+                .map(c -> new GuPropertyCountDtoImpl(c.getGuName(), c.getPropertyCount()))
+                .collect(Collectors.toList());
     }
 }
