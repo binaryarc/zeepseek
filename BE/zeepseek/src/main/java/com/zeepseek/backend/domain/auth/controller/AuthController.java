@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,7 +20,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class AuthController {
 
     private final AuthService authService;
-    private final UserService userService; // UserService 주입
+    private final UserService userService;
 
     /**
      * 소셜 로그인 처리
@@ -36,10 +37,10 @@ public class AuthController {
             // 인증 코드로 토큰 요청 및 사용자 정보 조회
             TokenDto tokenDto = authService.processSocialLogin(request.getAuthorizationCode(), request.getProvider());
 
-            // 사용자 정보 조회 및 쿠키에 저장
+            // 사용자 정보와 리프레시 토큰을 쿠키에 저장
             if (tokenDto.getUser() != null && tokenDto.getUser().getIdx() != null) {
                 UserDto userDto = userService.getUserById(tokenDto.getUser().getIdx());
-                CookieUtils.addUserCookie(response, userDto);
+                CookieUtils.addUserCookie(response, userDto, tokenDto.getRefreshToken());
             }
 
             log.info("로그인 성공! 토큰 생성됨: accessToken={}, refreshToken={}",
@@ -69,7 +70,7 @@ public class AuthController {
 
         // 쿠키 삭제
         CookieUtils.deleteCookie(request, response, "user_info");
-        CookieUtils.deleteCookie(request, response, "user_idx");
+        CookieUtils.deleteCookie(request, response, "user_id");
 
         return ResponseEntity.ok(ApiResponse.success("성공적으로 로그아웃 되었습니다.", null));
     }
@@ -79,14 +80,32 @@ public class AuthController {
      */
     @PostMapping("/api/v1/auth/refresh")
     public ResponseEntity<ApiResponse<TokenDto>> refreshToken(
-            @RequestBody RefreshTokenRequest refreshTokenRequest,
+            HttpServletRequest request,
+            @RequestBody(required = false) RefreshTokenRequest refreshTokenRequest,
             HttpServletResponse response) {
-        TokenDto tokenDto = authService.refreshToken(refreshTokenRequest.getRefreshToken());
+        // user_info 쿠키에서 리프레시 토큰을 가져오거나, 요청 바디에서 가져옴
+        String refreshToken = null;
 
-        // 사용자 정보 조회 및 쿠키에 저장
+        // 1. 쿠키에서 리프레시 토큰 확인
+        Optional<String> cookieRefreshToken = CookieUtils.getRefreshTokenFromCookie(request);
+        if (cookieRefreshToken.isPresent()) {
+            refreshToken = cookieRefreshToken.get();
+        }
+        // 2. 요청 본문에서 리프레시 토큰 확인
+        else if (refreshTokenRequest != null && refreshTokenRequest.getRefreshToken() != null) {
+            refreshToken = refreshTokenRequest.getRefreshToken();
+        }
+
+        if (refreshToken == null) {
+            throw new IllegalArgumentException("리프레시 토큰이 제공되지 않았습니다.");
+        }
+
+        TokenDto tokenDto = authService.refreshToken(refreshToken);
+
+        // 사용자 정보와 새로운 리프레시 토큰을 쿠키에 저장
         if (tokenDto.getUser() != null && tokenDto.getUser().getIdx() != null) {
             UserDto userDto = userService.getUserById(tokenDto.getUser().getIdx());
-            CookieUtils.addUserCookie(response, userDto);
+            CookieUtils.addUserCookie(response, userDto, tokenDto.getRefreshToken());
         }
 
         return ResponseEntity.ok(ApiResponse.success(tokenDto));
@@ -118,10 +137,10 @@ public class AuthController {
             log.info("authService.processSocialLogin 호출 중...");
             TokenDto tokenDto = authService.processSocialLogin(code, provider);
 
-            // 사용자 정보 조회 및 쿠키에 저장
+            // 사용자 정보와 리프레시 토큰을 쿠키에 저장
             if (tokenDto.getUser() != null && tokenDto.getUser().getIdx() != null) {
                 UserDto userDto = userService.getUserById(tokenDto.getUser().getIdx());
-                CookieUtils.addUserCookie(response, userDto);
+                CookieUtils.addUserCookie(response, userDto, tokenDto.getRefreshToken());
             }
 
             log.info("로그인 성공! 토큰 생성됨: accessToken={}, refreshToken={}",

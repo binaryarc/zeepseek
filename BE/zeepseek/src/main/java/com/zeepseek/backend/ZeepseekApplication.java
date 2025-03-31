@@ -16,7 +16,7 @@ public class ZeepseekApplication {
 
 		dotenv.entries().forEach(entry -> System.out.println(entry.getKey() + "=" + entry.getValue()));
 
-		// 예: OPENAI_API_KEY 값을 시스템 프로퍼티로 등록
+//		// 예: OPENAI_API_KEY 값을 시스템 프로퍼티로 등록
 		String openaiApiKey = dotenv.get("OPENAI_API_KEY");
 		String mongoDBUri = dotenv.get("MONGODB_URI");
 		String esUserName = dotenv.get("ES_USERNAME");
