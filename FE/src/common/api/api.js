@@ -169,6 +169,16 @@ export const fetchRegionSummary = async (region1, region2) => {
   }
 };
 
+// 찜한 동네 리스트 불러오는 api
+export const fetchLikedRegions = async (userId) => {
+  try {
+    const res = await zeepApi.get(`/zzim/select/dong/${userId}`);
+    console.log("찜한 동네 리스트 호출: ", res);
+    return res;
+  } catch (err) {
+    console.error('찜한 동네 불러오기 실패:', err);
+  }
+};
 
 
 
