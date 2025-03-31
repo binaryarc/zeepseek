@@ -2,6 +2,7 @@ package com.zeepseek.backend.domain.auth.security.jwt;
 
 import com.zeepseek.backend.domain.auth.config.JwtConfig;
 import com.zeepseek.backend.domain.auth.dto.TokenDto;
+import com.zeepseek.backend.domain.auth.service.CustomUserDetailsService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 public class JwtTokenProvider {
 
     private final JwtConfig jwtConfig;
+    private final CustomUserDetailsService userDetailsService; // CustomUserDetailsService 주입
     private SecretKey secretKey;
 
     @PostConstruct
@@ -69,13 +71,14 @@ public class JwtTokenProvider {
     public Authentication getAuthentication(String token) {
         Claims claims = parseClaims(token);
 
-        Collection<? extends GrantedAuthority> authorities =
-                Arrays.stream(claims.get("auth").toString().split(","))
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList());
+        // 사용자 ID 추출
+        Integer userId = Integer.parseInt(claims.getSubject());
 
-        User principal = new User(claims.getSubject(), "", authorities);
-        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+        // CustomUserDetailsService를 통해 UserPrincipal 객체 가져오기
+        UserDetails userDetails = userDetailsService.loadUserById(userId);
+
+        // UserDetails(UserPrincipal)로 Authentication 객체 생성
+        return new UsernamePasswordAuthenticationToken(userDetails, token, userDetails.getAuthorities());
     }
 
     public boolean validateToken(String token) {
