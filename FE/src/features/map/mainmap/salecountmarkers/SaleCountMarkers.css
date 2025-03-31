@@ -3,8 +3,14 @@
     flex-direction: row;
     align-items: center;
     text-align: center;
+    transition: transform 0.2s ease;
   }
   
+  /* 👆 hover 시 살짝 확대 */
+.marker-container:hover {
+  transform: scale(1.15);
+}
+
   /* 🟠 동그란 숫자 */
   .circle-count {
     background-color: #fea82f;
