@@ -203,7 +203,7 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
     logger.info("Fetched %d properties from cache.", property_array.shape[0])
     
     # 2. 카테고리별 가중치 (순서: transport, restaurant, health, convenience, cafe, chicken, leisure)
-    category_weights = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.7])
+    category_weights = np.array([1.0, 1.0, 1.2, 1.0, 1.0, 0.8, 1.0])
     
     if normalization_method == 'minmax':
         min_max_values = get_category_min_max_values()
