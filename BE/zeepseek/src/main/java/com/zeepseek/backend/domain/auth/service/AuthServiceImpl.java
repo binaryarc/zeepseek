@@ -19,6 +19,7 @@ import org.springframework.http.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -58,35 +59,61 @@ public class AuthServiceImpl implements AuthService {
     @Value("${spring.security.oauth2.client.registration.naver.redirect-uri}")
     private String naverRedirectUri;
 
-    @Override
+    /**
+     * 리프레시 토큰을 사용하여 새 토큰 발급
+     */
     @Transactional
     public TokenDto refreshToken(String refreshToken) {
-        // 리프레시 토큰 유효성 검사
+        // 리프레시 토큰 유효성 검증
         if (!tokenProvider.validateToken(refreshToken)) {
-            throw new AuthException("Invalid refresh token");
+            throw new RuntimeException("리프레시 토큰이 유효하지 않습니다.");
         }
 
-        // 리프레시 토큰으로 사용자 조회
-        User user = userRepository.findByRefreshToken(refreshToken)
-                .orElseThrow(() -> new AuthException("User not found with this refresh token"));
+        // 방법 1: 리프레시 토큰으로 직접 사용자 조회
+        Optional<User> userOptional = userRepository.findByRefreshToken(refreshToken);
 
-        // Authentication 객체 생성
+        if (userOptional.isEmpty()) {
+            // 방법 2: 토큰에서 Claims을 파싱하여 사용자 ID 추출
+            try {
+                // 토큰에서 Authentication 객체 얻기
+                Authentication authentication = tokenProvider.getAuthentication(refreshToken);
+                String userId = authentication.getName();
+                Integer userIdInt = Integer.parseInt(userId);
+
+                // ID로 사용자 조회
+                userOptional = userRepository.findById(userIdInt);
+
+                if (userOptional.isEmpty()) {
+                    throw new RuntimeException("존재하지 않는 사용자입니다.");
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("리프레시 토큰 처리 중 오류 발생: " + e.getMessage());
+            }
+        }
+
+        User user = userOptional.get();
+
+        // DB에 저장된 리프레시 토큰과 일치하는지 확인
+        if (user.getRefreshToken() == null || !user.getRefreshToken().equals(refreshToken)) {
+            throw new RuntimeException("저장된 리프레시 토큰과 일치하지 않습니다.");
+        }
+
+        // 인증 객체 생성
         UserPrincipal userPrincipal = UserPrincipal.create(user);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                userPrincipal, null,
-                Collections.singletonList(new SimpleGrantedAuthority(
-                        user.getIsSeller() == 1 ? UserRole.ROLE_SELLER.name() : UserRole.ROLE_USER.name()))
-        );
+                userPrincipal, null, userPrincipal.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // 새 토큰 발급
+        // 새 토큰 생성
         TokenDto tokenDto = tokenProvider.generateToken(authentication);
 
-        // 리프레시 토큰 DB 업데이트
+        // 새 리프레시 토큰 저장
         user.setRefreshToken(tokenDto.getRefreshToken());
         userRepository.save(user);
 
-        // isFirst 설정
-        tokenDto.setIsFirst(user.getIsFirst());
+        // 유저 정보를 가져와서 TokenDto에 설정
+        UserDto userDto = userService.getUserById(user.getIdx());
+        tokenDto.setUser(userDto);
 
         return tokenDto;
     }
