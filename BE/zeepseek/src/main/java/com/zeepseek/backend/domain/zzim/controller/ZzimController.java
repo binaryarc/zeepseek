@@ -92,7 +92,7 @@ public class ZzimController {
     }
 
     // 개발용 추후 수정예정
-    @GetMapping("/select/dong_zzimid/{userId}")
+    @GetMapping("/select/property_zzimid/{userId}")
     public ResponseEntity<?> selectAllPropertyZzimId(@PathVariable(name = "userId") int userId) {
 
         List<PropertyZzimDoc> response = zzimService.userSelectPropertyList(userId);
