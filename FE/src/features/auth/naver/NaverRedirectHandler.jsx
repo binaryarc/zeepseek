@@ -23,6 +23,7 @@ const NaverRedirectHandler = () => {
 
           dispatch(setAccessToken(accessToken));
           dispatch(setUser(user)); // accessToken 제외한 나머지
+          localStorage.setItem('isAuthenticated', 'true'); // local storage에 로그인 상태 저장
 
           navigate("/main");
         } catch (error) {
