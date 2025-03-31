@@ -104,14 +104,47 @@ def get_category_min_max_values():
     finally:
         session.close()
 
-def recommend_properties(user_scores: dict, top_n=5, normalization_method='minmax'):
+def apply_mmr(similarities, property_vectors, top_n, diversity_lambda=0.5):
+    """
+    Maximal Marginal Relevance (MMR) 적용 함수.
+    :param similarities: 사용자 벡터와 각 매물 벡터 간의 코사인 유사도 (array)
+    :param property_vectors: 정규화 및 가중치가 적용된 매물 벡터 (shape: [n_properties, n_features])
+    :param top_n: 최종 선택할 매물의 개수
+    :param diversity_lambda: 관련성과 다양성의 균형을 위한 파라미터 (0~1)
+    :return: 선택된 매물의 인덱스 리스트
+    """
+    selected = []
+    candidate_indices = list(range(len(similarities)))
+    
+    # 첫번째 선택: 사용자와 가장 유사한 매물 선택
+    first = np.argmax(similarities)
+    selected.append(first)
+    candidate_indices.remove(first)
+    
+    while len(selected) < top_n and candidate_indices:
+        mmr_scores = []
+        for i in candidate_indices:
+            # 이미 선택된 매물들과의 최대 유사도 계산 (다양성 페널티)
+            sim_selected = max(cosine_similarity(property_vectors[i].reshape(1, -1), property_vectors[selected]).flatten())
+            score = diversity_lambda * similarities[i] - (1 - diversity_lambda) * sim_selected
+            mmr_scores.append((i, score))
+        best_candidate, _ = max(mmr_scores, key=lambda x: x[1])
+        selected.append(best_candidate)
+        candidate_indices.remove(best_candidate)
+    
+    return selected
+
+def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, diversity_lambda=0.5, normalization_method='minmax'):
     """
     사용자 점수와 property_score 테이블의 점수 간 코사인 유사도를 계산하여 추천합니다.
-    normalization_method: 'minmax' 또는 'zscore' (기본은 min-max 사용)
+    추가로 MMR 후처리 기법을 적용해 추천 결과의 다양성을 높입니다.
     
-    개선사항:
-      - min-max 정규화를 통해 DB 점수와 0.0~1.0 범위의 사용자 점수 분포를 맞춥니다.
-      - 카테고리별 가중치를 적용하여 중요도를 조정합니다.
+    :param user_scores: 사용자 점수 (예: {"transport_score":0.5, ...})
+    :param top_n: 추천할 매물의 개수
+    :param apply_mmr_flag: MMR 후처리 적용 여부
+    :param diversity_lambda: MMR 관련성 vs 다양성 균형 파라미터 (0~1)
+    :param normalization_method: 'minmax' 또는 'zscore' (기본은 min-max)
+    :return: 추천된 매물 리스트
     """
     session = SessionLocal()
     try:
@@ -125,7 +158,7 @@ def recommend_properties(user_scores: dict, top_n=5, normalization_method='minma
             logger.info("No property scores found.")
             return []
 
-        # 컬럼 순서 고정
+        # 데이터 수집 및 배열 생성
         cols = ["property_id", "transport_score", "restaurant_score", "health_score", 
                 "convenience_score", "cafe_score", "chicken_score", "leisure_score"]
         data = []
@@ -136,13 +169,12 @@ def recommend_properties(user_scores: dict, top_n=5, normalization_method='minma
             data.append(row_data[1:])
         property_array = np.array(data, dtype=float)
         logger.info("Fetched %d properties.", property_array.shape[0])
-
-        # 카테고리별 가중치 (실험을 통해 조정하세요)
+        
+        # 카테고리별 가중치 (예시)
         # 순서: transport, restaurant, health, convenience, cafe, chicken, leisure
         category_weights = np.array([1.0, 1.0, 1.2, 1.0, 1.0, 0.8, 1.0])
-
+        
         if normalization_method == 'minmax':
-            # min-max 스케일링 적용
             min_max_values = get_category_min_max_values()
             mins = np.array([
                 min_max_values["transport_score"][0],
@@ -165,7 +197,7 @@ def recommend_properties(user_scores: dict, top_n=5, normalization_method='minma
             denom = maxs - mins
             denom[denom == 0] = 1  # 분모 0 방지
             norm_array = (property_array - mins) / denom
-            # 사용자 점수도 동일하게 스케일링 (사용자 입력은 이미 0~1 범위라 그대로 사용)
+            # 사용자 점수는 이미 0~1 범위로 가정
             user_vals = np.array([
                 user_scores.get("transport_score", 0),
                 user_scores.get("restaurant_score", 0),
@@ -211,27 +243,29 @@ def recommend_properties(user_scores: dict, top_n=5, normalization_method='minma
             ])
             user_vector = ((user_vals - means) / stds).reshape(1, -1)
             logger.info("Using z-score normalization.")
-
-        # 적용 전 카테고리 가중치 (요소별 중요도 반영)
+        
+        # 카테고리별 가중치 적용
         norm_array = norm_array * category_weights
         user_vector = user_vector * category_weights
-
+        
         logger.info("First property vector (normalized & weighted): %s", norm_array[0])
         logger.info("User vector (normalized & weighted): %s", user_vector)
-
-        # 코사인 유사도 계산
+        
+        # 사용자와 각 매물 간 코사인 유사도 계산
         similarities = cosine_similarity(norm_array, user_vector).flatten()
         logger.info("Calculated similarities for %d properties.", len(similarities))
-
-        # 결과 매핑
-        properties_rec = []
-        for i, pid in enumerate(property_ids):
-            properties_rec.append({
-                "propertyId": pid,
-                "similarity": float(similarities[i])
-            })
-        top_properties = sorted(properties_rec, key=lambda x: x["similarity"], reverse=True)[:top_n]
-        logger.info("Top %d recommended properties: %s", top_n, [p["propertyId"] for p in top_properties])
+        
+        if apply_mmr_flag:
+            # MMR 후처리 적용하여 다양성을 고려한 최종 추천 순위 도출
+            selected_indices = apply_mmr(similarities, norm_array, top_n, diversity_lambda)
+            top_properties = [{"propertyId": property_ids[i], "similarity": float(similarities[i])} for i in selected_indices]
+            logger.info("Top %d recommended properties after MMR: %s", top_n, [property_ids[i] for i in selected_indices])
+        else:
+            # 기본적으로 유사도 순으로 정렬
+            properties_rec = [{"propertyId": property_ids[i], "similarity": float(similarities[i])} for i in range(len(similarities))]
+            top_properties = sorted(properties_rec, key=lambda x: x["similarity"], reverse=True)[:top_n]
+            logger.info("Top %d recommended properties: %s", top_n, [p["propertyId"] for p in top_properties])
+            
         return top_properties
 
     except Exception as e:
