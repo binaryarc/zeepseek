@@ -18,7 +18,7 @@ function SaleCountMarkers({ map }) {
   const roomTypeMap = {
     "원룸/투룸": "one-room",
     "주택/빌라": "house",
-    "오피스텔": "office",
+    오피스텔: "office",
   };
   const filterKey = roomTypeMap[selectedRoomType];
 
@@ -30,18 +30,16 @@ function SaleCountMarkers({ map }) {
 
     const drawMarkers = async () => {
       const currentLevel = map.getLevel();
-      setLevel(currentLevel)
+      setLevel(currentLevel);
 
       if (currentLevel <= 3) {
         // ✅ 기존 오버레이 모두 제거
         overlaysRef.current.forEach((o) => o.setMap(null));
         overlaysRef.current = [];
-        return
+        return;
       }
 
-
-
-      const targetData = (currentLevel >= 6) ? guData : dongData;
+      const targetData = currentLevel >= 6 ? guData : dongData;
 
       // 📌 API 요청
       // const countData = (currentLevel >= 6)
@@ -51,7 +49,7 @@ function SaleCountMarkers({ map }) {
 
       if (currentLevel >= 6) {
         countData = await fetchGuPropertyCounts(filterKey);
-      } else if(currentLevel < 6 && currentLevel >= 3) {
+      } else if (currentLevel < 6 && currentLevel >= 3) {
         if (!filterKey) return;
         console.log("dhsl?");
         countData = await fetchDongPropertyCounts(filterKey); // ✅ 파라미터 전달
@@ -90,18 +88,25 @@ function SaleCountMarkers({ map }) {
           // console.log("동별 매물 개수:", dongId, count);
         }
 
-        const content = `
-          <div class="marker-container">
-            <div class="circle-count">${count}</div>
-            <div class="region-label">${displayName}</div>
-          </div>
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "marker-container";
+        contentDiv.innerHTML = `
+          <div class="circle-count">${count}</div>
+          <div class="region-label">${displayName}</div>
         `;
 
         const overlay = new window.kakao.maps.CustomOverlay({
           position,
-          content,
+          content: contentDiv,
           yAnchor: 1,
           map,
+        });
+
+        // 🔥 클릭 이벤트는 DOM에 직접 바인딩
+        contentDiv.addEventListener("click", () => {
+          console.log("클릭했습니꺼꺼");
+          map.setCenter(position);
+          map.setLevel(5);
         });
 
         overlaysRef.current.push(overlay); // ✅ 최신 목록에 추가
@@ -117,7 +122,6 @@ function SaleCountMarkers({ map }) {
       window.kakao.maps.event.removeListener(map, "idle", drawMarkers);
     };
   }, [map, filterKey]);
-
 
   return level <= 3 ? <GridClustering map={map} /> : null;
 }
