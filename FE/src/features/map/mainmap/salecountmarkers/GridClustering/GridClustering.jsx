@@ -4,7 +4,7 @@ import "./GridClustering.css";
 import { generateGridCells } from "./useGridCells";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
-import { setRoomsFromGridResult } from "../../../../../store/slices/roomListSlice";
+import { setRoomsFromGridResult, setGridRoomList } from "../../../../../store/slices/roomListSlice";
 
 
 function GridClustering({ map }) {
@@ -90,35 +90,48 @@ function GridClustering({ map }) {
         const centerLat = (minLat + maxLat) / 2;
         const centerLng = (minLng + maxLng) / 2;
 
-        const content = `
+        const div = document.createElement("div");
+        div.innerHTML = `
           <div class="grid-count-wrapper">
             <div class="grid-count">${properties.length}</div>
           </div>
         `;
 
+        div.onclick = (e) => {
+          e.preventDefault(); // 👈 기본 동작 방지
+          e.stopPropagation(); // 👈 이벤트 버블링 방지
+          console.log("클릭됨!", properties);
+          dispatch(setGridRoomList(properties));
+          // map.setCenter(new window.kakao.maps.LatLng(centerLat, centerLng));
+        };
+
         const overlay = new window.kakao.maps.CustomOverlay({
           position: new window.kakao.maps.LatLng(centerLat, centerLng),
-          content,
+          content: div,
           xAnchor: 0.5,
           yAnchor: 0.5,
           map,
         });
 
         window.kakao.maps.event.addListener(overlay, "click", () => {
+          console.log('실행되니', properties)
           if (popupRef.current) popupRef.current.setMap(null);
 
-          const listHtml = properties
-            .map(p => `<li>${p.address} - ${p.price}</li>`) // 필요 시 더 상세하게 구성 가능
-            .join("");
+          dispatch(setGridRoomList(properties));
+          console.log('실행되니', properties)
 
-          const popup = new window.kakao.maps.CustomOverlay({
-            position: new window.kakao.maps.LatLng(centerLat, centerLng),
-            content: `<div class="property-popup"><ul>${listHtml}</ul></div>`,
-            yAnchor: 1,
-            map,
-          });
+          // const listHtml = properties
+          //   .map(p => `<li>${p.address} - ${p.price}</li>`) // 필요 시 더 상세하게 구성 가능
+          //   .join("");
 
-          popupRef.current = popup;
+          // const popup = new window.kakao.maps.CustomOverlay({
+          //   position: new window.kakao.maps.LatLng(centerLat, centerLng),
+          //   content: `<div class="property-popup"><ul>${listHtml}</ul></div>`,
+          //   yAnchor: 1,
+          //   map,
+          // });
+
+          // popupRef.current = popup;
         });
 
         overlaysRef.current.push(overlay);

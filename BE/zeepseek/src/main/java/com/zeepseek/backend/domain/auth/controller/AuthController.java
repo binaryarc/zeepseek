@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -33,7 +35,16 @@ public class AuthController {
                     tokenDto.getAccessToken().substring(0, 10) + "...",
                     tokenDto.getRefreshToken().substring(0, 10) + "...");
 
-            return ResponseEntity.ok(ApiResponse.success(tokenDto));
+            ResponseCookie cookie = ResponseCookie.from("refresh_token", tokenDto.getRefreshToken())
+                    .httpOnly(true)
+                    .secure(false)
+                    .path("/")
+                    .sameSite("Lax")
+                    .build();
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                    .body(ApiResponse.success(tokenDto));
         } catch (Exception e) {
             log.error("소셜 로그인 처리 중 오류 발생", e);
             throw e;
@@ -57,9 +68,19 @@ public class AuthController {
      * 토큰 갱신 - refresh token을 사용하여 access token 재발급
      */
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<TokenDto>> refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
-        TokenDto tokenDto = authService.refreshToken(refreshTokenRequest.getRefreshToken());
-        return ResponseEntity.ok(ApiResponse.success(tokenDto));
+    public ResponseEntity<ApiResponse<TokenDto>> refreshToken(@CookieValue("refresh_token")  String refreshToken) {
+        TokenDto tokenDto = authService.refreshToken(refreshToken);
+        // ✅ 새로운 refreshToken도 다시 쿠키로 설정
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", tokenDto.getRefreshToken())
+                .httpOnly(true)
+                .secure(false) // 로컬 테스트 시 false, 배포 시 true
+                .path("/")
+                .sameSite("Lax") // 배포 시 None + secure=true
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString()) // ✅ 여기가 핵심
+                .body(ApiResponse.success(tokenDto));
     }
 
     /**

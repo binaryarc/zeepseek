@@ -1,10 +1,20 @@
-import zeepApi from "./api";
+// import zeepApi from "./api";
+import axios from "axios";
+// const authApi = axios.create({
+//   baseURL: `http://localhost:8082/api/v1`, // ✅ API 서버 주소
+//   withCredentials: true, // ✅ 쿠키 포함 요청
+// });
+
+const authApi = axios.create({
+  baseURL: `https://j12e203.p.ssafy.io/api/v1`, // ✅ API 서버 주소
+  withCredentials: true, // ✅ 쿠키 포함 요청
+});
 
 
 // OAuth 로그인 (카카오 & 네이버)
 export const oauthLogin = async (authorizationCode, provider) => {
   try {
-    const response = await zeepApi.post("/auth/sessions", {
+    const response = await authApi.post("/auth/sessions", {
       authorizationCode,
       provider,
     });
@@ -17,7 +27,7 @@ export const oauthLogin = async (authorizationCode, provider) => {
 };
 
 export const loginOAuth = async (authorizationCode, provider) => {
-  return await zeepApi.post("/auth/login", {
+  return await authApi.post("/auth/login", {
     authorizationCode,
     provider,
   });
@@ -26,7 +36,7 @@ export const loginOAuth = async (authorizationCode, provider) => {
 // 로그아웃
 export const logoutOAuth = async (accessToken) => {
   console.log("로그아웃 요청 accessToken:", accessToken);
-  return await zeepApi.delete("/auth/sessions", {
+  return await authApi.delete("/auth/sessions", {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
@@ -35,5 +45,7 @@ export const logoutOAuth = async (accessToken) => {
 };
 
 export const refreshAccessToken = async () => {
-  return await zeepApi.post("/auth/refresh"); // refresh_token은 쿠키에서 자동 전송됨
+  const res = await authApi.post("/auth/refresh");
+  console.log(res)
+  return res.data; // ✅ res 자체가 아닌 res.data만 리턴
 };

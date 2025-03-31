@@ -19,10 +19,11 @@ const NaverRedirectHandler = () => {
 
           const userInfo = await oauthLogin(code, "naver"); // 응답이 사용자 객체 자체
           console.log(userInfo.data);
-          const { accessToken, ...user } = userInfo.data;
+          const { accessToken, user: userInfoData } = userInfo.data;
 
           dispatch(setAccessToken(accessToken));
-          dispatch(setUser(user)); // accessToken 제외한 나머지
+          dispatch(setUser(userInfoData)); // accessToken 제외한 나머지
+          localStorage.setItem('isAuthenticated', 'true'); // local storage에 로그인 상태 저장
 
           navigate("/main");
         } catch (error) {
