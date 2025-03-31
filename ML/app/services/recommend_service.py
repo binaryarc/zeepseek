@@ -155,7 +155,7 @@ def load_property_vectors():
 
 def apply_mmr(similarities, property_vectors, top_n, diversity_lambda=0.5):
     """
-    Maximal Marginal Relevance (MMR)을 적용하여 추천 결과의 다양성을 높입니다.
+    MMR을 적용하여 추천 결과의 다양성을 높입니다.
     
     :param similarities: 사용자 벡터와 각 매물 벡터 간의 코사인 유사도 (array)
     :param property_vectors: 정규화 및 가중치가 적용된 매물 벡터 (shape: [n_properties, n_features])
@@ -174,8 +174,8 @@ def apply_mmr(similarities, property_vectors, top_n, diversity_lambda=0.5):
     while len(selected) < top_n and candidate_indices:
         mmr_scores = []
         for i in candidate_indices:
-            # 이미 선택된 매물들과의 최대 유사도 계산 (다양성 페널티)
-            sim_selected = max(cosine_similarity(property_vectors[i].reshape(1, -1), property_vectors[selected]).flatten())
+            sim_selected = max(cosine_similarity(property_vectors[i].reshape(1, -1),
+                                                   property_vectors[selected]).flatten())
             score = diversity_lambda * similarities[i] - (1 - diversity_lambda) * sim_selected
             mmr_scores.append((i, score))
         best_candidate, _ = max(mmr_scores, key=lambda x: x[1])
@@ -186,14 +186,13 @@ def apply_mmr(similarities, property_vectors, top_n, diversity_lambda=0.5):
 
 def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, diversity_lambda=0.5, normalization_method='minmax'):
     """
-    사용자 점수와 property_score 테이블의 점수 간 코사인 유사도를 계산하여 추천합니다.
-    글로벌 캐시에서 매물 벡터를 로드한 후, 정규화, 가중치 적용 및 MMR 후처리를 수행합니다.
+    글로벌 캐시에서 매물 벡터를 로드한 후, 정규화( minmax 또는 zscore ), 가중치 적용 및 후보군 필터링 후 MMR 후처리를 수행합니다.
     
     :param user_scores: 예) {"transport_score": 0.5, "restaurant_score": 0.5, ...}
     :param top_n: 추천할 매물 수
     :param apply_mmr_flag: MMR 후처리 적용 여부
     :param diversity_lambda: MMR 관련성 vs 다양성 균형 파라미터 (0~1)
-    :param normalization_method: 'minmax' 또는 'zscore' (여기선 minmax 사용)
+    :param normalization_method: 'minmax' 또는 'zscore'
     :return: 추천된 매물 리스트
     """
     # 1. 캐시된 매물 벡터 로드
@@ -229,7 +228,7 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
         denom = maxs - mins
         denom[denom == 0] = 1  # 분모 0 방지
         norm_array = (property_array - mins) / denom
-        # 사용자 점수는 이미 0~1 범위로 가정
+        # 사용자 점수는 이미 0~1 범위라고 가정
         user_vals = np.array([
             user_scores.get("transport_score", 0),
             user_scores.get("restaurant_score", 0),
@@ -241,11 +240,43 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
         ])
         user_vector = user_vals.reshape(1, -1)
         logger.info("Using min-max normalization.")
+    elif normalization_method == 'zscore':
+        mean_std_values = get_category_mean_std_values()
+        means = np.array([
+            mean_std_values["transport_score"][0],
+            mean_std_values["restaurant_score"][0],
+            mean_std_values["health_score"][0],
+            mean_std_values["convenience_score"][0],
+            mean_std_values["cafe_score"][0],
+            mean_std_values["chicken_score"][0],
+            mean_std_values["leisure_score"][0],
+        ])
+        stds = np.array([
+            mean_std_values["transport_score"][1],
+            mean_std_values["restaurant_score"][1],
+            mean_std_values["health_score"][1],
+            mean_std_values["convenience_score"][1],
+            mean_std_values["cafe_score"][1],
+            mean_std_values["chicken_score"][1],
+            mean_std_values["leisure_score"][1],
+        ])
+        stds[stds == 0] = 1
+        norm_array = (property_array - means) / stds
+        user_vals = np.array([
+            user_scores.get("transport_score", 0),
+            user_scores.get("restaurant_score", 0),
+            user_scores.get("health_score", 0),
+            user_scores.get("convenience_score", 0),
+            user_scores.get("cafe_score", 0),
+            user_scores.get("chicken_score", 0),
+            user_scores.get("leisure_score", 0),
+        ])
+        user_vector = ((user_vals - means) / stds).reshape(1, -1)
+        logger.info("Using z-score normalization.")
     else:
-        # z-score normalization (구현 필요시 추가)
-        user_vector = None
-        norm_array = None
-    
+        logger.error("Unknown normalization method: %s", normalization_method)
+        return []
+
     # 3. 가중치 적용
     norm_array = norm_array * category_weights
     user_vector = user_vector * category_weights
@@ -257,11 +288,18 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
     similarities = cosine_similarity(norm_array, user_vector).flatten()
     logger.info("Calculated similarities for %d properties.", len(similarities))
     
-    # 5. MMR 후처리 적용 (옵션)
+    # 5. 상위 후보군 (예: top 1000) 필터링 후 MMR 적용
+    top_k = min(1000, len(similarities))
+    candidate_order = np.argsort(similarities)[-top_k:].tolist()  # 상위 top_k 인덱스
+    candidate_similarities = np.array([similarities[i] for i in candidate_order])
+    candidate_vectors = norm_array[candidate_order]
+    
     if apply_mmr_flag:
-        selected_indices = apply_mmr(similarities, norm_array, top_n, diversity_lambda)
-        top_properties = [{"propertyId": property_ids[i], "similarity": float(similarities[i])} for i in selected_indices]
-        logger.info("Top %d recommended properties after MMR: %s", top_n, [property_ids[i] for i in selected_indices])
+        selected_candidate_indices = apply_mmr(candidate_similarities, candidate_vectors, top_n, diversity_lambda)
+        # 원래 인덱스로 변환
+        final_selected_indices = [candidate_order[i] for i in selected_candidate_indices]
+        top_properties = [{"propertyId": property_ids[i], "similarity": float(similarities[i])} for i in final_selected_indices]
+        logger.info("Top %d recommended properties after MMR: %s", top_n, [property_ids[i] for i in final_selected_indices])
     else:
         properties_rec = [{"propertyId": property_ids[i], "similarity": float(similarities[i])} for i in range(len(similarities))]
         top_properties = sorted(properties_rec, key=lambda x: x["similarity"], reverse=True)[:top_n]
