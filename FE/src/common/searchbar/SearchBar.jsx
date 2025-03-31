@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import title from "../../assets/logo/zeeptitle.png";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./SearchBar.css";
 import { FaRegUserCircle } from "react-icons/fa"; // 사람 아이콘
 import { FiSearch } from "react-icons/fi"; // 검색 아이콘
@@ -10,6 +10,7 @@ import {
   setSearchLock,
   fetchRoomList,
   setCurrentGuAndDongName,
+  setKeyword,
 } from "../../store/slices/roomListSlice";
 import { searchProperties } from "../../common/api/api";
 import { logoutOAuth } from "../../common/api/authApi";
@@ -26,20 +27,19 @@ function Searchbar() {
   const roomType = useSelector((state) => state.roomList.selectedRoomType);
   const user = useSelector((state) => state.auth.user);
   const nickname = user?.nickname || "로그인 유저";
-  const location = useLocation();
+  const keywordFromRedux = useSelector((state) => state.roomList.keyword); // ✅ 추가
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const keyword = params.get("keyword");
-    if (keyword) {
-      setSearchText(keyword); // input 채우기
-      handleSearch(keyword); // 검색 실행
+    if (keywordFromRedux) {
+      console.log("🔍 키워드 변경 감지:", keywordFromRedux); // ✅ 이거 꼭 넣어보세요
+      setSearchText(keywordFromRedux); // input 채우기
+      handleSearch(keywordFromRedux); // 검색 실행
     }
-  }, []);
+  }, [keywordFromRedux]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      handleSearch();
+      dispatch(setKeyword(searchText)); // ✅ 키워드 저장만, handleSearch는 위에서 실행됨
     }
   };
 
@@ -64,7 +64,7 @@ function Searchbar() {
 
   const handleSearch = async (externalKeyword) => {
     const keyword = externalKeyword || searchText;
-    if (!searchText.trim()) return;
+    if (!keyword.trim()) return;
 
     try {
       const res = await searchProperties(keyword);
@@ -106,7 +106,7 @@ function Searchbar() {
       // ✅ 매물 리스트 요청 (검색 기반)
       dispatch(
         fetchRoomList({
-          keyword: keyword,
+          keyword,
           filter: roomType,
         })
       );

@@ -35,6 +35,7 @@ const roomListSlice = createSlice({
     selectedRoomType: "원룸/투룸", // ✅ 선택된 방 종류
     currentGuName: null,
     currentDongName: null,
+    keyword: null
   },
   reducers: {
     setCurrentPage: (state, action) => {
@@ -66,6 +67,9 @@ const roomListSlice = createSlice({
     setGridRoomList: (state, action) => {
       state.rooms = action.payload;
       state.currentPage = 1;
+    },
+    setKeyword: (state, action) => {
+      state.keyword = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -104,5 +108,6 @@ export const {
   setCurrentGuAndDongName,
   setRoomsFromGridResult,
   setGridRoomList,
+  setKeyword,
 } = roomListSlice.actions;
 export default roomListSlice.reducer;
