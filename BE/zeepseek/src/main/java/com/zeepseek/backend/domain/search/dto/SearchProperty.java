@@ -35,6 +35,7 @@ public class SearchProperty {
     private String guName;
     private String dongName;
     private String computedRoomType;
+    private boolean isLiked;
 
     @Override
     public String toString() {
@@ -62,6 +63,7 @@ public class SearchProperty {
                 ", guName='" + guName + '\'' +
                 ", dongName='" + dongName + '\'' +
                 ", computedRoomType='" + computedRoomType + '\'' +
+                ", isLiked=" + isLiked + '\'' +
                 '}';
     }
 }
