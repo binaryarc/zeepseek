@@ -24,7 +24,8 @@ function Searchbar() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchText, setSearchText] = useState("");
   const roomType = useSelector((state) => state.roomList.selectedRoomType);
-  const nickname = "크롤링하는 크롱님";
+  const user = useSelector((state) => state.auth.user);
+  const nickname = user?.nickname || "로그인 유저";
   const location = useLocation();
 
   useEffect(() => {
@@ -32,7 +33,7 @@ function Searchbar() {
     const keyword = params.get("keyword");
     if (keyword) {
       setSearchText(keyword); // input 채우기
-      handleSearch(keyword);  // 검색 실행
+      handleSearch(keyword); // 검색 실행
     }
   }, []);
 
@@ -64,51 +65,55 @@ function Searchbar() {
   const handleSearch = async (externalKeyword) => {
     const keyword = externalKeyword || searchText;
     if (!searchText.trim()) return;
-  
+
     try {
       const res = await searchProperties(keyword);
       const properties = res?.properties || [];
       if (properties.length === 0) return alert("검색 결과가 없습니다.");
-  
+
       const first = properties[0];
       const geocoder = new window.kakao.maps.services.Geocoder();
-  
+
       geocoder.addressSearch(first.address, (result, status) => {
         if (status !== window.kakao.maps.services.Status.OK) return;
-  
+
         const { x, y } = result[0];
         const latLng = new window.kakao.maps.LatLng(y, x);
         const map = window.map;
         if (!map) return;
-  
+
         // ✅ 검색 이동 시작
         window.isMovingBySearch = true;
-  
+
         const isGuOnlySearch = keyword.trim().endsWith("구");
         const level = isGuOnlySearch ? 6 : 4;
-  
+
         // 상태 갱신
-        dispatch(setCurrentGuAndDongName({
-          guName: first.guName,
-          dongName: isGuOnlySearch ? "" : first.dongName,
-        }));
+        dispatch(
+          setCurrentGuAndDongName({
+            guName: first.guName,
+            dongName: isGuOnlySearch ? "" : first.dongName,
+          })
+        );
         dispatch(setCurrentDongId(null)); // 강제 갱신 유도
         dispatch(setSearchLock(true));
-  
+
         // 지도 이동
         map.setLevel(level);
         map.setCenter(latLng);
       });
-  
+
       // ✅ 매물 리스트 요청 (검색 기반)
-      dispatch(fetchRoomList({
-        keyword: keyword,
-        filter: roomType,
-      }));
+      dispatch(
+        fetchRoomList({
+          keyword: keyword,
+          filter: roomType,
+        })
+      );
     } catch (err) {
       console.error("검색 실패:", err);
     }
-  };  
+  };
 
   return (
     <nav className="search-navbar">
@@ -141,7 +146,7 @@ function Searchbar() {
           </div>
           <div className="nav-user-area" onClick={handleToggleDropdown}>
             <FaRegUserCircle size={22} style={{ marginRight: "6px" }} />
-            <span className="nav-nickname">{nickname}</span>
+            <span className="nav-nickname">{nickname}님</span>
             {showDropdown && (
               <div className="nav-dropdown">
                 <div onClick={() => handleMenuClick("/mypage")}>마이페이지</div>
