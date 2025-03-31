@@ -48,7 +48,7 @@ public class CookieUtils {
                 .maxAge(0)
                 .httpOnly(name.equals(REFRESH_TOKEN_COOKIE_NAME)) // refreshtoken만 httpOnly 설정
                 .secure(true)
-                .sameSite("None")
+                .sameSite("Strict")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
@@ -79,7 +79,7 @@ public class CookieUtils {
                     .maxAge(DEFAULT_MAX_AGE)
                     .httpOnly(false) // JavaScript에서 접근 가능하도록 설정
                     .secure(true) // HTTPS에서만 전송되도록 설정
-                    .sameSite("None")
+                    .sameSite("Strict")
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, userCookie.toString());
         } catch (JsonProcessingException e) {
@@ -97,7 +97,7 @@ public class CookieUtils {
                     .maxAge(DEFAULT_MAX_AGE)
                     .httpOnly(false) // JavaScript에서 접근 가능하도록 설정
                     .secure(true) // HTTPS에서만 전송되도록 설정
-                    .sameSite("None")
+                    .sameSite("Strict")
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, userIdCookie.toString());
         }
@@ -113,7 +113,7 @@ public class CookieUtils {
                     .secure(true) // HTTPS에서만 전송되도록 설정
                     .path("/")
                     .maxAge(DEFAULT_MAX_AGE)
-                    .sameSite("None")
+                    .sameSite("Strict")
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
         }
