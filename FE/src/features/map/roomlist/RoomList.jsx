@@ -110,6 +110,16 @@ const RoomList = () => {
                   )
                 )
               }
+
+              onMouseEnter={() => {
+                if (room.latitude && room.longitude) {
+                  window.setHoverMarker(room.latitude, room.longitude);
+                }
+              }}
+              onMouseLeave={() => {
+                window.clearHoverMarker();
+              }}
+              
             >
               <img src={room.imageUrl || defaultImage} alt="매물 이미지" />
               <div className="room-info">
