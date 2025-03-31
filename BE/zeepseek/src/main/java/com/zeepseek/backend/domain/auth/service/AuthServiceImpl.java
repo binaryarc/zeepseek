@@ -82,6 +82,17 @@ public class AuthServiceImpl implements AuthService {
         // 새 토큰 발급
         TokenDto tokenDto = tokenProvider.generateToken(authentication);
 
+        // ✅ user 정보 추가
+        tokenDto.setUser(UserDto.builder()
+                .idx(user.getIdx())
+                .isFirst(user.getIsFirst())
+                .isSeller(user.getIsSeller())
+                .gender(user.getGender())
+                .age(user.getAge())
+                .nickname(user.getNickname())
+                .provider(user.getProvider())
+                .build());
+
         // 리프레시 토큰 DB 업데이트
         user.setRefreshToken(tokenDto.getRefreshToken());
         userRepository.save(user);
