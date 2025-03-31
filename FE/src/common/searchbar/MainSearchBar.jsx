@@ -2,15 +2,20 @@ import React, { useState } from "react";
 import "./MainSearchBar.css";
 import { FiSearch } from "react-icons/fi"; // 검색 아이콘
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setKeyword } from "../../store/slices/roomListSlice"; // ✅ 추가가
 
 function MainSearchbar() {
   const [searchText, setSearchText] = useState("");
   const navigate = useNavigate();
 
+  const dispatch = useDispatch();
+
   const handleSearch = () => {
     if (!searchText.trim()) return;
-    const encoded = encodeURIComponent(searchText.trim());
-    navigate(`/map?keyword=${encoded}`);
+
+    dispatch(setKeyword(searchText)); // ✅ 검색어 Redux에 저장
+    navigate("/map"); // ✅ 쿼리 안 붙이고 이동
   };
 
   const handleKeyDown = (e) => {
