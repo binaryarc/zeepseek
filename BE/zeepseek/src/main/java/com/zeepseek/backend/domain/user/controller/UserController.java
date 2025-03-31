@@ -39,11 +39,17 @@ public class UserController {
 
         UserDto updatedUser = userService.processFirstLoginData(userId, profileDto);
 
-        // 기존 쿠키에서 리프레시 토큰 가져오기
+        // 리프레시 토큰 가져오기
         Optional<String> refreshToken = CookieUtils.getRefreshTokenFromCookie(request);
 
-        // 업데이트된 사용자 정보를 쿠키에 저장
-        CookieUtils.addUserCookie(response, updatedUser, refreshToken.orElse(null));
+        // 사용자 정보 쿠키 업데이트
+        CookieUtils.addUserInfoCookie(response, updatedUser);
+        CookieUtils.addUserIdCookie(response, updatedUser.getIdx());
+
+        // 리프레시 토큰이 있으면 그대로 유지
+        if (refreshToken.isPresent()) {
+            CookieUtils.addRefreshTokenCookie(response, refreshToken.get());
+        }
 
         return ResponseEntity.ok(ApiResponse.success(updatedUser));
     }
@@ -64,11 +70,17 @@ public class UserController {
 
         UserDto userDto = userService.getUserById(idx);
 
-        // 기존 쿠키에서 리프레시 토큰 가져오기
+        // 리프레시 토큰 가져오기
         Optional<String> refreshToken = CookieUtils.getRefreshTokenFromCookie(request);
 
-        // 사용자 정보를 쿠키에 저장
-        CookieUtils.addUserCookie(response, userDto, refreshToken.orElse(null));
+        // 사용자 정보 쿠키 업데이트
+        CookieUtils.addUserInfoCookie(response, userDto);
+        CookieUtils.addUserIdCookie(response, userDto.getIdx());
+
+        // 리프레시 토큰이 있으면 그대로 유지
+        if (refreshToken.isPresent()) {
+            CookieUtils.addRefreshTokenCookie(response, refreshToken.get());
+        }
 
         return ResponseEntity.ok(ApiResponse.success("정보 조회 성공", userDto));
     }
@@ -90,11 +102,17 @@ public class UserController {
 
         UserDto updatedUser = userService.updateUser(userPrincipal.getId(), userDto);
 
-        // 기존 쿠키에서 리프레시 토큰 가져오기
+        // 리프레시 토큰 가져오기
         Optional<String> refreshToken = CookieUtils.getRefreshTokenFromCookie(request);
 
-        // 업데이트된 사용자 정보를 쿠키에 저장
-        CookieUtils.addUserCookie(response, updatedUser, refreshToken.orElse(null));
+        // 사용자 정보 쿠키 업데이트
+        CookieUtils.addUserInfoCookie(response, updatedUser);
+        CookieUtils.addUserIdCookie(response, updatedUser.getIdx());
+
+        // 리프레시 토큰이 있으면 그대로 유지
+        if (refreshToken.isPresent()) {
+            CookieUtils.addRefreshTokenCookie(response, refreshToken.get());
+        }
 
         return ResponseEntity.ok(ApiResponse.success(updatedUser));
     }
@@ -115,9 +133,8 @@ public class UserController {
 
         userService.deleteUser(userPrincipal.getId());
 
-        // 쿠키 삭제
-        CookieUtils.deleteCookie(request, response, "user_info");
-        CookieUtils.deleteCookie(request, response, "user_id");
+        // 모든 인증 관련 쿠키 삭제
+        CookieUtils.deleteAuthCookies(request, response);
 
         return ResponseEntity.ok(ApiResponse.success("계정이 삭제되었습니다.", null));
     }

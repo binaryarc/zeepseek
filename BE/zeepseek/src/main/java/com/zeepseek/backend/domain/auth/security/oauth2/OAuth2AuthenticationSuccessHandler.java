@@ -40,8 +40,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         // 사용자 정보 조회
         UserDto userDto = userService.getUserById(userPrincipal.getId());
 
-        // 사용자 정보와 리프레시 토큰을 쿠키로 저장
-        CookieUtils.addUserCookie(response, userDto, tokenDto.getRefreshToken());
+        // 세 가지 쿠키 모두 설정
+        CookieUtils.addAllUserCookies(response, userDto, tokenDto.getRefreshToken());
 
         // 리다이렉트 URL 생성
         String targetUrl = determineTargetUrl(request, response, authentication, tokenDto);
