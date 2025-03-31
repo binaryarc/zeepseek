@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import title from "../../assets/logo/zeeptitle.png";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./SearchBar.css";
 import { FaRegUserCircle } from "react-icons/fa"; // 사람 아이콘
 import { FiSearch } from "react-icons/fi"; // 검색 아이콘
@@ -14,6 +14,7 @@ import {
 import { searchProperties } from "../../common/api/api";
 import { logoutOAuth } from "../../common/api/authApi";
 import { logout } from "../../store/slices/authSlice";
+import { useEffect } from "react";
 
 function Searchbar() {
   const dispatch = useDispatch();
@@ -24,6 +25,16 @@ function Searchbar() {
   const [searchText, setSearchText] = useState("");
   const roomType = useSelector((state) => state.roomList.selectedRoomType);
   const nickname = "크롤링하는 크롱님";
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const keyword = params.get("keyword");
+    if (keyword) {
+      setSearchText(keyword); // input 채우기
+      handleSearch(keyword);  // 검색 실행
+    }
+  }, []);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -50,11 +61,12 @@ function Searchbar() {
     }
   };
 
-  const handleSearch = async () => {
+  const handleSearch = async (externalKeyword) => {
+    const keyword = externalKeyword || searchText;
     if (!searchText.trim()) return;
   
     try {
-      const res = await searchProperties(searchText);
+      const res = await searchProperties(keyword);
       const properties = res?.properties || [];
       if (properties.length === 0) return alert("검색 결과가 없습니다.");
   
@@ -72,7 +84,7 @@ function Searchbar() {
         // ✅ 검색 이동 시작
         window.isMovingBySearch = true;
   
-        const isGuOnlySearch = searchText.trim().endsWith("구");
+        const isGuOnlySearch = keyword.trim().endsWith("구");
         const level = isGuOnlySearch ? 6 : 4;
   
         // 상태 갱신
@@ -90,7 +102,7 @@ function Searchbar() {
   
       // ✅ 매물 리스트 요청 (검색 기반)
       dispatch(fetchRoomList({
-        keyword: searchText,
+        keyword: keyword,
         filter: roomType,
       }));
     } catch (err) {

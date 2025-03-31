@@ -18,10 +18,46 @@ const Map = () => {
   const overlayRef = useRef(null);
   const selectedPolygonRef = useRef(null);
   const selectedDongIdRef = useRef(null);
+  const hoverMarkerRef = useRef(null);
   const dispatch = useDispatch();
   const { currentGuName, currentDongName, selectedRoomType } = useSelector(
     (state) => state.roomList
   );
+
+  // 아래 window 객체에 등록
+  window.setHoverMarker = (lat, lng) => {
+    console.log("마커실행", lat, lng);
+    const map = window.map;
+    if (!map) return;
+
+    const position = new window.kakao.maps.LatLng(lat, lng);
+
+    if (hoverMarkerRef.current) {
+      hoverMarkerRef.current.setMap(null);
+    }
+
+    // 마커 div 만들기
+    const markerEl = document.createElement("div");
+    markerEl.className = "hover-marker";
+
+    const overlay = new window.kakao.maps.CustomOverlay({
+      position,
+      content: markerEl,
+      xAnchor: 0.5,
+      yAnchor: 1,
+      zIndex: 999,
+      map,
+    });
+
+    hoverMarkerRef.current = overlay;
+  };
+
+  window.clearHoverMarker = () => {
+    if (hoverMarkerRef.current) {
+      hoverMarkerRef.current.setMap(null);
+      hoverMarkerRef.current = null;
+    }
+  };
 
   useEffect(() => {
     const loadGeoJSON = async () => {
