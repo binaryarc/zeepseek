@@ -50,8 +50,8 @@ def compute_property_score(data: dict, session=None) -> dict:
         "health":       {"alpha":0.5, "beta":0.5},
         "convenience":  {"alpha":0.5, "beta":0.5},
         "cafe":         {"alpha":0.5, "beta":0.5},
-        "chicken":      {"alpha":0.5, "beta":0.5},
-        "leisure":      {"alpha":0.5, "beta":0.5}
+        "chicken":      {"alpha":0.2, "beta":0.2},
+        "leisure":      {"alpha":0.5, "beta":0.3}
     }
     result = {}
     for cat, w in categories.items():
