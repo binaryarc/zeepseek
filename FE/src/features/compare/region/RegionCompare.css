@@ -1,0 +1,154 @@
+.region-compare-wrapper {
+  display: flex;
+  
+  gap: 20px;
+  align-items: flex-start;
+  min-height: 500px;
+}
+
+.region-compare-container {
+  background-color: #cce9cc;
+  padding: 24px;
+  border-radius: 12px;
+  flex: 1;
+  min-height: 500px;
+  width: 60vw;
+  display: flex;
+  flex-direction: column;
+}
+
+.region-input-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.region-input-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.region-input-wrapper input {
+  width: 200px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.region-clear-button {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  color: #f54770;
+  cursor: pointer;
+}
+
+.liked-region-box {
+  background-color: white;
+  border-radius: 12px;
+  padding: 20px;
+  width: 20vw;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+}
+
+.liked-region-box h4 {
+  margin-bottom: 10px;
+}
+
+.search-input {
+  width: 80%;
+  padding: 6px 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.liked-region-box ul {
+  list-style: none;
+  width: 90%;
+  padding: 0;
+  margin: 0;
+}
+
+.liked-region-box li {
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.liked-region-box li:hover {
+  background-color: #e8fbe1;
+}
+
+.liked-region-box li.selected-region {
+  background-color: #d4f9c5;
+  font-weight: bold;
+}
+
+.compare-table {
+  margin-top: 20px;
+  background-color: white;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.table-header,
+.table-row {
+  display: flex;
+  align-items: center;
+}
+
+.header-cell,
+.label-cell,
+.bar-cell {
+  flex: 1;
+  text-align: center;
+}
+
+.label-cell {
+  text-align: left;
+  font-weight: bold;
+  min-width: 80px;
+}
+
+.bar-cell {
+  display: flex;
+  width: 100%;
+  height: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #e0e0e0;
+}
+
+.score-bar.left {
+  background-color: #70c26b;
+  height: 100%;
+}
+
+.score-bar.remain {
+  background-color: #cccccc;
+  height: 100%;
+}
+
+.summary-box {
+  background-color: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 30px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.05);
+}
+
+.loading-text {
+  text-align: center;
+  font-size: 18px;
+  margin: 30px 0;
+}

@@ -11,22 +11,24 @@ const ComparePage = () => {
     <div className="compare-page-container">
       <Navbar />
       <div className="compare-page">
-        <div className="compare-tabs">
-          <button
-            className={activeTab === "region" ? "active" : ""}
-            onClick={() => setActiveTab("region")}
-          >
-            동네 비교 🏘️
-          </button>
-          <button
-            className={activeTab === "estate" ? "active" : ""}
-            onClick={() => setActiveTab("estate")}
-          >
-            매물 비교 🏠
-          </button>
-        </div>
+        <div className="compare-section">
+          {/* 탭: 컨테이너 바로 위에 붙음 */}
+          <div className="compare-tabs">
+            <button
+              className={activeTab === "region" ? "active" : ""}
+              onClick={() => setActiveTab("region")}
+            >
+              동네 비교 🏘️
+            </button>
+            <button
+              className={activeTab === "estate" ? "active" : ""}
+              onClick={() => setActiveTab("estate")}
+            >
+              매물 비교 🏠
+            </button>
+          </div>
 
-        <div className="compare-content">
+          {/* 여기서는 어떤 컴포넌트를 보여줄지만 결정 */}
           {activeTab === "region" ? <RegionCompare /> : <EstateCompare />}
         </div>
       </div>
