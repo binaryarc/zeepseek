@@ -1,10 +1,13 @@
 package com.zeepseek.backend.domain.auth.security.oauth2;
 
 import com.zeepseek.backend.domain.auth.dto.TokenDto;
-import com.zeepseek.backend.domain.auth.entity.User;
-import com.zeepseek.backend.domain.auth.repository.UserRepository;
 import com.zeepseek.backend.domain.auth.security.UserPrincipal;
 import com.zeepseek.backend.domain.auth.security.jwt.JwtTokenProvider;
+import com.zeepseek.backend.domain.auth.util.CookieUtils;
+import com.zeepseek.backend.domain.user.dto.UserDto;
+import com.zeepseek.backend.domain.user.entity.User;
+import com.zeepseek.backend.domain.user.repository.UserRepository;
+import com.zeepseek.backend.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -24,9 +27,20 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private final JwtTokenProvider tokenProvider;
     private final UserRepository userRepository;
+    private final UserService userService;
+    private final String REDIRECT_BASE_URL = "https://j12e203.p.ssafy.io";
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+
+        // 사용자 정보 조회
+        UserDto userDto = userService.getUserById(userPrincipal.getId());
+
+        // 사용자 정보를 쿠키로 저장
+        CookieUtils.addUserCookie(response, userDto);
+
+        // 리다이렉트 URL 생성
         String targetUrl = determineTargetUrl(request, response, authentication);
 
         if (response.isCommitted()) {
@@ -53,11 +67,15 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         int isFirst = userPrincipal.isFirst() ? 1 : 0;
 
-        // 리다이렉트 URL 생성 (프론트엔드로 리다이렉트)
-        return UriComponentsBuilder.fromUriString("https://j12e203.p.ssafy.io/auth/naver/callback")
+        // 첫 로그인 경로 수정: 프론트엔드의 설문 입력 페이지로 리다이렉트
+        String redirectPath = isFirst == 1 ? "/survey" : "/auth/naver/callback";
+
+        // 리다이렉트 URL 생성
+        return UriComponentsBuilder.fromUriString(REDIRECT_BASE_URL + redirectPath)
                 .queryParam("token", tokenDto.getAccessToken())
                 .queryParam("refreshToken", tokenDto.getRefreshToken())
                 .queryParam("isFirst", isFirst)
+                .queryParam("idx", userPrincipal.getId())
                 .build().toUriString();
     }
 }
