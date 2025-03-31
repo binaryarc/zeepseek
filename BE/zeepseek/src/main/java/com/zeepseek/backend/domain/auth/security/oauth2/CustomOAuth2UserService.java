@@ -1,8 +1,7 @@
 package com.zeepseek.backend.domain.auth.security.oauth2;
 
-import com.zeepseek.backend.domain.auth.security.oauth2.CustomOAuth2UserService;
-import com.zeepseek.backend.domain.auth.entity.User;
-import com.zeepseek.backend.domain.auth.repository.UserRepository;
+import com.zeepseek.backend.domain.user.entity.User;
+import com.zeepseek.backend.domain.user.repository.UserRepository;
 import com.zeepseek.backend.domain.auth.security.UserPrincipal;
 import com.zeepseek.backend.domain.auth.security.oauth2.provider.KakaoOAuth2UserInfo;
 import com.zeepseek.backend.domain.auth.security.oauth2.provider.NaverOAuth2UserInfo;
@@ -10,16 +9,13 @@ import com.zeepseek.backend.domain.auth.security.oauth2.provider.OAuth2UserInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.Collections;
 import java.util.Optional;
 
 @Service

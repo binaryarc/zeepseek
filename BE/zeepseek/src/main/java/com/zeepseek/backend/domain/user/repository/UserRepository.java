@@ -1,6 +1,6 @@
-package com.zeepseek.backend.domain.auth.repository;
+package com.zeepseek.backend.domain.user.repository;
 
-import com.zeepseek.backend.domain.auth.entity.User;
+import com.zeepseek.backend.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
