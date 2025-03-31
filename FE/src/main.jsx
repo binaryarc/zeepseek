@@ -16,7 +16,7 @@ import MyPage from "./features/mypage/MyPage.jsx"
 import ComparePage from "./features/compare/ComparePage.jsx"
 import RegionCompare from "./features/compare/region/RegionCompare.jsx";
 import EstateCompare from "./features/compare/estate/EstateCompare.jsx";
-// import AuthInitializer from "./store/AuthInitializer.jsx";
+import AuthInitializer from "./store/AuthInitializer.jsx";
 import { Provider } from "react-redux";
 
 
@@ -47,9 +47,8 @@ const router = createBrowserRouter(
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <Provider store={store}>
-    {/* <AuthInitializer>  */}
-      <RouterProvider router={router} />
-    {/* </AuthInitializer> */}
+    <AuthInitializer/>
+    <RouterProvider router={router} />
   </Provider>
   
 );

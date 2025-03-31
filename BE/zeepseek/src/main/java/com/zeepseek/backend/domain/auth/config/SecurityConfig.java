@@ -63,7 +63,7 @@ public class SecurityConfig {
         // 로컬 및 배포 환경 모두 지원
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000" , "http://localhost:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token"));
+        configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token", "cookie"));
         configuration.setExposedHeaders(Arrays.asList("x-auth-token"));
         configuration.setAllowCredentials(true); // 인증 정보 포함 허용
 
