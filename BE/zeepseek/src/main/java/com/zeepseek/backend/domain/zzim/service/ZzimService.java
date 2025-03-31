@@ -70,6 +70,21 @@ public class ZzimService {
             return ResponseEntity.status(400).body("이미 삭제된 요청입니다.");
         }
     }
+
+    public List<DongZzimDoc> userSelectDongList(int userId) {
+
+        List<DongZzimDoc> dongZzimDocs = dongZzimRepository.findAllByUserId(userId);
+
+        return dongZzimDocs;
+    }
+
+    public List<PropertyZzimDoc> userSelectPropertyList(int userId) {
+
+        List<PropertyZzimDoc> propertyZzimDocs = propertyZzimRepository.findAllByUserId(userId);
+
+        return propertyZzimDocs;
+    }
+
     // 유저별 동네 찜 리스트 반환
     public List<DongInfoDocs> selectDongZzimList(int userId) {
 

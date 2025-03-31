@@ -4,6 +4,8 @@ import com.zeepseek.backend.domain.dong.document.DongInfoDocs;
 import com.zeepseek.backend.domain.dong.service.DongService;
 import com.zeepseek.backend.domain.property.model.Property;
 import com.zeepseek.backend.domain.property.service.PropertyService;
+import com.zeepseek.backend.domain.zzim.document.DongZzimDoc;
+import com.zeepseek.backend.domain.zzim.document.PropertyZzimDoc;
 import com.zeepseek.backend.domain.zzim.service.ZzimService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -76,6 +78,24 @@ public class ZzimController {
     public ResponseEntity<?> selectAllPropertyZzim(@PathVariable(name = "userId") int userId) {
 
         List<Property> response = zzimService.selectPropertyZzimList(userId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    // 개발용 추후 수정예정
+    @GetMapping("/select/dong_zzimid/{userId}")
+    public ResponseEntity<?> selectAllDongZzimId(@PathVariable(name = "userId") int userId) {
+
+        List<DongZzimDoc> response = zzimService.userSelectDongList(userId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    // 개발용 추후 수정예정
+    @GetMapping("/select/dong_zzimid/{userId}")
+    public ResponseEntity<?> selectAllPropertyZzimId(@PathVariable(name = "userId") int userId) {
+
+        List<PropertyZzimDoc> response = zzimService.userSelectPropertyList(userId);
 
         return ResponseEntity.ok(response);
     }
