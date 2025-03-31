@@ -6,11 +6,11 @@ import Searchbar from "../../common/searchbar/SearchBar";
 import RoomDetail from "./roomlist/RoomDetail";
 import { useSelector } from "react-redux";
 import AiSlidePanel from "./AiSlidePanel/AiSlidePanel"
+import AIRecommendModal from "./mainmap/AiRecommendModal/AiRecommendModal";
 
 const MainMapPage = () => {
   const selectedPropertyId = useSelector((state) => state.roomList.selectedPropertyId);
-
-  const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
 
   return (
@@ -18,10 +18,14 @@ const MainMapPage = () => {
       <Searchbar />
       <div className="map-content">
       <RoomList />
-      <button className="ai-slide-button" onClick={() => setIsAiPanelOpen(true)}>AI 추천</button>
+      <button className="ai-slide-button" onClick={() => setIsAiModalOpen(true)}>AI 추천</button>
 
-      {isAiPanelOpen && (
-        <AiSlidePanel isOpen={isAiPanelOpen} onClose={() => setIsAiPanelOpen(false)} />
+      {isAiModalOpen && (
+        <div className="modal-backdrop">
+          <div className="ai-recommend-modal">
+            <AIRecommendModal onClose={() => setIsAiModalOpen(false)} />
+          </div>
+        </div>
       )}
 
 
