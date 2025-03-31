@@ -3,9 +3,9 @@ package com.zeepseek.backend.domain.auth.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zeepseek.backend.domain.user.dto.UserDto;
-import org.springframework.util.SerializationUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.util.SerializationUtils;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,7 +20,11 @@ public class CookieUtils {
     private static final int DEFAULT_MAX_AGE = 7 * 24 * 60 * 60; // 7일(초 단위)
     private static final String USER_COOKIE_NAME = "user_info";
     private static final String USER_ID_COOKIE_NAME = "user_id";
+    private static final String REFRESH_TOKEN_COOKIE_NAME = "refreshtoken"; // 이름 변경
 
+    /**
+     * 쿠키 가져오기
+     */
     public static Optional<Cookie> getCookie(HttpServletRequest request, String name) {
         Cookie[] cookies = request.getCookies();
 
@@ -35,75 +39,98 @@ public class CookieUtils {
         return Optional.empty();
     }
 
-    public static void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
-        ResponseCookie cookie = ResponseCookie.from(name, value)
-                .path("/")
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("None")
-                .maxAge(maxAge)
-                .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-    }
-
+    /**
+     * 쿠키 삭제
+     */
     public static void deleteCookie(HttpServletRequest request, HttpServletResponse response, String name) {
         ResponseCookie cookie = ResponseCookie.from(name, "")
                 .path("/")
                 .maxAge(0)
-                .httpOnly(name.equals(USER_COOKIE_NAME)) // user_info는 httpOnly 설정
+                .httpOnly(name.equals(REFRESH_TOKEN_COOKIE_NAME)) // refreshtoken만 httpOnly 설정
                 .secure(true)
                 .sameSite("None")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
-    public static String serialize(Object object) {
-        return Base64.getUrlEncoder().encodeToString(SerializationUtils.serialize(object));
-    }
-
-    public static <T> T deserialize(Cookie cookie, Class<T> cls) {
-        return cls.cast(SerializationUtils.deserialize(
-                Base64.getUrlDecoder().decode(cookie.getValue())
-        ));
+    /**
+     * 모든 인증 관련 쿠키 삭제
+     */
+    public static void deleteAuthCookies(HttpServletRequest request, HttpServletResponse response) {
+        deleteCookie(request, response, USER_COOKIE_NAME);
+        deleteCookie(request, response, USER_ID_COOKIE_NAME);
+        deleteCookie(request, response, REFRESH_TOKEN_COOKIE_NAME);
     }
 
     /**
-     * UserDto 객체와 리프레시 토큰을 user_info 쿠키에 함께 저장
+     * UserDto 객체를 user_info 쿠키에 저장
      */
-    public static void addUserCookie(HttpServletResponse response, UserDto userDto, String refreshToken) {
+    public static void addUserInfoCookie(HttpServletResponse response, UserDto userDto) {
         try {
-            // UserDto 객체에 리프레시 토큰 필드 추가 (임시 필드)
-            userDto.setRefreshToken(refreshToken);
-
             // UserDto를 JSON 문자열로 변환
             String userJson = objectMapper.writeValueAsString(userDto);
 
             // JSON 문자열을 Base64로 인코딩 (쿠키 문자 제한 회피)
             String encodedUserInfo = Base64.getEncoder().encodeToString(userJson.getBytes(StandardCharsets.UTF_8));
 
-            // 1. 전체 사용자 정보 쿠키 설정 (refreshToken 포함)
+            // user_info 쿠키 설정
             ResponseCookie userCookie = ResponseCookie.from(USER_COOKIE_NAME, encodedUserInfo)
-                    .path("/")
-                    .maxAge(DEFAULT_MAX_AGE)
-                    .httpOnly(true) // HTTP Only로 설정 (리프레시 토큰 보안)
-                    .secure(true) // HTTPS에서만 전송되도록 설정
-                    .sameSite("None") // 크로스 사이트 요청을 위해 None으로 설정
-                    .build();
-            response.addHeader(HttpHeaders.SET_COOKIE, userCookie.toString());
-
-            // 2. 사용자 ID 쿠키 설정 (빠른 접근용)
-            ResponseCookie userIdCookie = ResponseCookie.from(USER_ID_COOKIE_NAME, userDto.getIdx().toString())
                     .path("/")
                     .maxAge(DEFAULT_MAX_AGE)
                     .httpOnly(false) // JavaScript에서 접근 가능하도록 설정
                     .secure(true) // HTTPS에서만 전송되도록 설정
-                    .sameSite("None") // 크로스 사이트 요청을 위해 None으로 설정
+                    .sameSite("None")
                     .build();
-            response.addHeader(HttpHeaders.SET_COOKIE, userIdCookie.toString());
-
+            response.addHeader(HttpHeaders.SET_COOKIE, userCookie.toString());
         } catch (JsonProcessingException e) {
             throw new RuntimeException("사용자 정보를 쿠키로 변환하는 중 오류 발생", e);
         }
+    }
+
+    /**
+     * 사용자 ID를 user_id 쿠키에 저장
+     */
+    public static void addUserIdCookie(HttpServletResponse response, Integer userId) {
+        if (userId != null) {
+            ResponseCookie userIdCookie = ResponseCookie.from(USER_ID_COOKIE_NAME, userId.toString())
+                    .path("/")
+                    .maxAge(DEFAULT_MAX_AGE)
+                    .httpOnly(false) // JavaScript에서 접근 가능하도록 설정
+                    .secure(true) // HTTPS에서만 전송되도록 설정
+                    .sameSite("None")
+                    .build();
+            response.addHeader(HttpHeaders.SET_COOKIE, userIdCookie.toString());
+        }
+    }
+
+    /**
+     * 리프레시 토큰을 refreshtoken 쿠키에 저장
+     */
+    public static void addRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        if (refreshToken != null && !refreshToken.isEmpty()) {
+            ResponseCookie refreshTokenCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
+                    .httpOnly(true) // JavaScript에서 접근 불가능하도록 설정
+                    .secure(true) // HTTPS에서만 전송되도록 설정
+                    .path("/")
+                    .maxAge(DEFAULT_MAX_AGE)
+                    .sameSite("None")
+                    .build();
+            response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+        }
+    }
+
+    /**
+     * 사용자 정보 한 번에 설정 - 세 가지 쿠키 모두 설정 (편의 메서드)
+     */
+    public static void addAllUserCookies(HttpServletResponse response, UserDto userDto, String refreshToken) {
+        // 1. 사용자 정보 쿠키
+        addUserInfoCookie(response, userDto);
+
+        // 2. 사용자 ID 쿠키
+        addUserIdCookie(response, userDto.getIdx());
+
+        // 3. 리프레시 토큰 쿠키
+        addRefreshTokenCookie(response, refreshToken);
     }
 
     /**
@@ -132,10 +159,10 @@ public class CookieUtils {
     }
 
     /**
-     * user_info 쿠키에서 리프레시 토큰 추출
+     * 리프레시 토큰 쿠키에서 값 가져오기
      */
     public static Optional<String> getRefreshTokenFromCookie(HttpServletRequest request) {
-        Optional<UserDto> userOpt = getUserFromCookie(request);
-        return userOpt.map(UserDto::getRefreshToken);
+        Optional<Cookie> cookieOpt = getCookie(request, REFRESH_TOKEN_COOKIE_NAME);
+        return cookieOpt.map(Cookie::getValue);
     }
 }
