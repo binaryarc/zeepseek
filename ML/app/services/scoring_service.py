@@ -45,7 +45,7 @@ def compute_property_score(data: dict, session=None) -> dict:
     """
     lat, lon = data["latitude"], data["longitude"]
     categories = {
-        "transport":    {"alpha":0.8, "beta":0.8},
+        "transport":    {"alpha":0.5, "beta":0.5},
         "restaurant":   {"alpha":0.5, "beta":0.5},
         "health":       {"alpha":0.5, "beta":0.5},
         "convenience":  {"alpha":0.5, "beta":0.5},
