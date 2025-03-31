@@ -13,7 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 public class UserProfileDto {
     // 사용자 기본 정보
-    private Integer idx;
     private Integer gender; // 0: 선택안함, 1: 남자, 2: 여자
     private Integer age;
     private String location; // 기준 위치 (예: "멀티캠퍼스 역삼")
