@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/api/v1/auth") // auth 경로 사용
 @RequiredArgsConstructor
@@ -29,6 +31,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserDto>> firstLoginData(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestBody UserProfileDto profileDto,
+            HttpServletRequest request,
             HttpServletResponse response) {
 
         Integer userId = userPrincipal.getId();
@@ -36,8 +39,11 @@ public class UserController {
 
         UserDto updatedUser = userService.processFirstLoginData(userId, profileDto);
 
+        // 기존 쿠키에서 리프레시 토큰 가져오기
+        Optional<String> refreshToken = CookieUtils.getRefreshTokenFromCookie(request);
+
         // 업데이트된 사용자 정보를 쿠키에 저장
-        CookieUtils.addUserCookie(response, updatedUser);
+        CookieUtils.addUserCookie(response, updatedUser, refreshToken.orElse(null));
 
         return ResponseEntity.ok(ApiResponse.success(updatedUser));
     }
@@ -49,6 +55,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserDto>> getUserById(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable("idx") Integer idx,
+            HttpServletRequest request,
             HttpServletResponse response) {
         // 자신의 정보만 조회 가능하도록 검증
         if (!userPrincipal.getId().equals(idx)) {
@@ -57,8 +64,11 @@ public class UserController {
 
         UserDto userDto = userService.getUserById(idx);
 
+        // 기존 쿠키에서 리프레시 토큰 가져오기
+        Optional<String> refreshToken = CookieUtils.getRefreshTokenFromCookie(request);
+
         // 사용자 정보를 쿠키에 저장
-        CookieUtils.addUserCookie(response, userDto);
+        CookieUtils.addUserCookie(response, userDto, refreshToken.orElse(null));
 
         return ResponseEntity.ok(ApiResponse.success("정보 조회 성공", userDto));
     }
@@ -71,6 +81,7 @@ public class UserController {
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable("idx") Integer idx,
             @RequestBody UserDto userDto,
+            HttpServletRequest request,
             HttpServletResponse response) {
         // 자신의 정보만 수정 가능하도록 검증
         if (!userPrincipal.getId().equals(idx)) {
@@ -79,8 +90,11 @@ public class UserController {
 
         UserDto updatedUser = userService.updateUser(userPrincipal.getId(), userDto);
 
+        // 기존 쿠키에서 리프레시 토큰 가져오기
+        Optional<String> refreshToken = CookieUtils.getRefreshTokenFromCookie(request);
+
         // 업데이트된 사용자 정보를 쿠키에 저장
-        CookieUtils.addUserCookie(response, updatedUser);
+        CookieUtils.addUserCookie(response, updatedUser, refreshToken.orElse(null));
 
         return ResponseEntity.ok(ApiResponse.success(updatedUser));
     }
@@ -103,7 +117,7 @@ public class UserController {
 
         // 쿠키 삭제
         CookieUtils.deleteCookie(request, response, "user_info");
-        CookieUtils.deleteCookie(request, response, "user_idx");
+        CookieUtils.deleteCookie(request, response, "user_id");
 
         return ResponseEntity.ok(ApiResponse.success("계정이 삭제되었습니다.", null));
     }
