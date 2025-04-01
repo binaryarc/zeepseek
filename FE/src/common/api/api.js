@@ -248,7 +248,7 @@ export const postSurvey = async (surveyData, accessToken) => {
       },
     }
   );
-  return response.data;
+  return response;
 };
 
 // // 응답 인터셉터
