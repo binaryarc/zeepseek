@@ -8,6 +8,14 @@ function DongNameMarkers({ map }) {
     if (!map || !window.kakao) return;
 
     const drawDongNames = () => {
+      const level = map.getLevel()
+      
+      // ✅ 줌 레벨이 6 이상이면 동 이름 안 보이게
+      if (level >= 6) {
+        overlaysRef.current.forEach((o) => o.setMap(null));
+        return;
+      }
+
       overlaysRef.current.forEach((o) => o.setMap(null));
       overlaysRef.current = [];
 

@@ -113,6 +113,12 @@ const AiRecommend = () => {
                     onMouseEnter={() => {
                       if (item.latitude && item.longitude) {
                         window.setHoverMarker(item.latitude, item.longitude);
+                        // 지도 중심 이동 추가
+                        if (window.map) {
+                          const latlng = new window.kakao.maps.LatLng(item.latitude, item.longitude);
+                          window.map.setLevel(5); // ✅ 줌 레벨 5로 설정
+                          window.map.setCenter(latlng); // ✅ 중심 이동
+                        }
                       }
                     }}
                     onMouseLeave={() => {
