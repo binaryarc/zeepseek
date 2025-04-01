@@ -2,8 +2,8 @@ import time
 import concurrent.futures
 from sqlalchemy import text
 from app.config.database import SessionLocal
-from app.services.scoring_service import compute_property_score
-from app.services.poi_cache import initialize_poi_cache
+from app.modules.property_scoring.scoring_service import compute_property_score
+from app.modules.property_scoring.poi_cache import initialize_poi_cache
 from app.utils.logger import logger
 
 
