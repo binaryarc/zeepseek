@@ -1,7 +1,6 @@
 // src/api/zeepApi.js
 import axios from "axios";
 import store from "../../store/store";
-import { setAccessToken, logout } from "../../store/slices/authSlice";
 
 const zeepApi = axios.create({
   baseURL: `https://j12e203.p.ssafy.io/api/v1`, // ✅ API 서버 주소
@@ -46,7 +45,8 @@ export const searchProperties = async (
   keyword,
   filter,
   page = 1,
-  size = 10000
+  size = 10000,
+  userId = 2
 ) => {
   try {
     const res = await zeepApi.post("/search", {
@@ -54,6 +54,7 @@ export const searchProperties = async (
       filter, // ✅ roomType 필드 추가
       page,
       size,
+      userId,
     });
     return res.data;
   } catch (error) {
@@ -68,7 +69,8 @@ export const fetchPropertiesByBounds = async (
   dongName,
   filter, // ✅ 추가
   page = 1,
-  size = 10000
+  size = 10000,
+  userId = 2
 ) => {
   try {
     const res = await zeepApi.post("/search/mapper", {
@@ -77,6 +79,7 @@ export const fetchPropertiesByBounds = async (
       filter,
       page,
       size,
+      userId,
     });
     return res.data;
   } catch (error) {
@@ -96,7 +99,6 @@ export const getPropertyDetail = async (propertyId) => {
   }
 };
 
-
 // grid 위도, 경도 정보 API 통신
 export const fetchGridSaleCountsByType = async (cells, type) => {
   try {
@@ -108,7 +110,6 @@ export const fetchGridSaleCountsByType = async (cells, type) => {
     return [];
   }
 };
-
 
 // AI 추천 API 요청
 export const fetchAIRecommendedProperties = async (preferenceData) => {
@@ -149,22 +150,23 @@ export const fetchPropertyCompare = async (payload) => {
 
 // 동네 점수 부르는 api => 지금 쓸 수 없음, 아마 안쓸듯
 export const fetchRegionScore = async (regionName) => {
-  const response = await fetch(`/api/v1/region/score?name=${encodeURIComponent(regionName)}`);
+  const response = await fetch(
+    `/api/v1/region/score?name=${encodeURIComponent(regionName)}`
+  );
   return await response.json();
 };
 
 // 동네 비교 api => AI 비교 요약 내용만 존재()
 export const fetchRegionSummary = async (region1, region2) => {
   try {
-    const response = await zeepApi.post('/dong/compare/dong', 
-      {
-        "dong1": region1,
-        "dong2": region2
-      })
-    console.log("동네 비교 요약 성공: ", response)
+    const response = await zeepApi.post("/dong/compare/dong", {
+      dong1: region1,
+      dong2: region2,
+    });
+    console.log("동네 비교 요약 성공: ", response);
     return response;
   } catch (error) {
-    console.error("동네 비교 요약 api 통신 실패: ", error)
+    console.error("동네 비교 요약 api 통신 실패: ", error);
     return [];
   }
 };
