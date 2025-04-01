@@ -1,7 +1,6 @@
 package com.zeepseek.backend.domain.recommend.controller;
 
 
-import com.zeepseek.backend.domain.recommend.dto.response.PlaceInfo;
 import com.zeepseek.backend.domain.recommend.service.KakaoPlaceService;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -23,7 +22,7 @@ public class KakaoPlaceController {
      * GET /api/places/search?category=FD6&x=127.1054328&y=37.3595963
      */
     @GetMapping("/search")
-    public Mono<List<PlaceInfo>> searchPlaces(
+    public Mono<List<?>> searchPlaces(
             @RequestParam("type") String type,
             @RequestParam("x") String longitude,
             @RequestParam("y") String latitude) {

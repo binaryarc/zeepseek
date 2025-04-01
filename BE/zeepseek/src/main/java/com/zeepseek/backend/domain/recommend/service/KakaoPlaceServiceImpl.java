@@ -33,11 +33,12 @@ public class KakaoPlaceServiceImpl implements KakaoPlaceService {
     }
 
     @Override
-    public Mono<List<PlaceInfo>> findPlacesWithinOneKmByType(String type, String longitude, String latitude) {
+    public Mono<List<?>> findPlacesWithinOneKmByType(String type, String longitude, String latitude) {
         if (type.equalsIgnoreCase("chicken")) {
             // type이 "chicken"인 경우 DB의 chicken 테이블(저장 프로시저 사용)에서 조회
             return Mono.fromCallable(() -> {
                 try {
+                    // 저장 프로시저 결과를 PlaceInfo 객체로 매핑하도록 설정
                     SimpleJdbcCall simpleJdbcCall = new SimpleJdbcCall(jdbcTemplate)
                             .withProcedureName("find_chicken_within_radius")
                             .returningResultSet("result", (rs, rowNum) ->
@@ -51,13 +52,12 @@ public class KakaoPlaceServiceImpl implements KakaoPlaceService {
                             .addValue("in_longitude", longitude)
                             .addValue("in_latitude", latitude)
                             .addValue("in_radius", DEFAULT_RADIUS);
+
                     // 저장 프로시저 실행
                     Map<String, Object> out = simpleJdbcCall.execute(inParams);
                     List<PlaceInfo> resultSet = (List<PlaceInfo>) out.get("result");
-                    if (resultSet == null) {
-                        return Collections.emptyList();
-                    }
-                    return resultSet;
+                    // 결과셋이 null이면 빈 리스트 반환
+                    return resultSet == null ? Collections.emptyList() : resultSet;
                 } catch (Exception e) {
                     throw new DataRetrievalException("Error retrieving chicken data", e);
                 }
@@ -89,11 +89,17 @@ public class KakaoPlaceServiceImpl implements KakaoPlaceService {
                             .build())
                     .retrieve()
                     .bodyToMono(KakaoPlaceResponse.class)
-                    .map(response -> response.getDocuments().stream()
-                            .map(doc -> new PlaceInfo(doc.getPlaceName(), doc.getY(), doc.getX()))
-                            .collect(Collectors.toList())
-                    )
+                    .map(response -> {
+                        // documents가 null일 경우 빈 리스트를 반환
+                        if (response.getDocuments() == null) {
+                            return Collections.emptyList();
+                        }
+                        return response.getDocuments().stream()
+                                .map(doc -> new PlaceInfo(doc.getPlaceName(), doc.getY(), doc.getX()))
+                                .collect(Collectors.toList());
+                    })
                     .onErrorMap(e -> new DataRetrievalException("Error retrieving data from Kakao API", e));
+
         }
     }
 }
