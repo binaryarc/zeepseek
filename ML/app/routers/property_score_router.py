@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 # 배치 처리 로직 (scoring_batch.py)
-from app.services.scoring_batch import (
+from app.modules.property_scoring.scoring_batch import (
     recalculate_all_scores_no_batch,
     recalculate_all_scores_single,
     recalculate_all_scores_batch,
@@ -14,16 +14,16 @@ from app.services.scoring_batch import (
 )
 
 # 점수 계산 서비스 (scoring_service.py)
-from app.services.scoring_service import compute_property_score
+from app.modules.property_scoring.scoring_service import compute_property_score
 
 # 추천 로직 (recommend_service.py)
-from app.services.recommend_service import recommend_properties
+from app.modules.content_based.services.recommend_service import recommend_properties
 
 router = APIRouter()
 
 
 class NewPropertyData(BaseModel):
-    property_id: int  # 필드명 변경: propertyId -> property_id
+    property_id: int
     latitude: float
     longitude: float
 
