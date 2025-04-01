@@ -4,11 +4,14 @@ import { fetchAIRecommendedProperties, fetchNearbyPlaces } from "../../../../com
 import defaultImage from "../../../../assets/logo/192image.png"
 import DongNameMarkers from "../../mainmap/salecountmarkers/DongNameMarkers/DongNameMarkers";
 import GuNameMarkers from "../../mainmap/salecountmarkers/GuNameMarkers/GuNameMarkers";
+import AiRecommendList from "./AiRecommendList/AiRecommendList";
 
 const AiRecommend = () => {
 
-  const [nearbyMarkers, setNearbyMarkers] = useState([]);
-  const [circleOverlay, setCircleOverlay] = useState(null);
+  const [nearbyMarkers, setNearbyMarkers] = useState([]);     // 매물 주변 시설 위치 마킹
+  const [circleOverlay, setCircleOverlay] = useState(null);   // 매물 반경 1km 원 마킹
+  const [selectedRoom, setSelectedRoom] = useState(null);     // 모달에 띄울 매물
+
 
   const [maxType, setMaxType] = useState(null);
 
@@ -183,6 +186,7 @@ const AiRecommend = () => {
                     setCircleOverlay(null);
                   }
                 }}
+                onClick={() => setSelectedRoom(item)}
               >
                 <img src={item.imageUrl || defaultImage} alt="매물 이미지" />
                 <div className="room-info">
@@ -197,6 +201,9 @@ const AiRecommend = () => {
             </ul>
           </div>
         </div>
+      )}
+      {selectedRoom && (
+        <AiRecommendList room={selectedRoom} onClose={() => setSelectedRoom(null)} />
       )}
     </div>
   );
