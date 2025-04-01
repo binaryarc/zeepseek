@@ -197,9 +197,23 @@ const Map = () => {
 
                 // 기존 마커 제거
                 if (markerRef.current) markerRef.current.setMap(null);
+                // ✅ zeep.png 커스텀 마커 설정
+                
+                const imageSrc = "/images/zeep.png"; // public 기준 경로
+                const imageSize = new window.kakao.maps.Size(80, 80); // 마커 이미지 크기
+                const imageOption = { offset: new window.kakao.maps.Point(0,0) }; // 마커 기준점
+
+                const markerImage = new window.kakao.maps.MarkerImage(
+                  imageSrc,
+                  imageSize,
+                  imageOption
+                );
+                                
                 const marker = new window.kakao.maps.Marker({
                   position: center,
+                  image: markerImage,
                   map: mapInstance,
+                  zIndex: 2000,
                 });
                 markerRef.current = marker;
 
