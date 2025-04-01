@@ -83,7 +83,7 @@ const FirstLoginSurvey = ({ onStart }) => {
       console.log("설문 응답 response", response);
       if (response.success) {
         dispatch(setUser(response.data)); // ❗유저 정보 업데이트
-        onStart(); // 설문 완료 -> 서베이 창 닫기
+        onStart(); 
       } else {
         alert("서베이 제출에 실패했습니다.");
       }
