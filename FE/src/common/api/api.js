@@ -194,10 +194,10 @@ export const likeProperty = async (propertyId) => {
 };
 
 // 매물 찜 삭제 (DELETE)
-export const unlikeProperty = async (propertyId, userId) => {
+export const unlikeProperty = async (propertyId) => {
   try {
     const res = await zeepApi.delete(
-      `/zzim/property/${propertyId}/${userId}`,
+      `/zzim/property/${propertyId}`,
       {}, // body 없음
       {
         headers: {
