@@ -24,9 +24,9 @@ public class KakaoPlaceController {
      */
     @GetMapping("/search")
     public Mono<List<PlaceInfo>> searchPlaces(
-            @RequestParam("category") String categoryGroupCode,
+            @RequestParam("type") String type,
             @RequestParam("x") String longitude,
             @RequestParam("y") String latitude) {
-        return kakaoPlaceService.findPlacesWithinOneKmByType(categoryGroupCode, longitude, latitude);
+        return kakaoPlaceService.findPlacesWithinOneKmByType(type, longitude, latitude);
     }
 }
