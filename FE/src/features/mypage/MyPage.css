@@ -4,34 +4,62 @@
     align-items: center;
     background-color: #fdfcf7;
     height: 100vh;
+    
   }
-  
+  .mypage-content {
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
+    justify-content: center;
+    align-items: center;
+    width: 90%;
+    max-width: 900px;
+    font-family: KOROAD_Bold;
+  }
+
   .mypage-card {
+    margin-top: 15vh;
     background: white;
     padding: 2rem;
     display: flex;
+    /* flex-direction: column; */
+    align-items: center;
     justify-content: center;
     border-radius: 20px;
     box-shadow: 0 0 8px rgba(0,0,0,0.05);
     text-align: center;
-    width: 300px;
+    width: 90%;
+    height: 300px;
+    max-width: 600px;
     margin-bottom: 2rem;
   }
   
+  /* 새로 추가 */
+  .mypage-user-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
   .mypage-profile-img {
-    width: 60px;
-    height: 60px;
+    width: 140px;
+    height: 140px;
     border-radius: 50%;
-    background: url('/path-to-profile.png') center/cover no-repeat;
-    margin: 0 auto 1rem;
+    background: url('../../assets/images/zeep.png') center/cover no-repeat;
+    margin-right: 30px;
   }
   
-  .social-circle {
-    background-color: #00c73c;
-    color: white;
-    font-weight: bold;
-    border-radius: 50%;
-    padding: 4px 8px;
+  .mypage-buttons {
+    margin-top: 15vh;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 90%;
+    max-width: 600px;
+    /* padding: 20px; */
+    align-items: center;
+    
   }
   
   .mypage-buttons button {
@@ -39,25 +67,30 @@
     border: 2px solid #87cd6c;
     border-radius: 15px;
     padding: 1rem;
-    margin: 0.5rem;
-    width: 200px;
+    width: 70%;
     font-weight: bold;
+    font-size: 1rem;
     cursor: pointer;
+    height: 150px;
   }
   
   .mypage-footer {
-    margin-top: 2rem;
     display: flex;
-    gap: 1rem;
+    justify-content: space-between;
+    width: 90%;
+    max-width: 600px;
+    margin-top: 2rem;
   }
   
   .logout-btn,
   .withdraw-btn {
-    padding: 0.6rem 1.2rem;
-    border-radius: 8px;
+    padding: 0.8rem 1.5rem;
+    border-radius: 10px;
     border: none;
     background: #f4e4b2;
     font-weight: bold;
     cursor: pointer;
+    flex: 1;
+    margin: 0 0.5rem;
   }
   
