@@ -2,6 +2,7 @@ package com.zeepseek.backend.domain.zzim.controller;
 
 import com.zeepseek.backend.domain.dong.document.DongInfoDocs;
 import com.zeepseek.backend.domain.dong.service.DongService;
+import com.zeepseek.backend.domain.logs.annotation.Loggable;
 import com.zeepseek.backend.domain.property.model.Property;
 import com.zeepseek.backend.domain.property.service.PropertyService;
 import com.zeepseek.backend.domain.zzim.document.DongZzimDoc;
@@ -55,6 +56,7 @@ public class ZzimController {
     }
 
     // 매물 찜
+    @Loggable(action = "zzim")
     @PostMapping("/property/{propertyId}/{userId}")
     public ResponseEntity<?> propertyZzim(@PathVariable("userId") int userId, @PathVariable("propertyId") int propertyId) {
         return zzimService.zzimProperty(userId, propertyId);
