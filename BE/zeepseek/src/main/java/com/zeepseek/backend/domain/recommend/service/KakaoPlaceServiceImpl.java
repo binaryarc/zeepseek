@@ -12,6 +12,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,23 +39,25 @@ public class KakaoPlaceServiceImpl implements KakaoPlaceService {
             return Mono.fromCallable(() -> {
                 try {
                     SimpleJdbcCall simpleJdbcCall = new SimpleJdbcCall(jdbcTemplate)
-                            .withProcedureName("find_chicken_within_radius");
+                            .withProcedureName("find_chicken_within_radius")
+                            .returningResultSet("result", (rs, rowNum) ->
+                                    new PlaceInfo(
+                                            rs.getString("name"),
+                                            rs.getString("latitude"),
+                                            rs.getString("longitude")
+                                    )
+                            );
                     MapSqlParameterSource inParams = new MapSqlParameterSource()
                             .addValue("in_longitude", longitude)
                             .addValue("in_latitude", latitude)
                             .addValue("in_radius", DEFAULT_RADIUS);
-                    // 저장 프로시저 실행 (결과셋이 "result" 키로 반환된다고 가정)
+                    // 저장 프로시저 실행
                     Map<String, Object> out = simpleJdbcCall.execute(inParams);
-                    List<Map<String, Object>> resultSet = (List<Map<String, Object>>) out.get("result");
+                    List<PlaceInfo> resultSet = (List<PlaceInfo>) out.get("result");
                     if (resultSet == null) {
-                        throw new DataRetrievalException("Result set is null from stored procedure", null);
+                        return Collections.emptyList();
                     }
-                    return resultSet.stream()
-                            .map(row -> new PlaceInfo(
-                                    (String) row.get("name"),
-                                    row.get("latitude").toString(),
-                                    row.get("longitude").toString()))
-                            .collect(Collectors.toList());
+                    return resultSet;
                 } catch (Exception e) {
                     throw new DataRetrievalException("Error retrieving chicken data", e);
                 }
