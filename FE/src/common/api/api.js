@@ -2,6 +2,11 @@
 import axios from "axios";
 import store from "../../store/store";
 
+const authApi = axios.create({
+  baseURL: `http://localhost:8082/api/v1`, // ✅ API 서버 주소
+  withCredentials: true, // ✅ 쿠키 포함 요청
+});
+
 const zeepApi = axios.create({
   baseURL: `https://j12e203.p.ssafy.io/api/v1`, // ✅ API 서버 주소
   withCredentials: false, // ✅ 쿠키 포함 요청
@@ -237,17 +242,44 @@ export const fetchLikedProperties = async (userId) => {
   }
 };
 
+// 동네 찜 추가 (POST)
+export const likeDongApi = async (dongId) => {
+  try {
+    const res = await zeepApi.post(`/zzim/dong/${dongId}`, {}, {
+      headers: {
+        Authorization: `Bearer ${store.getState().auth.accessToken}`,
+      },
+      withCredentials: true,
+    });
+    return res.data;
+  } catch (error) {
+    console.error("동네 찜 추가 실패:", error);
+    throw error;
+  }
+};
+
+// 동네 찜 삭제 (DELETE)
+export const unlikeDongApi = async (dongId) => {
+  try {
+    const res = await zeepApi.delete(`/zzim/dong/${dongId}`, {
+      headers: {
+        Authorization: `Bearer ${store.getState().auth.accessToken}`,
+      },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("동네 찜 삭제 실패:", error);
+    throw error;
+  }
+};
+
 export const postSurvey = async (surveyData, accessToken) => {
   // console.log("accessToken:", accessToken);
-  const response = await zeepApi.post(
-    "/auth/survey",
-    surveyData ,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
+  const response = await authApi.post("/auth/survey", surveyData, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
   return response.data;
 };
 
