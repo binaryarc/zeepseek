@@ -20,6 +20,7 @@ public class ZzimController {
     private final ZzimService zzimService;
 
     // 동네 찜
+    @Loggable(action = "zzim")
     @PostMapping("/dong/{dongId}")
     public ResponseEntity<?> dongZzim(@CookieValue(value = "userId", defaultValue = "") int userId, @PathVariable(name = "dongId") int dongId) {
 
@@ -27,6 +28,7 @@ public class ZzimController {
     }
 
     // 매물 찜
+    @Loggable(action = "zzim")
     @PostMapping("/property/{propertyId}")
     public ResponseEntity<?> propertyZzim(@CookieValue(value = "userId", defaultValue = "") int userId, @PathVariable(name = "propertyId") int propertyId) {
 
