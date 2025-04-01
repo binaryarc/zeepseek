@@ -6,6 +6,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { postSurvey } from "../../../common/api/api"; // 경로 맞춰주세요
 import { setUser } from "../../../store/slices/authSlice";
 // import { setAccessToken } from '../../../store/slices/authSlice';
+import { useNavigate } from "react-router-dom";
 
 const GENDERS = ["남자", "여자"];
 const LOCATIONS = ["멀티캠퍼스 역삼", "강남역", "신촌역", "건대입구역"];
@@ -20,8 +21,8 @@ const CONSIDERATIONS = [
   "치킨집",
 ];
 
-
-const FirstLoginSurvey = ({ onStart }) => {
+const FirstLoginSurvey = () => {
+  const navigate = useNavigate();
   const [gender, setGender] = useState("");
   const dispatch = useDispatch();
   const [age, setAge] = useState("");
@@ -83,7 +84,7 @@ const FirstLoginSurvey = ({ onStart }) => {
       console.log("설문 응답 response", response);
       if (response.success) {
         dispatch(setUser(response.data)); // ❗유저 정보 업데이트
-        onStart(); 
+        navigate("/main");
       } else {
         alert("서베이 제출에 실패했습니다.");
       }

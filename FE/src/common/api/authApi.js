@@ -10,7 +10,6 @@ const authApi = axios.create({
   withCredentials: true, // ✅ 쿠키 포함 요청
 });
 
-
 // OAuth 로그인 (카카오 & 네이버)
 export const oauthLogin = async (authorizationCode, provider) => {
   try {
@@ -41,11 +40,11 @@ export const logoutOAuth = async (accessToken) => {
       Authorization: `Bearer ${accessToken}`,
     },
     withCredentials: true, // HttpOnly 쿠키도 포함되도록
-  })
+  });
 };
 
 export const refreshAccessToken = async () => {
   const res = await authApi.post("/auth/refresh");
-  console.log(res)
+  console.log(res);
   return res.data; // ✅ res 자체가 아닌 res.data만 리턴
 };
