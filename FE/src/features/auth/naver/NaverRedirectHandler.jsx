@@ -24,8 +24,12 @@ const NaverRedirectHandler = () => {
           dispatch(setAccessToken(accessToken));
           dispatch(setUser(userInfoData)); // accessToken 제외한 나머지
           localStorage.setItem('isAuthenticated', 'true'); // local storage에 로그인 상태 저장
-
-          navigate("/main");
+          // ✅ 여기서 분기 처리
+          if (userInfoData.isFirst === 1) {
+            navigate("/survey");
+          } else {
+            navigate("/main");
+          }
         } catch (error) {
           console.error("네이버 로그인 처리 실패:", error);
           navigate("/login");

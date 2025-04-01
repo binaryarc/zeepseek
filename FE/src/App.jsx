@@ -6,9 +6,11 @@ import AuthInitializer from './store/AuthInitializer';
 
 
 function App() {
-  const navigate = useNavigate();
 
+  const navigate = useNavigate();
   const handleAnimationEnd = () => {
+    // ✅ 첫 로그인 사용자라면 메인으로 이동 막기
+
     navigate('/main');
   };
 
