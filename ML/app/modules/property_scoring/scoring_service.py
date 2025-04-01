@@ -1,5 +1,5 @@
 import numpy as np
-from app.services.poi_cache import get_balltree_for_category
+from app.modules.property_scoring.poi_cache import get_balltree_for_category
 from app.utils.logger import logger
 from sklearn.neighbors import BallTree
 
