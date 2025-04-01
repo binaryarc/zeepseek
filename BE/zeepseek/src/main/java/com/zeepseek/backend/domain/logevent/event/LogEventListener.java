@@ -24,7 +24,8 @@ public class LogEventListener {
                 (int) event.getExtraData().getOrDefault("age", -1),
                 (String) event.getExtraData().getOrDefault("gender", "unknown"),
                 (String) event.getExtraData().getOrDefault("type", ""),
-                (int) event.getExtraData().getOrDefault("id", -1)
+                (int) event.getExtraData().getOrDefault("propertyId", -1),
+                (int) event.getExtraData().getOrDefault("dongId", -1)
         );
     }
 }
