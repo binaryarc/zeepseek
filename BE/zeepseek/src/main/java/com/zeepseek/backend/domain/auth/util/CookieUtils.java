@@ -80,7 +80,7 @@ public class CookieUtils {
             ResponseCookie userCookie = ResponseCookie.from(USER_COOKIE_NAME, encodedUserInfo)
                     .path("/")
                     .maxAge(DEFAULT_MAX_AGE)
-                    .httpOnly(false) // JavaScript에서 접근 가능하도록 설정
+                    .httpOnly(true) // JavaScript에서 접근 가능하도록 설정
                     .secure(true) // HTTPS에서만 전송되도록 설정
                     .sameSite("None")
                     .build();
@@ -98,7 +98,7 @@ public class CookieUtils {
             ResponseCookie userIdCookie = ResponseCookie.from(USER_ID_COOKIE_NAME, userId.toString())
                     .path("/")
                     .maxAge(DEFAULT_MAX_AGE)
-                    .httpOnly(false) // JavaScript에서 접근 가능하도록 설정
+                    .httpOnly(true) // JavaScript에서 접근 가능하도록 설정
                     .secure(true) // HTTPS에서만 전송되도록 설정
                     .sameSite("None")
                     .build();
@@ -193,7 +193,7 @@ public class CookieUtils {
             ResponseCookie activityCookie = ResponseCookie.from(USER_ACTIVITY_INFO_COOKIE_NAME, encodedActivityInfo)
                     .path("/")
                     .maxAge(DEFAULT_MAX_AGE)
-                    .httpOnly(false) // JavaScript에서 접근 가능하도록 설정
+                    .httpOnly(true) // JavaScript에서 접근 가능하도록 설정
                     .secure(true) // HTTPS에서만 전송되도록 설정
                     .sameSite("None")
                     .build();
