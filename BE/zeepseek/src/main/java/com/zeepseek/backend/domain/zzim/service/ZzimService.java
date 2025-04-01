@@ -92,13 +92,14 @@ public class ZzimService {
 
         List<DongInfoDocs> dongInfoDocs = new ArrayList<>();
         for(DongZzimDoc dongZzimDoc : dongZzimDocs) {
-            DongInfoDocs docs = null;
             try {
-                docs = dongService.getDongDetail(dongZzimDoc.getDongId());
-            }catch (Exception e) {
+                DongInfoDocs docs = dongService.getDongDetail(dongZzimDoc.getDongId());
+                if(docs != null) {
+                    dongInfoDocs.add(docs);
+                }
+            } catch (Exception e) {
                 log.warn("찜: 해당 동네을 찾을 수 없습니다. {}", e);
             }
-            dongInfoDocs.add(docs);
         }
 
         return dongInfoDocs;
@@ -111,13 +112,14 @@ public class ZzimService {
 
         List<Property> properties = new ArrayList<>();
         for(PropertyZzimDoc propertyZzimDoc : propertyZzimDocs) {
-            Property property = null;
             try {
-                property = propertyService.getPropertyDetail((long) propertyZzimDoc.getPropertyId());
+                Property property = propertyService.getPropertyDetail((long) propertyZzimDoc.getPropertyId());
+                if(property != null) {
+                    properties.add(property);
+                }
             } catch (Exception e) {
                 log.warn("찜: 해당 매물을 찾을 수 없습니다. {}", e);
             }
-            properties.add(property);
         }
 
         return properties;
