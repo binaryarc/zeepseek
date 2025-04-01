@@ -7,3 +7,6 @@ python-dotenv
 numpy
 scikit-learn
 cryptography
+pandas
+elasticsearch
+scikit-surprise
