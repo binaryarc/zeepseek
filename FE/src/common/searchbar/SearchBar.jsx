@@ -28,6 +28,7 @@ function Searchbar() {
   const user = useSelector((state) => state.auth.user);
   const nickname = user?.nickname || "로그인 유저";
   const keywordFromRedux = useSelector((state) => state.roomList.keyword); // ✅ 추가
+  
 
   useEffect(() => {
     if (keywordFromRedux) {

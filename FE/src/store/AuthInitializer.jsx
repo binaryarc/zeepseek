@@ -6,6 +6,7 @@ import { refreshAccessToken } from "../common/api/authApi";
 const AuthInitializer = () => {
   const dispatch = useDispatch();
 
+
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated");
 
