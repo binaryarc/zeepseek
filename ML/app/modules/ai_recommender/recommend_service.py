@@ -1,5 +1,5 @@
 import pandas as pd
-from config.elasticsearch import get_es_client  # Elasticsearch 클라이언트를 생성하는 함수
+from app.config.elasticsearch import get_es_client  # Elasticsearch 클라이언트를 생성하는 함수
 from app.modules.ai_recommender.svd_model import RecommenderModel  # 추천 모델(SVD 기반) 클래스
 from app.modules.ai_recommender.action_score import ACTION_SCORE  # action 값을 점수(score)로 매핑하는 딕셔너리
 
