@@ -3,6 +3,7 @@ import "./AiRecommend.css";
 import { fetchAIRecommendedProperties } from "../../../../common/api/api";
 import defaultImage from "../../../../assets/logo/192image.png"
 import DongNameMarkers from "../../mainmap/salecountmarkers/DongNameMarkers/DongNameMarkers";
+import GuNameMarkers from "../../mainmap/salecountmarkers/GuNameMarkers/GuNameMarkers";
 
 const AiRecommend = () => {
 
@@ -39,7 +40,6 @@ const AiRecommend = () => {
         cafeScore: filterValues["카페"] / 100,
         chickenScore: filterValues["치킨집"] / 100,
         leisureScore: filterValues["여가"] / 100,
-        // safety: filterValues["안전"] / 100,
       };
       
       console.log("request data: ", preferenceData)
@@ -68,6 +68,7 @@ const AiRecommend = () => {
     return (
       <div className="ai-filter-container">
         <DongNameMarkers map={window.map} />
+        <GuNameMarkers map={window.map} />
         {!isRecoDone && !isLoading && (
           <div className="slider-section">
             <h3 className="recommend-title">원하는 매물 조건을 설정하세요</h3>
