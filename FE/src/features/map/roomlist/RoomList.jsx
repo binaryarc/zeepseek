@@ -7,8 +7,11 @@ import {
   setCurrentPage,
   setSelectedRoomType,
   fetchRoomListByBounds,
+  setRoomList,
 } from "../../../store/slices/roomListSlice";
 import defaultImage from "../../../assets/logo/192image.png";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
+import { likeProperty, unlikeProperty } from "../../../common/api/api";
 
 const RoomList = () => {
   const [selectedTab, setSelectedTab] = useState("원룸/투룸");
@@ -18,6 +21,29 @@ const RoomList = () => {
   );
 
   const level = window.map?.getLevel();
+
+  const userId = 2;
+
+  const toggleLike = async (room) => {
+    const { propertyId } = room;
+    if (!userId) return alert("로그인이 필요합니다.");
+
+    try {
+      if (room.liked) {
+        await unlikeProperty(propertyId, userId);
+      } else {
+        await likeProperty(propertyId, userId);
+      }
+
+      // ✅ rooms 배열 업데이트
+      const updatedRooms = rooms.map((r) =>
+        r.propertyId === propertyId ? { ...r, liked: !r.liked } : r
+      );
+      dispatch(setRoomList(updatedRooms));
+    } catch (err) {
+      console.error("찜 토글 실패:", err);
+    }
+  };
 
   const handleTabClick = (tab) => {
     setSelectedTab(tab);
@@ -35,7 +61,7 @@ const RoomList = () => {
     // }
 
     if (currentGuName && (currentDongName || currentDongName === "")) {
-      console.log(tab)
+      console.log(tab);
       if (level < 6 && level > 3) {
         dispatch(
           fetchRoomListByBounds({
@@ -54,7 +80,7 @@ const RoomList = () => {
         );
       }
 
-      console.log(currentDongName, currentGuName, '실행돼썽용용')
+      console.log(currentDongName, currentGuName, "실행돼썽용용");
     }
   };
   // ✅ Redux 상태에서 매물 리스트, 로딩 상태 가져오기
@@ -83,7 +109,7 @@ const RoomList = () => {
   return (
     <div className="room-list">
       <nav className="room-type">
-        {["원룸/투룸", "오피스텔", "주택/빌라", 'AI 추천'].map((tab) => (
+        {["원룸/투룸", "오피스텔", "주택/빌라", "AI 추천"].map((tab) => (
           <span
             key={tab}
             className={selectedTab === tab ? "active-tab" : ""}
@@ -119,7 +145,6 @@ const RoomList = () => {
                   )
                 )
               }
-
               onMouseEnter={() => {
                 if (room.latitude && room.longitude) {
                   window.setHoverMarker(room.latitude, room.longitude);
@@ -128,7 +153,6 @@ const RoomList = () => {
               onMouseLeave={() => {
                 window.clearHoverMarker();
               }}
-              
             >
               <img src={room.imageUrl || defaultImage} alt="매물 이미지" />
               <div className="room-info">
@@ -137,6 +161,9 @@ const RoomList = () => {
                 </p>
                 <p className="room-description">{room.description}</p>
                 <p className="room-address">{room.address}</p>
+                <button onClick={() => toggleLike(room)} className="like-btn">
+                  {room.liked ? <FaHeart color="red" /> : <FaRegHeart />}
+                </button>
               </div>
             </div>
           ))}

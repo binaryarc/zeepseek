@@ -71,6 +71,9 @@ const roomListSlice = createSlice({
     setKeyword: (state, action) => {
       state.keyword = action.payload;
     },
+    setRoomList: (state, action) => {
+      state.rooms = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -109,5 +112,6 @@ export const {
   setRoomsFromGridResult,
   setGridRoomList,
   setKeyword,
+  setRoomList,
 } = roomListSlice.actions;
 export default roomListSlice.reducer;

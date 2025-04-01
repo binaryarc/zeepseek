@@ -1,0 +1,49 @@
+.zzim-page {
+    padding: 2rem;
+  }
+  .zzim-title {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+  }
+  .zzim-gu-section {
+    margin-bottom: 2rem;
+  }
+  .gu-name {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin: 1rem 0;
+  }
+  .zzim-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .zzim-card {
+    width: 200px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .zzim-img {
+    width: 100%;
+    height: 130px;
+    object-fit: cover;
+  }
+  .zzim-info {
+    padding: 0.5rem;
+  }
+  .room-type {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .price {
+    font-weight: bold;
+    margin: 0.3rem 0;
+  }
+  .addr, .desc {
+    font-size: 0.85rem;
+    color: #666;
+  }
+  
