@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './AIRecommendModal.css';
+import './AiRecommendModal.css';
 import { fetchAIRecommendedProperties } from '../../../../common/api/api';
 
 function AIRecommendModal({ onClose }) {
