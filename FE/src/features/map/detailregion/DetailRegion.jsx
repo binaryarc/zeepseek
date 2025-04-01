@@ -33,6 +33,7 @@ const DetailRegion = () => {
   const liked = useSelector((state) => {
     const result = state.dongLike?.[dongId];
     console.log("💚 현재 동 ID:", dongId, "찜 여부:", result);
+    console.log('아아', state)
     return result === true;
   });
   const user = useSelector((state) => state.auth.user);

@@ -5,13 +5,13 @@ const dongLikeSlice = createSlice({
   initialState: {},
   reducers: {
     likeDong: (state, action) => {
-      console.log("👍 likeDong 호출됨:", action.payload);  // ✅ 로그
-      state[action.payload] = true;
-    },
-    unlikeDong: (state, action) => {
-      console.log("👍 likeDong 호출됨:", action.payload);  // ✅ 로그
-      state[action.payload] = false;
-    },
+        const id = String(action.payload);   // 🔹 문자열로 변환
+        state[id] = true;
+      },
+      unlikeDong: (state, action) => {
+        const id = String(action.payload);   // 🔹 문자열로 변환
+        state[id] = false;
+      },
   },
 });
 
