@@ -21,9 +21,8 @@ const CONSIDERATIONS = [
   "치킨집",
 ];
 
-
 const FirstLoginSurvey = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [gender, setGender] = useState("");
   const dispatch = useDispatch();
   const [age, setAge] = useState("");
@@ -83,9 +82,9 @@ const FirstLoginSurvey = () => {
       console.log("보낼 surveyData:", JSON.stringify(surveyData));
       const response = await postSurvey(surveyData, accessToken);
       console.log("설문 응답 response", response);
-      if (response.data.success) {
-        dispatch(setUser(response.data.data)); // ❗유저 정보 업데이트
-        navigate('/main')
+      if (response.success) {
+        dispatch(setUser(response.data)); // ❗유저 정보 업데이트
+        navigate("/main");
       } else {
         alert("서베이 제출에 실패했습니다.");
       }
