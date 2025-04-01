@@ -1,5 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+export const setLikedDongs = (likedDongIds) => ({
+    type: "dongLike/setLikedDongs",
+    payload: likedDongIds,
+  });
+
 const dongLikeSlice = createSlice({
   name: "dongLike",
   initialState: {},
@@ -8,10 +13,17 @@ const dongLikeSlice = createSlice({
         const id = String(action.payload);   // 🔹 문자열로 변환
         state[id] = true;
       },
-      unlikeDong: (state, action) => {
+    unlikeDong: (state, action) => {
         const id = String(action.payload);   // 🔹 문자열로 변환
         state[id] = false;
       },
+    setDongLikes: (state, action) => {
+        const likedMap = {};
+        action.payload.forEach((dong) => {
+          likedMap[dong.dongId] = true;
+        });
+        return likedMap;
+      }
   },
 });
 

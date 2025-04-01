@@ -179,9 +179,9 @@ export const fetchRegionSummary = async (region1, region2) => {
 };
 
 // 매물 찜 추가 (POST)
-export const likeProperty = async (propertyId, userId) => {
+export const likeProperty = async (propertyId) => {
   try {
-    const res = await zeepApi.post(`/zzim/property/${propertyId}/${userId}`, {
+    const res = await zeepApi.post(`/zzim/property/${propertyId}`, {
       headers: {
         Authorization: `Bearer ${store.getState().auth.accessToken}`,
       },
@@ -213,9 +213,9 @@ export const unlikeProperty = async (propertyId, userId) => {
 };
 
 // 찜한 동네 리스트 불러오는 api
-export const fetchLikedRegions = async (userId) => {
+export const fetchLikedRegions = async () => {
   try {
-    const res = await zeepApi.get(`/zzim/select/dong/${userId}`);
+    const res = await zeepApi.get(`/zzim/select/dong`);
     console.log("찜한 동네 리스트 호출: ", res);
     return res;
   } catch (err) {
@@ -224,10 +224,10 @@ export const fetchLikedRegions = async (userId) => {
 };
 
 // 찜한 매물 리스트 불러오기
-export const fetchLikedProperties = async (userId) => {
+export const fetchLikedProperties = async () => {
   try {
     const res = await zeepApi.get(
-      `/zzim/select/property/${userId}`,
+      `/zzim/select/property`,
       {},
       {
         headers: {
