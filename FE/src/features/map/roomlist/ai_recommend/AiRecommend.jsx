@@ -8,6 +8,7 @@ import GuNameMarkers from "../../mainmap/salecountmarkers/GuNameMarkers/GuNameMa
 const AiRecommend = () => {
 
   const [nearbyMarkers, setNearbyMarkers] = useState([]);
+  const [circleOverlay, setCircleOverlay] = useState(null);
 
   const [maxType, setMaxType] = useState(null);
 
@@ -122,6 +123,10 @@ const AiRecommend = () => {
                   // 💥 기존 마커들 먼저 제거
                   nearbyMarkers.forEach(marker => marker.setMap(null));
                   setNearbyMarkers([]);
+                  if (circleOverlay) {
+                    circleOverlay.setMap(null);
+                    setCircleOverlay(null);
+                  }
 
                   if (item.latitude && item.longitude) {
                     window.setHoverMarker(item.latitude, item.longitude);
@@ -129,17 +134,37 @@ const AiRecommend = () => {
                       const latlng = new window.kakao.maps.LatLng(item.latitude, item.longitude);
                       window.map.setLevel(5);
                       window.map.setCenter(latlng);
+
+                      // 반경 1km 원 추가
+                      const circle = new window.kakao.maps.Circle({
+                        center: latlng,
+                        radius: 1000,
+                        strokeWeight: 2,
+                        strokeColor: '#00a0e9',
+                        strokeOpacity: 0.8,
+                        strokeStyle: 'solid',
+                        fillColor: '#00a0e9',
+                        fillOpacity: 0.1
+                      });
+                      circle.setMap(window.map);
+                      setCircleOverlay(circle);
                     }
 
                     const newMarkers = [];
                       try {
                         const response = await fetchNearbyPlaces(maxType, item.longitude, item.latitude);
+
+                        const imageSrc = `/images/icons/${maxType}.png`;
+                        const imageSize = new window.kakao.maps.Size(30, 30);
+                        const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize);
+
                         const places = response?.data || [];
                         places.forEach(({ latitude, longitude, name }) => {
                           const marker = new window.kakao.maps.Marker({
                             position: new window.kakao.maps.LatLng(latitude, longitude),
                             map: window.map,
                             title: name,
+                            image: markerImage,
                           });
                           newMarkers.push(marker);
                         });
@@ -153,6 +178,10 @@ const AiRecommend = () => {
                   window.clearHoverMarker();
                   nearbyMarkers.forEach(marker => marker.setMap(null));
                   setNearbyMarkers([]);
+                  if (circleOverlay) {
+                    circleOverlay.setMap(null);
+                    setCircleOverlay(null);
+                  }
                 }}
               >
                 <img src={item.imageUrl || defaultImage} alt="매물 이미지" />
