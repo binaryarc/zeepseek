@@ -123,7 +123,7 @@ public class CookieUtils {
     }
 
     /**
-     * 사용자 정보 한 번에 설정 - 세 가지 쿠키 모두 설정 (편의 메서드)
+     * 사용자 정보 한 번에 설정 - 네 가지 쿠키 모두 설정 (편의 메서드)
      */
     public static void addAllUserCookies(HttpServletResponse response, UserDto userDto, String refreshToken) {
         // 1. 사용자 정보 쿠키
@@ -134,6 +134,10 @@ public class CookieUtils {
 
         // 3. 리프레시 토큰 쿠키
         addRefreshTokenCookie(response, refreshToken);
+
+        // 4. 사용자 활동 정보(나이, 성별) 쿠키 추가
+        addUserActivityInfoCookie(response, userDto);
+
     }
 
     /**
