@@ -30,6 +30,9 @@ function GridClustering({ map }) {
       const level = map.getLevel();
       if (level > 3) return;
 
+      // ✅ AI 추천 탭일 땐 그리드 안 그림
+      if (selectedRoomType === "AI 추천") return;
+
       polygonsRef.current.forEach(p => p.setMap(null));
       overlaysRef.current.forEach(o => o.setMap(null));
       if (popupRef.current) popupRef.current.setMap(null);

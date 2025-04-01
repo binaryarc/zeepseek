@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import title from "../../assets/logo/zeeptitle.png";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./SearchBar.css";
 import { FaRegUserCircle } from "react-icons/fa"; // 사람 아이콘
 import { FiSearch } from "react-icons/fi"; // 검색 아이콘
@@ -10,6 +10,7 @@ import {
   setSearchLock,
   fetchRoomList,
   setCurrentGuAndDongName,
+  setKeyword,
 } from "../../store/slices/roomListSlice";
 import { searchProperties } from "../../common/api/api";
 import { logoutOAuth } from "../../common/api/authApi";
@@ -24,22 +25,22 @@ function Searchbar() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchText, setSearchText] = useState("");
   const roomType = useSelector((state) => state.roomList.selectedRoomType);
-  const user =useSelector((state) => state.auth.user)
-  const nickname = user?.nickname || '로그인 유저';
-  const location = useLocation();
+  const user = useSelector((state) => state.auth.user);
+  const nickname = user?.nickname || "로그인 유저";
+  const keywordFromRedux = useSelector((state) => state.roomList.keyword); // ✅ 추가
+  
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const keyword = params.get("keyword");
-    if (keyword) {
-      setSearchText(keyword); // input 채우기
-      handleSearch(keyword);  // 검색 실행
+    if (keywordFromRedux) {
+      console.log("🔍 키워드 변경 감지:", keywordFromRedux); // ✅ 이거 꼭 넣어보세요
+      setSearchText(keywordFromRedux); // input 채우기
+      handleSearch(keywordFromRedux); // 검색 실행
     }
-  }, []);
+  }, [keywordFromRedux]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      handleSearch();
+      dispatch(setKeyword(searchText)); // ✅ 키워드 저장만, handleSearch는 위에서 실행됨
     }
   };
 
@@ -64,52 +65,56 @@ function Searchbar() {
 
   const handleSearch = async (externalKeyword) => {
     const keyword = externalKeyword || searchText;
-    if (!searchText.trim()) return;
-  
+    if (!keyword.trim()) return;
+
     try {
       const res = await searchProperties(keyword);
       const properties = res?.properties || [];
       if (properties.length === 0) return alert("검색 결과가 없습니다.");
-  
+
       const first = properties[0];
       const geocoder = new window.kakao.maps.services.Geocoder();
-  
+
       geocoder.addressSearch(first.address, (result, status) => {
         if (status !== window.kakao.maps.services.Status.OK) return;
-  
+
         const { x, y } = result[0];
         const latLng = new window.kakao.maps.LatLng(y, x);
         const map = window.map;
         if (!map) return;
-  
+
         // ✅ 검색 이동 시작
         window.isMovingBySearch = true;
-  
+
         const isGuOnlySearch = keyword.trim().endsWith("구");
         const level = isGuOnlySearch ? 6 : 4;
-  
+
         // 상태 갱신
-        dispatch(setCurrentGuAndDongName({
-          guName: first.guName,
-          dongName: isGuOnlySearch ? "" : first.dongName,
-        }));
+        dispatch(
+          setCurrentGuAndDongName({
+            guName: first.guName,
+            dongName: isGuOnlySearch ? "" : first.dongName,
+          })
+        );
         dispatch(setCurrentDongId(null)); // 강제 갱신 유도
         dispatch(setSearchLock(true));
-  
+
         // 지도 이동
         map.setLevel(level);
         map.setCenter(latLng);
       });
-  
+
       // ✅ 매물 리스트 요청 (검색 기반)
-      dispatch(fetchRoomList({
-        keyword: keyword,
-        filter: roomType,
-      }));
+      dispatch(
+        fetchRoomList({
+          keyword,
+          filter: roomType,
+        })
+      );
     } catch (err) {
       console.error("검색 실패:", err);
     }
-  };  
+  };
 
   return (
     <nav className="search-navbar">
