@@ -73,4 +73,9 @@ public class DongController {
         DongInfoDocs updatedDong = dongService.deleteDongCommentById(dongId, commentId);
         return ResponseEntity.ok(updatedDong);
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<?> findAlldongs() {
+        return ResponseEntity.ok(dongService.findAllDongsforZzim());
+    }
 }

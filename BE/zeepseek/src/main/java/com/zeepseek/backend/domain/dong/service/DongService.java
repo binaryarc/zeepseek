@@ -88,4 +88,9 @@ public class DongService {
         }
         return doc;
     }
+
+    public List<DongInfoDocs> findAllDongsforZzim() {
+        return dongRepository.findAll();
+    }
+
 }

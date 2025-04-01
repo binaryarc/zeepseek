@@ -124,4 +124,9 @@ public class ZzimController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/select/all_dong")
+    public ResponseEntity<?> selectAllDongs(@CookieValue(value = "userId", defaultValue = "") int userId) {
+
+        return ResponseEntity.ok(zzimService.findAllDongLiked(userId));
+    }
 }
