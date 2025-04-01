@@ -1,10 +1,8 @@
 package com.zeepseek.backend.domain.zzim.controller;
 
 import com.zeepseek.backend.domain.dong.document.DongInfoDocs;
-import com.zeepseek.backend.domain.dong.service.DongService;
-import com.zeepseek.backend.domain.logs.annotation.Loggable;
+import com.zeepseek.backend.domain.logevent.annotation.Loggable;
 import com.zeepseek.backend.domain.property.model.Property;
-import com.zeepseek.backend.domain.property.service.PropertyService;
 import com.zeepseek.backend.domain.zzim.document.DongZzimDoc;
 import com.zeepseek.backend.domain.zzim.document.PropertyZzimDoc;
 import com.zeepseek.backend.domain.zzim.service.ZzimService;
