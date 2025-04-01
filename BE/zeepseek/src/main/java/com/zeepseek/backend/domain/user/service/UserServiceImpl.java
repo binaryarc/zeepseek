@@ -9,12 +9,16 @@ import com.zeepseek.backend.domain.user.repository.UserPreferencesRepository;
 import com.zeepseek.backend.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +27,9 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserPreferencesRepository userPreferencesRepository;
+    
+    @Value("${VITE_APP_KAKAO_MAP_API_KEY:카카오 맵 API 키}")
+    private String kakaoMapApiKey;
 
     @Override
     @Transactional
@@ -125,7 +132,6 @@ public class UserServiceImpl implements UserService {
         // 전체 주소는 destination 필드에 저장
         userPreferences.setDestination(location);
 
-        // 현재는 도로명 주소 API를 사용하지 않기 때문에 기본 주소 파싱 적용
         try {
             // 매우 기본적인 주소 파싱 (예시)
             // "서울특별시 강남구 테헤란로 152 10층" 형태 가정
@@ -156,10 +162,8 @@ public class UserServiceImpl implements UserService {
                 userPreferences.setDetailAddress(detailAddress.toString().trim());
             }
 
-            // 우편번호와 좌표 정보는 도로명 주소 API 통합 시 설정
-            // userPreferences.setZipCode("00000");
-            // userPreferences.setLatitude(0.0);
-            // userPreferences.setLongitude(0.0);
+            // 카카오 맵 API를 이용하여 우편번호, 위도, 경도 설정
+            fetchCoordinatesAndZipCodeFromKakao(userPreferences, location);
 
         } catch (Exception e) {
             log.warn("주소 파싱 중 오류 발생: {}", e.getMessage());
@@ -167,6 +171,84 @@ public class UserServiceImpl implements UserService {
         }
 
         log.info("목적지 정보 설정: {}", location);
+    }
+    
+    /**
+     * 카카오 맵 API를 이용하여 주소로부터 좌표(위도, 경도)와 우편번호를 가져옴
+     */
+    private void fetchCoordinatesAndZipCodeFromKakao(UserPreferences userPreferences, String address) {
+        String kakaoApiUrl = "https://dapi.kakao.com/v2/local/search/address.json";
+        
+        try {
+            // 주소 인코딩
+            String encodedAddress = URLEncoder.encode(address, StandardCharsets.UTF_8);
+            
+            // WebClient를 사용하여 카카오 API 호출
+            WebClient webClient = WebClient.builder().build();
+            Map<String, Object> response = webClient.get()
+                .uri(kakaoApiUrl + "?query=" + encodedAddress)
+                .header("Authorization", "KakaoAK " + kakaoMapApiKey)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .block();
+            
+            // 응답 데이터에서 위도, 경도, 우편번호 추출
+            if (response != null) {
+                List<Map<String, Object>> documents = (List<Map<String, Object>>) response.get("documents");
+                if (documents != null && !documents.isEmpty()) {
+                    Map<String, Object> firstResult = documents.get(0);
+                    
+                    // 주소 정보 (우편번호 포함)
+                    Map<String, Object> addressInfo = (Map<String, Object>) firstResult.get("address");
+                    String zipCode = (String) addressInfo.get("zip_code");
+                    
+                    // 좌표 정보 (x: 경도, y: 위도)
+                    Double longitude = Double.parseDouble((String) firstResult.get("x"));
+                    Double latitude = Double.parseDouble((String) firstResult.get("y"));
+                    
+                    // UserPreferences에 정보 설정
+                    userPreferences.setZipCode(zipCode);
+                    userPreferences.setLatitude(latitude);
+                    userPreferences.setLongitude(longitude);
+                    
+                    log.info("카카오 API로부터 가져온 좌표 정보 - 위도: {}, 경도: {}, 우편번호: {}", 
+                            latitude, longitude, zipCode);
+                    return;
+                }
+            }
+            
+            // API 응답에서 데이터를 추출하지 못한 경우 지역에 따른 기본값 설정
+            setDefaultCoordinates(userPreferences, address);
+            
+        } catch (Exception e) {
+            log.error("카카오 맵 API 호출 중 오류 발생: {}", e.getMessage());
+            // 에러가 발생하면 기본값 설정
+            setDefaultCoordinates(userPreferences, address);
+        }
+    }
+    
+    /**
+     * API 호출 실패 시 주소 키워드에 따른 기본 좌표 설정
+     */
+    private void setDefaultCoordinates(UserPreferences userPreferences, String address) {
+        // 주소 키워드에 따른 기본값 설정
+        if (address.contains("강남")) {
+            userPreferences.setZipCode("06235");
+            userPreferences.setLatitude(37.5012);
+            userPreferences.setLongitude(127.0396);
+        } else if (address.contains("서울")) {
+            userPreferences.setZipCode("04524");
+            userPreferences.setLatitude(37.5665);
+            userPreferences.setLongitude(126.9780);
+        } else {
+            // 기본값
+            userPreferences.setZipCode("00000");
+            userPreferences.setLatitude(37.0);
+            userPreferences.setLongitude(127.0);
+        }
+        
+        log.info("기본 좌표 정보 설정 - 위도: {}, 경도: {}, 우편번호: {}", 
+                userPreferences.getLatitude(), userPreferences.getLongitude(), userPreferences.getZipCode());
     }
 
     /**
