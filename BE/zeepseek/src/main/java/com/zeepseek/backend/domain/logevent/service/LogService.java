@@ -17,7 +17,7 @@ public class LogService {
     private final ElasticsearchClient elasticsearchClient;
 
     @Async
-    public void logAction(String action,int userId, int age, String gender, String type, int idx) {
+    public void logAction(String action,int userId, int age, String gender, String type, int propertyId, int dongId) {
         // 고유 ID를 생성합니다. (예시로 현재 타임스탬프 사용)
         String id = "activity_log_" + System.currentTimeMillis();
 
@@ -30,7 +30,8 @@ public class LogService {
         logData.put("age", age);
         logData.put("gender", gender);
         logData.put("type", type);
-        logData.put("id", idx);
+        logData.put("propertyId", propertyId);
+        logData.put("dongId", dongId);
 
         try {
             // Elasticsearch의 "logs" 인덱스에 비동기 저장 (엘라스틱서치 클라이언트는 내부적으로 비동기 처리도 지원합니다)

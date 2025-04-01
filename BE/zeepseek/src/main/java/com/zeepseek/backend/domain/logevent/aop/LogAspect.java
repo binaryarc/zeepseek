@@ -8,7 +8,9 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.PathVariable;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +39,28 @@ public class LogAspect {
         Map<String, Object> extraData = new HashMap<>();
         extraData.put("method", method.getName());
         extraData.put("args", joinPoint.getArgs());
+
+        // 메서드 파라미터에서 @PathVariable("propertyId")를 찾아 extraData에 추가
+        Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+        Object[] args = joinPoint.getArgs();
+        for (int i = 0; i < parameterAnnotations.length; i++) {
+            for (Annotation annotation : parameterAnnotations[i]) {
+                if (annotation instanceof PathVariable) {
+                    PathVariable pv = (PathVariable) annotation;
+                    String value = pv.value();
+                    if ("propertyId".equals(value)) {
+                        extraData.put("propertyId", args[i]);
+                    }
+                    if ("dongId".equals(value)) {
+                        extraData.put("dongId", args[i]);
+                    }
+                    if ("userId".equals(value)) {
+                        extraData.put("userId", args[i]);
+                    }
+                }
+            }
+        }
+
 
         // 로그 이벤트 발행
         eventPublisher.publishEvent(new LogEvent(this, loggable.action(), loggable.type(), extraData));
