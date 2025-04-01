@@ -21,7 +21,7 @@ const AuthInitializer = () => {
           // ✅ user는 없음 → setUser 생략
 
           // ✅ 찜한 동네 정보 가져오기
-        const likedDongRes = await fetchLikedRegions(user.idx);
+        const likedDongRes = await fetchLikedRegions();
         const likedDongIds = likedDongRes.data?.map((item) => item.dongId) || [];
         dispatch(setLikedDongs(likedDongIds));
         })
