@@ -12,6 +12,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class CookieUtils {
@@ -21,6 +23,7 @@ public class CookieUtils {
     private static final String USER_COOKIE_NAME = "user_info";
     private static final String USER_ID_COOKIE_NAME = "user_id";
     private static final String REFRESH_TOKEN_COOKIE_NAME = "refreshtoken"; // 이름 변경
+    private static final String USER_ACTIVITY_INFO_COOKIE_NAME = "user_activity_info"; // 사용자 활동 정보용 쿠키 이름
 
     /**
      * 쿠키 가져오기
@@ -164,5 +167,61 @@ public class CookieUtils {
     public static Optional<String> getRefreshTokenFromCookie(HttpServletRequest request) {
         Optional<Cookie> cookieOpt = getCookie(request, REFRESH_TOKEN_COOKIE_NAME);
         return cookieOpt.map(Cookie::getValue);
+    }
+    
+    /**
+     * 사용자 활동 정보(나이, 성별)를 user_activity_info 쿠키로 저장
+     */
+    public static void addUserActivityInfoCookie(HttpServletResponse response, UserDto userDto) {
+        try {
+            // 필요한 정보(age, gender)만 Map으로 추출
+            Map<String, Integer> activityInfo = new HashMap<>();
+            activityInfo.put("age", userDto.getAge());
+            activityInfo.put("gender", userDto.getGender());
+            
+            // Map을 JSON 문자열로 변환
+            String activityInfoJson = objectMapper.writeValueAsString(activityInfo);
+            
+            // JSON 문자열을 Base64로 인코딩 (쿠키 문자 제한 회피)
+            String encodedActivityInfo = Base64.getEncoder().encodeToString(activityInfoJson.getBytes(StandardCharsets.UTF_8));
+            
+            // user_activity_info 쿠키 설정
+            ResponseCookie activityCookie = ResponseCookie.from(USER_ACTIVITY_INFO_COOKIE_NAME, encodedActivityInfo)
+                    .path("/")
+                    .maxAge(DEFAULT_MAX_AGE)
+                    .httpOnly(false) // JavaScript에서 접근 가능하도록 설정
+                    .secure(true) // HTTPS에서만 전송되도록 설정
+                    .sameSite("Strict")
+                    .build();
+            response.addHeader(HttpHeaders.SET_COOKIE, activityCookie.toString());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("사용자 활동 정보를 쿠키로 변환하는 중 오류 발생", e);
+        }
+    }
+    
+    /**
+     * 요청에서 사용자 활동 정보 쿠키 읽기
+     */
+    @SuppressWarnings("unchecked")
+    public static Optional<Map<String, Integer>> getUserActivityInfoFromCookie(HttpServletRequest request) {
+        Optional<Cookie> cookieOpt = getCookie(request, USER_ACTIVITY_INFO_COOKIE_NAME);
+        
+        if (cookieOpt.isPresent()) {
+            Cookie cookie = cookieOpt.get();
+            try {
+                // Base64 디코딩
+                byte[] decodedBytes = Base64.getDecoder().decode(cookie.getValue());
+                String activityInfoJson = new String(decodedBytes, StandardCharsets.UTF_8);
+                
+                // JSON을 Map으로 변환
+                Map<String, Integer> activityInfo = objectMapper.readValue(activityInfoJson, Map.class);
+                return Optional.of(activityInfo);
+            } catch (Exception e) {
+                // 쿠키 파싱 실패
+                return Optional.empty();
+            }
+        }
+        
+        return Optional.empty();
     }
 }
