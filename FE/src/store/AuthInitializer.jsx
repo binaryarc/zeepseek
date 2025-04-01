@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { setAccessToken, logout, setUser } from "./slices/authSlice";
 import { refreshAccessToken } from "../common/api/authApi";
 import { fetchLikedRegions } from "../common/api/api";
-import { setLikedDongs } from "./slices/dongLikeSlice";
+import { setDongLikes} from "./slices/dongLikeSlice";
 
 const AuthInitializer = () => {
   const dispatch = useDispatch();
@@ -22,8 +22,7 @@ const AuthInitializer = () => {
 
           // ✅ 찜한 동네 정보 가져오기
         const likedDongRes = await fetchLikedRegions();
-        const likedDongIds = likedDongRes.data?.map((item) => item.dongId) || [];
-        dispatch(setLikedDongs(likedDongIds));
+        dispatch(setDongLikes(likedDongRes.data));
         })
         .catch((err) => {
           console.error("refresh 실패:", err);

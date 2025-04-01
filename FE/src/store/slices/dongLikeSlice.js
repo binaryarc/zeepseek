@@ -1,10 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-export const setLikedDongs = (likedDongIds) => ({
-  type: "dongLike/setLikedDongs",
-  payload: likedDongIds,
-});
-
 const dongLikeSlice = createSlice({
   name: "dongLike",
   initialState: {},
