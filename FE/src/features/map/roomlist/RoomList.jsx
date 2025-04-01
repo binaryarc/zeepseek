@@ -23,7 +23,16 @@ const RoomList = () => {
     setSelectedTab(tab);
     dispatch(setSelectedRoomType(tab));
 
-    if (tab === "AI 추천") return;
+    // // ✅ AI 추천 탭이면 지도에서 grid 관련 레이어 제거
+    // if (tab === "AI 추천") {
+    //   if (window.clearPolygonLayer) {
+    //     window.clearPolygonLayer(); // 예: 폴리곤 클러스터 제거
+    //   }
+    //   if (window.clearClusterMarkers) {
+    //     window.clearClusterMarkers(); // 예: 클러스터 마커 제거
+    //   }
+    //   return;
+    // }
 
     if (currentGuName && (currentDongName || currentDongName === "")) {
       console.log(tab)
@@ -74,7 +83,7 @@ const RoomList = () => {
   return (
     <div className="room-list">
       <nav className="room-type">
-        {["원룸/투룸", "오피스텔", "주택/빌라"].map((tab) => (
+        {["원룸/투룸", "오피스텔", "주택/빌라", 'AI 추천'].map((tab) => (
           <span
             key={tab}
             className={selectedTab === tab ? "active-tab" : ""}

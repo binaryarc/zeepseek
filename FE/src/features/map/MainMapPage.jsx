@@ -1,4 +1,4 @@
-import React, { useState} from "react";
+import React from "react";
 import Map from "./mainmap/Map"; // 지도 컴포넌트
 import RoomList from "./roomlist/RoomList"; // 매물 리스트 컴포넌트
 import "./MainMapPage.css";
@@ -10,7 +10,6 @@ import AIRecommendModal from "./mainmap/AiRecommendModal/AiRecommendModal";
 
 const MainMapPage = () => {
   const selectedPropertyId = useSelector((state) => state.roomList.selectedPropertyId);
-  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
 
   return (
@@ -18,17 +17,6 @@ const MainMapPage = () => {
       <Searchbar />
       <div className="map-content">
       <RoomList />
-      <button className="ai-slide-button" onClick={() => setIsAiModalOpen(true)}>AI 추천</button>
-
-      {isAiModalOpen && (
-        <div className="modal-backdrop">
-          <div className="ai-recommend-modal">
-            <AIRecommendModal onClose={() => setIsAiModalOpen(false)} />
-          </div>
-        </div>
-      )}
-
-
 
       <div className="map-container">
     <Map />
