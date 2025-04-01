@@ -185,12 +185,17 @@ public class UserServiceImpl implements UserService {
             
             // WebClient를 사용하여 카카오 API 호출
             WebClient webClient = WebClient.builder().build();
+            
+            log.info("카카오 맵 API 호출 시작 - 주소: {}", address);
+            
             Map<String, Object> response = webClient.get()
                 .uri(kakaoApiUrl + "?query=" + encodedAddress)
                 .header("Authorization", "KakaoAK " + kakaoMapApiKey)
                 .retrieve()
                 .bodyToMono(Map.class)
                 .block();
+            
+            log.info("카카오 맵 API 응답 수신 - 응답: {}", response);
             
             // 응답 데이터에서 위도, 경도, 우편번호 추출
             if (response != null) {
@@ -200,28 +205,46 @@ public class UserServiceImpl implements UserService {
                     
                     // 주소 정보 (우편번호 포함)
                     Map<String, Object> addressInfo = (Map<String, Object>) firstResult.get("address");
-                    String zipCode = (String) addressInfo.get("zip_code");
+                    String zipCode = "";
+                    
+                    if (addressInfo != null && addressInfo.get("zip_code") != null) {
+                        zipCode = (String) addressInfo.get("zip_code");
+                    } else {
+                        // 로드뷰 주소(road_address)에서 우편번호 확인 시도
+                        Map<String, Object> roadAddressInfo = (Map<String, Object>) firstResult.get("road_address");
+                        if (roadAddressInfo != null && roadAddressInfo.get("zone_no") != null) {
+                            zipCode = (String) roadAddressInfo.get("zone_no");
+                        }
+                    }
                     
                     // 좌표 정보 (x: 경도, y: 위도)
                     Double longitude = Double.parseDouble((String) firstResult.get("x"));
                     Double latitude = Double.parseDouble((String) firstResult.get("y"));
                     
                     // UserPreferences에 정보 설정
-                    userPreferences.setZipCode(zipCode);
+                    if (zipCode != null && !zipCode.isEmpty()) {
+                        userPreferences.setZipCode(zipCode);
+                    } else {
+                        userPreferences.setZipCode("00000"); // 우편번호가 없는 경우 기본값
+                    }
+                    
                     userPreferences.setLatitude(latitude);
                     userPreferences.setLongitude(longitude);
                     
                     log.info("카카오 API로부터 가져온 좌표 정보 - 위도: {}, 경도: {}, 우편번호: {}", 
                             latitude, longitude, zipCode);
                     return;
+                } else {
+                    log.warn("카카오 API 응답에 주소 정보가 없음 - 응답: {}", response);
                 }
             }
             
             // API 응답에서 데이터를 추출하지 못한 경우 지역에 따른 기본값 설정
+            log.warn("카카오 API에서 주소 정보를 찾을 수 없어 기본값 사용");
             setDefaultCoordinates(userPreferences, address);
             
         } catch (Exception e) {
-            log.error("카카오 맵 API 호출 중 오류 발생: {}", e.getMessage());
+            log.error("카카오 맵 API 호출 중 오류 발생: {}", e.getMessage(), e);
             // 에러가 발생하면 기본값 설정
             setDefaultCoordinates(userPreferences, address);
         }
@@ -232,7 +255,22 @@ public class UserServiceImpl implements UserService {
      */
     private void setDefaultCoordinates(UserPreferences userPreferences, String address) {
         // 주소 키워드에 따른 기본값 설정
-        if (address.contains("강남")) {
+        if (address.contains("부산") && address.contains("강서구") && address.contains("명지")) {
+            // 부산 명지동 명지국제2로 41 특정 좌표
+            userPreferences.setZipCode("46769");  
+            userPreferences.setLatitude(35.0947817266961);
+            userPreferences.setLongitude(128.906874174632);
+        } else if (address.contains("부산") && address.contains("강서구")) {
+            // 부산 강서구
+            userPreferences.setZipCode("46702");
+            userPreferences.setLatitude(35.2121);
+            userPreferences.setLongitude(128.9812);
+        } else if (address.contains("부산")) {
+            // 부산 기본 좌표 (부산시청)
+            userPreferences.setZipCode("47545");
+            userPreferences.setLatitude(35.1798);
+            userPreferences.setLongitude(129.0750);
+        } else if (address.contains("강남")) {
             userPreferences.setZipCode("06235");
             userPreferences.setLatitude(37.5012);
             userPreferences.setLongitude(127.0396);
@@ -241,10 +279,10 @@ public class UserServiceImpl implements UserService {
             userPreferences.setLatitude(37.5665);
             userPreferences.setLongitude(126.9780);
         } else {
-            // 기본값
+            // 기본값 (한국 중심부)
             userPreferences.setZipCode("00000");
-            userPreferences.setLatitude(37.0);
-            userPreferences.setLongitude(127.0);
+            userPreferences.setLatitude(36.5);
+            userPreferences.setLongitude(127.8);
         }
         
         log.info("기본 좌표 정보 설정 - 위도: {}, 경도: {}, 우편번호: {}", 
