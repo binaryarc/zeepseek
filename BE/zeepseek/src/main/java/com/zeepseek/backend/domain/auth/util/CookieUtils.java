@@ -21,7 +21,7 @@ public class CookieUtils {
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final int DEFAULT_MAX_AGE = 7 * 24 * 60 * 60; // 7일(초 단위)
     private static final String USER_COOKIE_NAME = "user_info";
-    private static final String USER_ID_COOKIE_NAME = "user_id";
+    private static final String USER_ID_COOKIE_NAME = "userId";
     private static final String REFRESH_TOKEN_COOKIE_NAME = "refreshtoken"; // 이름 변경
     private static final String USER_ACTIVITY_INFO_COOKIE_NAME = "user_activity_info"; // 사용자 활동 정보용 쿠키 이름
 
