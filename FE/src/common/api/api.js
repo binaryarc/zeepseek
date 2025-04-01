@@ -171,4 +171,45 @@ export const fetchRegionSummary = async (region1, region2) => {
   }
 };
 
+// 찜한 동네 리스트 불러오는 api
+export const fetchLikedRegions = async (userId) => {
+  try {
+    const res = await zeepApi.get(`/zzim/select/dong/${userId}`);
+    console.log("찜한 동네 리스트 호출: ", res);
+    return res;
+  } catch (err) {
+    console.error('찜한 동네 불러오기 실패:', err);
+  }
+};
+
+
+
+// 응답 인터셉터
+zeepApi.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    
+    // 토큰 만료 시 재발급 시도
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const res = await zeepApi.post("/auth/refresh");
+        const newToken = res.data.accessToken;
+        store.dispatch(setAccessToken(newToken));
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return zeepApi(originalRequest);
+      } catch {
+        store.dispatch(logout());
+        window.location.href = "/login";
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+
+
 export default zeepApi;
