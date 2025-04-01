@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './RegionCompare.css';
-import { fetchDongDetail, fetchRegionSummary } from '../../../common/api/api';
+import { fetchDongDetail, fetchRegionSummary, fetchLikedRegions } from '../../../common/api/api';
 
 function RegionCompare() {
   const [selectedRegion1, setSelectedRegion1] = useState(null);
@@ -9,10 +9,26 @@ function RegionCompare() {
   const [summary, setSummary] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const [likedRegions, setLikedRegions] = useState([]);
 
-  const dummyLikedRegions = ['서초구 반포동', '동작구 사당동', '강남구 역삼동', '은평구 신사동'];
-  const filteredRegions = dummyLikedRegions.filter((region) => region.includes(searchText));  //
+  const userId = 2; // 임시로 userId 2로 설정
 
+  useEffect(() => {
+    const loadLikedRegions = async () => {
+      try {
+        const res = await fetchLikedRegions(userId);
+        setLikedRegions(res?.data || []);
+        console.log(likedRegions)
+      } catch (err) {
+        console.error('찜한 동네 불러오기 실패:', err);
+      }
+    };
+    loadLikedRegions();
+  }, []);
+
+  const filteredRegions = likedRegions.filter((region) =>
+    `${region.guName} ${region.name}`.includes(searchText)
+  );
 
   useEffect(() => {
     const fetchCompareData = async () => {
@@ -22,13 +38,15 @@ function RegionCompare() {
         // Promise.all([...]) : 배열 구조 분해 할당이라네요ㅎㅎ
         // 여러 개 비동기 작업을 동시에 실행하고, 모든 Promise가 완료될 때까지 기다렸다가 각 결과를 하나의 배열로 반환
         const [data1, data2] = await Promise.all([
-          fetchDongDetail(11620685),
-          fetchDongDetail(11680510),
+          fetchDongDetail(selectedRegion1.dongId),
+          fetchDongDetail(selectedRegion2.dongId),
         ]);
-        setRegionScores({ [selectedRegion1]: data1, [selectedRegion2]: data2 });
+        setRegionScores({ [selectedRegion1.dongId]: data1, [selectedRegion2.dongId]: data2 });
 
-        const summaryResult = await fetchRegionSummary(11620685, 11680510);
+        const summaryResult = await fetchRegionSummary(selectedRegion1.dongId, selectedRegion2.dongId);
         setSummary(summaryResult?.data?.compareSummary);
+        console.log("region1", selectedRegion1)
+        console.log("region2", selectedRegion2)
         console.log("summaryResult", summaryResult?.data?.compareSummary)
       } catch (err) {
         console.error('비교 데이터 로딩 실패:', err);
@@ -58,8 +76,8 @@ function RegionCompare() {
               <input
                 type="text"
                 placeholder="첫 번째 동네 입력"
-                value={selectedRegion1 || ''}
-                onChange={(e) => setSelectedRegion1(e.target.value)}
+                value={selectedRegion1 ? `${selectedRegion1.guName} ${selectedRegion1.name}` : ''}
+                readOnly
               />
               {selectedRegion1 && (
                 <button className="region-clear-button" onClick={() => setSelectedRegion1(null)}>❌</button>
@@ -69,8 +87,8 @@ function RegionCompare() {
               <input
                 type="text"
                 placeholder="두 번째 동네 입력"
-                value={selectedRegion2 || ''}
-                onChange={(e) => setSelectedRegion2(e.target.value)}
+                value={selectedRegion2 ? `${selectedRegion2.guName} ${selectedRegion2.name}` : ''}
+                readOnly
               />
               {selectedRegion2 && (
                 <button className="region-clear-button" onClick={() => setSelectedRegion2(null)}>❌</button>
@@ -82,24 +100,24 @@ function RegionCompare() {
             <div className="compare-table">
               <div className="table-header">
                 <div className="header-cell label-cell"></div>
-                <div className="header-cell">{selectedRegion1}</div>
-                <div className="header-cell">{selectedRegion2}</div>
+                <div className="header-cell">{`${selectedRegion1.guName} ${selectedRegion1.name}`}</div>
+                <div className="header-cell">{`${selectedRegion2.guName} ${selectedRegion2.name}`}</div>
               </div>
               {scoreLabels.map(({ label, key }) => (
                 <div className="table-row" key={key}>
                   <div className="label-cell">{label}</div>
                   <div className="bar-cell">
-                    <div className="score-bar left" style={{ width: `${regionScores[selectedRegion1]?.[key]}%` }}></div>
-                    <div className="score-bar remain" style={{ width: `${100 - regionScores[selectedRegion1]?.[key]}%` }}></div>
+                    <div className="score-bar left" style={{ width: `${regionScores[selectedRegion1.dongId]?.[key]}%` }}></div>
+                    <div className="score-bar remain" style={{ width: `${100 - regionScores[selectedRegion1.dongId]?.[key]}%` }}></div>
                   </div>
                   <div className="bar-cell">
-                    <div className="score-bar left" style={{ width: `${regionScores[selectedRegion2]?.[key]}%` }}></div>
-                    <div className="score-bar remain" style={{ width: `${100 - regionScores[selectedRegion2]?.[key]}%` }}></div>
+                    <div className="score-bar left" style={{ width: `${regionScores[selectedRegion2.dongId]?.[key]}%` }}></div>
+                    <div className="score-bar remain" style={{ width: `${100 - regionScores[selectedRegion2.dongId]?.[key]}%` }}></div>
                   </div>
                 </div>
               ))}
             </div>
-            )}
+          )}
         </div>
 
         <div className="liked-region-box">
@@ -113,10 +131,12 @@ function RegionCompare() {
           />
           <ul>
             {filteredRegions.map((region) => {
-              const isSelected = region === selectedRegion1 || region === selectedRegion2;
+              const fullName = `${region.guName} ${region.name}`;
+              const isSelected =
+                selectedRegion1?.dongId === region.dongId || selectedRegion2?.dongId === region.dongId;
               return (
                 <li
-                  key={region}
+                  key={region.dongId}
                   className={isSelected ? 'selected-region' : ''}
                   onClick={() => {
                     if (isSelected) return;
@@ -128,7 +148,12 @@ function RegionCompare() {
                     }
                   }}
                 >
-                  {region} {region === selectedRegion1 ? '①' : region === selectedRegion2 ? '②' : ''}
+                  {fullName}{' '}
+                  {selectedRegion1?.dongId === region.dongId
+                    ? '①'
+                    : selectedRegion2?.dongId === region.dongId
+                    ? '②'
+                    : ''}
                 </li>
               );
             })}
