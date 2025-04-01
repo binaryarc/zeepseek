@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy
+pymysql
+pymongo
+python-dotenv
+numpy
+scikit-learn
+cryptography
