@@ -69,7 +69,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         int isFirst = userPrincipal.isFirst() ? 1 : 0;
 
         // 첫 로그인 경로 수정: 프론트엔드의 설문 입력 페이지로 리다이렉트
-        String redirectPath = isFirst == 1 ? "/survey" : "/auth/naver/callback";
+        String redirectPath = isFirst == 1 ? "/survey" : "/auth/" + (authentication.getName().startsWith("kakao_") ? "kakao" : "naver") + "/callback";
 
         // 리다이렉트 URL 생성
         return UriComponentsBuilder.fromUriString(REDIRECT_BASE_URL + redirectPath)
