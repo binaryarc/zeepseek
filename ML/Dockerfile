@@ -3,6 +3,9 @@ FROM python:3.9-slim
 # 터미널 로그가 바로 출력되도록 설정
 ENV PYTHONUNBUFFERED=1
 
+# 빌드 도구 설치 (gcc 등)
+RUN apt-get update && apt-get install -y build-essential
+
 WORKDIR /app
 
 # 의존성 파일 복사 및 설치
