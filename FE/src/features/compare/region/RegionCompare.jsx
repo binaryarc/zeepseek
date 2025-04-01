@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import './RegionCompare.css';
 import { fetchDongDetail, fetchRegionSummary, fetchLikedRegions } from '../../../common/api/api';
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 
 function RegionCompare() {
   const [selectedRegion1, setSelectedRegion1] = useState(null);
@@ -67,6 +76,13 @@ function RegionCompare() {
     { label: '식당', key: 'restaurant' },
   ];
 
+  const chartData = scoreLabels.map(({ label, key }) => ({
+    subject: label,
+    [selectedRegion1?.dongId]: regionScores[selectedRegion1?.dongId]?.[key] || 0,
+    [selectedRegion2?.dongId]: regionScores[selectedRegion2?.dongId]?.[key] || 0,
+    fullMark: 100,
+  }));
+
   return (
     <div className="region-compare-total-container">
       <div className="region-compare-wrapper">
@@ -98,72 +114,93 @@ function RegionCompare() {
 
           {!isLoading && selectedRegion1 && selectedRegion2 && (
             <div className="compare-table">
-              <div className="table-header">
-                <div className="header-cell label-cell"></div>
-                <div className="header-cell">{`${selectedRegion1.guName} ${selectedRegion1.name}`}</div>
-                <div className="header-cell">{`${selectedRegion2.guName} ${selectedRegion2.name}`}</div>
-              </div>
-              {scoreLabels.map(({ label, key }) => (
-                <div className="table-row" key={key}>
-                  <div className="label-cell">{label}</div>
-                  <div className="bar-cell">
-                    <div className="score-bar left" style={{ width: `${regionScores[selectedRegion1.dongId]?.[key]}%` }}></div>
-                    <div className="score-bar remain" style={{ width: `${100 - regionScores[selectedRegion1.dongId]?.[key]}%` }}></div>
-                  </div>
-                  <div className="bar-cell">
-                    <div className="score-bar left" style={{ width: `${regionScores[selectedRegion2.dongId]?.[key]}%` }}></div>
-                    <div className="score-bar remain" style={{ width: `${100 - regionScores[selectedRegion2.dongId]?.[key]}%` }}></div>
-                  </div>
-                </div>
-              ))}
+              <ResponsiveContainer width="100%" height={400}>
+                <RadarChart outerRadius={130} data={chartData}>
+                  <PolarGrid />
+                  <PolarAngleAxis
+                    dataKey="subject"
+                    tickSize={20}
+                    tick={{ fontweight: "KOROAD_Bold", fontSize: '1.2rem', fill: '#555', dy: 8 }}
+                  />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                  <Radar
+                    name={`${selectedRegion1.guName} ${selectedRegion1.name}`}
+                    dataKey={selectedRegion1.dongId}
+                    stroke="#4CAF50"
+                    fill="#4CAF50"
+                    fillOpacity={0.3}
+                  />
+                  <Radar
+                    name={`${selectedRegion2.guName} ${selectedRegion2.name}`}
+                    dataKey={selectedRegion2.dongId}
+                    stroke="#673AB7"
+                    fill="#673AB7"
+                    fillOpacity={0.3}
+                  />
+                  <Legend
+                    verticalAlign="top"
+                    align="center"
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: '14px', marginTop: '-10px' }}
+                  />
+
+                </RadarChart>
+              </ResponsiveContainer>
             </div>
           )}
         </div>
 
         <div className="liked-region-box">
-          <h4>찜한 동네</h4>
-          <input
+          <div className="liked-search-box">
+            <h4>동네 검색</h4>
+            <input
               className="search-input"
               type="text"
               placeholder="동네 검색하기"
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-          />
-          <ul>
-            {filteredRegions.map((region) => {
-              const fullName = `${region.guName} ${region.name}`;
-              const isSelected =
-                selectedRegion1?.dongId === region.dongId || selectedRegion2?.dongId === region.dongId;
-              return (
-                <li
-                  key={region.dongId}
-                  className={isSelected ? 'selected-region' : ''}
-                  onClick={() => {
-                    if (isSelected) return;
-                    if (!selectedRegion1) setSelectedRegion1(region);
-                    else if (!selectedRegion2) setSelectedRegion2(region);
-                    else {
-                      setSelectedRegion1(region);
-                      setSelectedRegion2(null);
-                    }
-                  }}
-                >
-                  {fullName}{' '}
-                  {selectedRegion1?.dongId === region.dongId
-                    ? '①'
-                    : selectedRegion2?.dongId === region.dongId
-                    ? '②'
-                    : ''}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+            />
+          </div>
+
+          <div className="liked-list-box">
+            <h4 className="liked-list-box-title">찜한 동네</h4>
+            <ul>
+              {filteredRegions.map((region) => {
+                const fullName = `${region.guName} ${region.name}`;
+                const isSelected =
+                  selectedRegion1?.dongId === region.dongId || selectedRegion2?.dongId === region.dongId;
+                return (
+                  <li
+                    key={region.dongId}
+                    className={isSelected ? 'selected-region' : ''}
+                    onClick={() => {
+                      if (isSelected) return;
+                      if (!selectedRegion1) setSelectedRegion1(region);
+                      else if (!selectedRegion2) setSelectedRegion2(region);
+                      else {
+                        setSelectedRegion1(region);
+                        setSelectedRegion2(null);
+                      }
+                    }}
+                  >
+                    {fullName}{' '}
+                    {selectedRegion1?.dongId === region.dongId
+                      ? '①'
+                      : selectedRegion2?.dongId === region.dongId
+                      ? '②'
+                      : ''}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+</div>
+
       </div>
       <div className="region-ai-summary-container">
         {summary && (
           <div className="summary-box">
-            <h3>ZEEPSEEK AI의 동네 비교 요약</h3>
+            <p className="summary-box-title">ZEEPSEEK AI의 동네 비교 요약</p>
             <p>{summary}</p>
           </div>
         )}
