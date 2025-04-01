@@ -2,6 +2,7 @@ package com.zeepseek.backend.domain.recommend.service;
 
 import com.zeepseek.backend.domain.recommend.dto.response.KakaoPlaceResponse;
 import com.zeepseek.backend.domain.recommend.dto.response.PlaceInfo;
+import com.zeepseek.backend.domain.recommend.exception.DataRetrievalException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -35,21 +36,28 @@ public class KakaoPlaceServiceImpl implements KakaoPlaceService {
         if (type.equalsIgnoreCase("chicken")) {
             // type이 "chicken"인 경우 DB의 chicken 테이블(저장 프로시저 사용)에서 조회
             return Mono.fromCallable(() -> {
-                SimpleJdbcCall simpleJdbcCall = new SimpleJdbcCall(jdbcTemplate)
-                        .withProcedureName("find_chicken_within_radius");
-                MapSqlParameterSource inParams = new MapSqlParameterSource()
-                        .addValue("in_longitude", longitude)
-                        .addValue("in_latitude", latitude)
-                        .addValue("in_radius", DEFAULT_RADIUS);
-                // 저장 프로시저 실행 (결과셋이 "result" 키로 반환된다고 가정)
-                Map<String, Object> out = simpleJdbcCall.execute(inParams);
-                List<Map<String, Object>> resultSet = (List<Map<String, Object>>) out.get("result");
-                return resultSet.stream()
-                        .map(row -> new PlaceInfo(
-                                (String) row.get("name"),
-                                row.get("latitude").toString(),
-                                row.get("longitude").toString()))
-                        .collect(Collectors.toList());
+                try {
+                    SimpleJdbcCall simpleJdbcCall = new SimpleJdbcCall(jdbcTemplate)
+                            .withProcedureName("find_chicken_within_radius");
+                    MapSqlParameterSource inParams = new MapSqlParameterSource()
+                            .addValue("in_longitude", longitude)
+                            .addValue("in_latitude", latitude)
+                            .addValue("in_radius", DEFAULT_RADIUS);
+                    // 저장 프로시저 실행 (결과셋이 "result" 키로 반환된다고 가정)
+                    Map<String, Object> out = simpleJdbcCall.execute(inParams);
+                    List<Map<String, Object>> resultSet = (List<Map<String, Object>>) out.get("result");
+                    if (resultSet == null) {
+                        throw new DataRetrievalException("Result set is null from stored procedure", null);
+                    }
+                    return resultSet.stream()
+                            .map(row -> new PlaceInfo(
+                                    (String) row.get("name"),
+                                    row.get("latitude").toString(),
+                                    row.get("longitude").toString()))
+                            .collect(Collectors.toList());
+                } catch (Exception e) {
+                    throw new DataRetrievalException("Error retrieving chicken data", e);
+                }
             }).subscribeOn(Schedulers.boundedElastic());
         } else {
             String mappedCode;
@@ -81,7 +89,8 @@ public class KakaoPlaceServiceImpl implements KakaoPlaceService {
                     .map(response -> response.getDocuments().stream()
                             .map(doc -> new PlaceInfo(doc.getPlaceName(), doc.getY(), doc.getX()))
                             .collect(Collectors.toList())
-                    );
+                    )
+                    .onErrorMap(e -> new DataRetrievalException("Error retrieving data from Kakao API", e));
         }
     }
 }
