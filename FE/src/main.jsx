@@ -38,7 +38,7 @@ const router = createBrowserRouter(
       </Route>
       
       {/* 소셜 로그인 콜백 라우트 추가 */}
-      <Route path="/kakao/callback" element={<KakaoRedirectHandler />} />
+      <Route path="/auth/kakao/callback" element={<KakaoRedirectHandler />} />
       <Route path="/auth/naver/callback" element={<NaverRedirectHandler />} />
     </>
   ),
