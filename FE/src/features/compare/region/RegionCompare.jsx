@@ -162,39 +162,43 @@ function RegionCompare() {
             />
           </div>
 
-          <div className="liked-list-box">
-            <h4 className="liked-list-box-title">찜한 동네</h4>
+          <div className="liked-list-area">
+            <h4>찜한 동네</h4>
             <ul>
-              {filteredRegions.map((region) => {
-                const fullName = `${region.guName} ${region.name}`;
-                const isSelected =
-                  selectedRegion1?.dongId === region.dongId || selectedRegion2?.dongId === region.dongId;
-                return (
-                  <li
-                    key={region.dongId}
-                    className={isSelected ? 'selected-region' : ''}
-                    onClick={() => {
-                      if (isSelected) return;
-                      if (!selectedRegion1) setSelectedRegion1(region);
-                      else if (!selectedRegion2) setSelectedRegion2(region);
-                      else {
-                        setSelectedRegion1(region);
-                        setSelectedRegion2(null);
-                      }
-                    }}
-                  >
-                    {fullName}{' '}
-                    {selectedRegion1?.dongId === region.dongId
-                      ? '①'
-                      : selectedRegion2?.dongId === region.dongId
-                      ? '②'
-                      : ''}
-                  </li>
-                );
-              })}
+              {filteredRegions.length > 0 ? (
+                filteredRegions.map((region) => {
+                  const fullName = `${region.guName} ${region.name}`;
+                  const isSelected =
+                    selectedRegion1?.dongId === region.dongId || selectedRegion2?.dongId === region.dongId;
+                  return (
+                    <li
+                      key={region.dongId}
+                      className={isSelected ? 'selected-region' : ''}
+                      onClick={() => {
+                        if (isSelected) return;
+                        if (!selectedRegion1) setSelectedRegion1(region);
+                        else if (!selectedRegion2) setSelectedRegion2(region);
+                        else {
+                          setSelectedRegion1(region);
+                          setSelectedRegion2(null);
+                        }
+                      }}
+                    >
+                      {fullName}{' '}
+                      {selectedRegion1?.dongId === region.dongId
+                        ? '①'
+                        : selectedRegion2?.dongId === region.dongId
+                        ? '②'
+                        : ''}
+                    </li>
+                  );
+                })
+              ) : (
+                <li className="placeholder-region">찜한 동네가 없습니다.</li>
+              )}
             </ul>
           </div>
-</div>
+    </div>
 
       </div>
       <div className="region-ai-summary-container">

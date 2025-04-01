@@ -251,6 +251,17 @@ export const postSurvey = async (surveyData, accessToken) => {
   return response.data;
 };
 
+export const fetchNearbyPlaces = async (type, lng, lat) => {
+  try {
+    const response = await zeepApi.get(`/places/search?type=${type}&x=${lng}&y=${lat}`)
+    console.log("추천 매물 반경 위치 정보 요청 성공: ", response);
+    return response;
+  } catch (err) {
+    console.log("추천 매물 반경 위치 정보 요청 실패: ", err);
+    return [];
+  }
+}
+
 // // 응답 인터셉터
 // zeepApi.interceptors.response.use(
 //   (response) => response,
