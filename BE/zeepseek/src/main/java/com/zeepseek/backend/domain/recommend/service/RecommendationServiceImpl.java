@@ -63,7 +63,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         detailedResponse.setTotalElements(detailedProperties.size());
         detailedResponse.setTotalPages(1);
         detailedResponse.setCurrentPage(0);
-
+        detailedResponse.setMaxType(requestDto.getMaxScoreType());
         return detailedResponse;
     }
 }
