@@ -23,12 +23,14 @@ public class ZeepseekApplication {
 		String mongoDBUri = dotenv.get("MONGODB_URI");
 		String esUserName = dotenv.get("ES_USERNAME");
 		String esPassWord = dotenv.get("ES_PASSWORD");
+		String kakaoRestApiKey = dotenv.get("KAKAO_REST_API_KEY");
 
 		if (openaiApiKey != null) {
 			System.setProperty("OPENAI_API_KEY", openaiApiKey);
 			System.setProperty("MONGODB_URI", mongoDBUri);
 			System.setProperty("ES_USERNAME", esUserName);
 			System.setProperty("ES_PASSWORD", esPassWord);
+			System.setProperty("KAKAO_REST_API_KEY", kakaoRestApiKey);
 		}
 
 		SpringApplication.run(ZeepseekApplication.class, args);
