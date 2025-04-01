@@ -20,6 +20,7 @@ const CONSIDERATIONS = [
   "치킨집",
 ];
 
+
 const FirstLoginSurvey = ({ onStart }) => {
   const [gender, setGender] = useState("");
   const dispatch = useDispatch();
