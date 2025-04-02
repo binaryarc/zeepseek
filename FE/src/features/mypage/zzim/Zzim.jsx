@@ -60,33 +60,52 @@ const toggleLike = async (room) => {
 
   return (
     <div className="zzim-page">
-      <Navbar/>
+      <Navbar />
       <h2 className="zzim-title">찜한 매물</h2>
-      {Object.keys(groupedZzims).map((gu) => (
-        <div key={gu} className="zzim-gu-section">
-          <h3 className="gu-name">{gu}</h3>
-          <div className="zzim-list">
-            {groupedZzims[gu].map((room) => (
-              <div key={room.propertyId} className="zzim-card">
-                <img
-                  src={room.imageUrl || blankImg}
-                  alt="매물 이미지"
-                  className="zzim-img"
-                />
-                <button onClick={() => toggleLike(room)} className="zzim-delete-btn">
-                    <FaHeart color="red" size={24}/>
-                </button>
-                <div className="zzim-info">
-                  <span className="zzim-room-type">{getRoomType(room.roomBathCount)}</span>
-                  <p className="price">{room.price}</p>
-                  <p className="desc">{room.description}</p>
-                  <p className="addr">{room.address}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+      {Object.keys(groupedZzims).length === 0 ? (
+        <div className="empty-card">
+          <p className="animate-text">
+            <span>매</span>
+            <span>물</span>
+            <span>을</span>
+            <span>&nbsp;</span>
+            <span>찜</span>
+            <span>해</span>
+            <span>&nbsp;</span>
+            <span>보</span>
+            <span>세</span>
+            <span>요</span>
+            <span>!</span>
+            <span>!</span>
+          </p>
         </div>
-      ))}
+      ) : (
+        Object.keys(groupedZzims).map((gu) => (
+          <div key={gu} className="zzim-gu-section">
+            <h3 className="gu-name">{gu}</h3>
+            <div className="zzim-list">
+              {groupedZzims[gu].map((room) => (
+                <div key={room.propertyId} className="zzim-card">
+                  <img
+                    src={room.imageUrl || blankImg}
+                    alt="매물 이미지"
+                    className="zzim-img"
+                  />
+                  <button onClick={() => toggleLike(room)} className="zzim-delete-btn">
+                    <FaHeart color="red" size={24} />
+                  </button>
+                  <div className="zzim-info">
+                    <span className="zzim-room-type">{getRoomType(room.roomBathCount)}</span>
+                    <p className="price">{room.price}</p>
+                    <p className="desc">{room.description}</p>
+                    <p className="addr">{room.address}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))
+      )}
     </div>
   );
 };
