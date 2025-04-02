@@ -1,5 +1,6 @@
 package com.zeepseek.backend.domain.property.controller;
 
+import com.zeepseek.backend.domain.logevent.annotation.Loggable;
 import com.zeepseek.backend.domain.property.dto.response.DongPropertyCountDto;
 import com.zeepseek.backend.domain.property.dto.response.GuPropertyCountDto;
 import com.zeepseek.backend.domain.property.dto.response.PropertySummaryDto;
@@ -29,10 +30,11 @@ public class PropertyController {
         this.propertyService = propertyService;
     }
 
-    // 매물 상세 조회 API: GET /api/v1/property/{id}
-    @GetMapping("/{id}")
-    public ResponseEntity<Property> getPropertyDetail(@PathVariable Long id) {
-        Property property = propertyService.getPropertyDetail(id);
+    // 매물 상세 조회 API: GET /api/v1/property/{propertyId}
+    @GetMapping("/{propertyId}")
+    @Loggable(action = "view", type = "property")
+    public ResponseEntity<Property> getPropertyDetail(@PathVariable int propertyId) {
+        Property property = propertyService.getPropertyDetail((long) propertyId);
         return ResponseEntity.ok(property);
     }
 
