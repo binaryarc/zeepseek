@@ -1,4 +1,4 @@
-package com.zeepseek.backend.domain.auth.dto;
+package com.zeepseek.backend.domain.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,4 +17,5 @@ public class UserDto {
     private Integer age;
     private String nickname;
     private String provider;
+    private String refreshToken;
 }

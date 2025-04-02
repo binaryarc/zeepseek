@@ -1,4 +1,4 @@
-package com.zeepseek.backend.domain.auth.entity;
+package com.zeepseek.backend.domain.user.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,4 +43,34 @@ public class UserPreferences {
     
     @Column(columnDefinition = "FLOAT DEFAULT 0.0")
     private Float cafe;
+
+    //전체 주소 텍스트
+    @Column(length = 255)
+    private String destination;
+
+    // 세분화된 주소 정보 ( 추후 액티비티 로그 분석 시 용이할 수도 있어서 추가해둠)
+    @Column(length = 50)
+    private String sido; // 시/도 (예: 서울특별시)
+
+    @Column(length = 50)
+    private String sigungu; // 시/군/구 (예: 강남구)
+
+    @Column(length = 100)
+    private String roadName; // 도로명 (예: 테헤란로)
+
+    @Column(length = 50)
+    private String buildingInfo; // 건물 번호 및 정보 (예: 152)
+
+    @Column(length = 50)
+    private String detailAddress; // 상세 주소 (예: 10층 1001호)
+
+    @Column(length = 10)
+    private String zipCode; // 우편번호
+
+    // 지리적 위치 정보
+    @Column(columnDefinition = "DECIMAL(10,7)")
+    private Double latitude; // 위도
+
+    @Column(columnDefinition = "DECIMAL(11,7)")
+    private Double longitude; // 경도
 }

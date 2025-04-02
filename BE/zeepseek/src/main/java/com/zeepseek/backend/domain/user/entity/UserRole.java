@@ -1,4 +1,4 @@
-package com.zeepseek.backend.domain.auth.entity;
+package com.zeepseek.backend.domain.user.entity;
 
 public enum UserRole {
     ROLE_USER,
