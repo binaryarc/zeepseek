@@ -26,6 +26,8 @@ public class DetailedRecommendationDto {
     private Integer chickenCount;
     private Float leisureScore;
     private Integer leisureCount;
+    private Double latitude;
+    private Double longitude;
 
     private Double similarity;  // FastAPI 추천 결과에 포함된 유사도
 }
