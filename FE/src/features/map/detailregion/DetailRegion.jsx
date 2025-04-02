@@ -124,7 +124,7 @@ const DetailRegion = () => {
             {comments.length > 0 ? (
               <>
                 <p className="comment-content">"{comments[0].content}"</p>
-                <p className="comment-meta">- {comments[0].nickname}</p>
+                {/* <p className="comment-meta">- {comments[0].nickname}</p> */}
               </>
             ) : (
               <p className="comment-content">아직 댓글이 없어요.</p>
