@@ -38,20 +38,25 @@ body {
 
 @font-face {
   font-family: 'KOROAD_Bold';
-  src: url('./assets/font/KOROAD_Bold.ttf');
+  src: url('/fonts/KOROAD_Bold.ttf');
 }
 
 @font-face {
   font-family: 'KOROAD';
-  src: url('./assets/font/KOROAD_Medium.ttf');
+  src: url('/fonts/KOROAD_Medium.ttf');
 }
 
 @font-face {
   font-family: 'KOROAD_Light';
-  src: url('./assets/font/KOROAD_Light.ttf');
+  src: url('/fonts/KOROAD_Light.ttf');
 }
 
 @font-face {
   font-family: 'GangwonEduAll';
-  src: url('./assets/font/강원교육모두\ Bold.ttf');
+  src: url('/fonts/강원교육모두 Bold.ttf');
+}
+
+@font-face {
+  font-family: 'GangwonEduAll';
+  src: url('/fonts/강원교육모두 Light.ttf');
 }
