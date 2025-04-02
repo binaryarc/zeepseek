@@ -50,7 +50,7 @@ public class CookieUtils {
                 .path("/")
                 .maxAge(0)
                 .httpOnly(name.equals(REFRESH_TOKEN_COOKIE_NAME)) // refreshtoken만 httpOnly 설정
-//                .secure(true)
+                .secure(true)
                 .sameSite("None")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -81,7 +81,7 @@ public class CookieUtils {
                     .path("/")
                     .maxAge(DEFAULT_MAX_AGE)
                     .httpOnly(true) // JavaScript에서 접근 가능하도록 설정
-//                    .secure(true) // HTTPS에서만 전송되도록 설정
+                    .secure(true) // HTTPS에서만 전송되도록 설정
                     .sameSite("None")
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, userCookie.toString());
@@ -99,7 +99,7 @@ public class CookieUtils {
                     .path("/")
                     .maxAge(DEFAULT_MAX_AGE)
                     .httpOnly(true) // JavaScript에서 접근 가능하도록 설정
-//                    .secure(true) // HTTPS에서만 전송되도록 설정
+                    .secure(true) // HTTPS에서만 전송되도록 설정
                     .sameSite("None")
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, userIdCookie.toString());
@@ -113,7 +113,7 @@ public class CookieUtils {
         if (refreshToken != null && !refreshToken.isEmpty()) {
             ResponseCookie refreshTokenCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
                     .httpOnly(true) // JavaScript에서 접근 불가능하도록 설정
-//                    .secure(true) // HTTPS에서만 전송되도록 설정
+                    .secure(true) // HTTPS에서만 전송되도록 설정
                     .path("/" +
                             "")
                     .maxAge(DEFAULT_MAX_AGE)
@@ -195,7 +195,7 @@ public class CookieUtils {
                     .path("/")
                     .maxAge(DEFAULT_MAX_AGE)
                     .httpOnly(true) // JavaScript에서 접근 가능하도록 설정
-//                    .secure(true) // HTTPS에서만 전송되도록 설정
+                    .secure(true) // HTTPS에서만 전송되도록 설정
                     .sameSite("None")
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, activityCookie.toString());
