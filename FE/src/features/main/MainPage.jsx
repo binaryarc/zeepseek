@@ -12,16 +12,27 @@ import villa from "../../assets/images/main_png/villa.png";
 import Searchbar from "../../common/searchbar/SearchBar";
 import "./MainPage.css";
 import MainSearchbar from "../../common/searchbar/MainSearchBar";
+import { useSelector } from "react-redux";
 
 
 function MainPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user); // 🔹 로그인 여부 확인
 
   const handleMoveToMap = (roomType) => {
     dispatch(setSelectedRoomType(roomType));
     navigate("/map");
   };
+
+    // 🔹 로그인 필요 알림 함수
+    const handleProtectedMove = (path) => {
+      if (!user) {
+        alert("로그인 후 이용해주세요.");
+        return;
+      }
+      navigate(path);
+    };
 
   return (
     <div className="main-container">
@@ -50,7 +61,7 @@ function MainPage() {
       </section>
 
       <section className="main-button-section-bottom">
-        <div className="main-button-bottom" onClick={() => navigate("/map")}>
+        <div className="main-button-bottom" onClick={() => handleProtectedMove("/map")}>
           <p className="main-button-text">매물 추천 받기</p>
           <img
             src={recommend_estate}
@@ -58,7 +69,7 @@ function MainPage() {
             className="main-png-bottom"
           />
         </div>
-        <div className="main-button-bottom" onClick={() => navigate("/compare")}>
+        <div className="main-button-bottom" onClick={() => handleProtectedMove("/compare")}>
           <p className="main-button-text">동네 비교</p>
           <img
             src={compare_estate}

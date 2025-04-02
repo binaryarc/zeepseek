@@ -54,7 +54,7 @@ function Navbar() {
         <div className="nav-right">
           <div className="nav-menu">
             <span onClick={() => navigate("/map")}>지도</span>
-            <span onClick={() => navigate("/post-room")}>방 내놓기</span>
+            {/* <span onClick={() => navigate("/post-room")}>방 내놓기</span> */}
             <span onClick={() => navigate("/zzim")}>찜</span>
           </div>
           <div className="nav-user-area" onClick={handleToggleDropdown}>
@@ -66,9 +66,9 @@ function Navbar() {
                 <div onClick={() => handleMenuClick("/zzim")}>
                   찜한 매물
                 </div>
-                <div onClick={() => handleMenuClick("/profile")}>
+                {/* <div onClick={() => handleMenuClick("/profile")}>
                   내 정보 수정
-                </div>
+                </div> */}
                 <div onClick={handleLogout}>로그아웃</div>
               </div>
             )}
