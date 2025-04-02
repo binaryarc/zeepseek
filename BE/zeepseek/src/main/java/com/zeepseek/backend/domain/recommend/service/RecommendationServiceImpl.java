@@ -63,6 +63,11 @@ public class RecommendationServiceImpl implements RecommendationService {
         detailedResponse.setTotalElements(detailedProperties.size());
         detailedResponse.setTotalPages(1);
         detailedResponse.setCurrentPage(0);
+        // 여기서 우선순위가 가장 높은 게 두 개 이상이라면 미리 정의해둔 우선순위로 하나 선별
+
+
+
+        // 위에 계산해서 나온 한 카테고리를 requestDto.getMaxScoreType()을 대체
         detailedResponse.setMaxType(requestDto.getMaxScoreType());
         return detailedResponse;
     }
