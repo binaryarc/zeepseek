@@ -4,7 +4,7 @@ import requests
 from datetime import datetime, timedelta
 from fastapi import APIRouter
 
-router = APIRouter()
+router = APIRouter(prefix="/activity-logs")
 # 1) ES 접속 정보
 ES_URL = "http://elasticsearch:9200"
 ES_USER = "fastapi_user"
@@ -71,17 +71,12 @@ dong_ids = [
 @router.post("/create-logs")
 def create_logs_api(count: int = 1000, index_name: str = "logs"):
     """ 
-    요청 시, count만큼 무작위 로그를 생성하고 ES에 저장 
-    Args:
-      count (int): 생성할 로그 개수
-      index_name (str): 삽입할 인덱스 이름
+    [POST] /activity-logs/create-logs?count=...&index_name=...
+    → count만큼 무작위 로그를 생성하고 ES에 저장 
     """
-    # 1) 로그 생성
     logs = generate_activity_logs(count)
-    # 2) Bulk Insert
     bulk_insert_es(logs, index_name)
     return {"message": f"{count} logs inserted into ES index '{index_name}' successfully!"}
-
 
 def generate_activity_logs(n=1000):
     """ n개의 액티비티 로그를 무작위로 생성하여 리스트로 반환 """
@@ -91,40 +86,34 @@ def generate_activity_logs(n=1000):
 
     for _ in range(n):
         doc = {
-            "userId": random.randint(1, 5000),            # userId 1~5000
-            "propertyId": random.randint(0, 87500),       # 0 ~ 87500
-            "action": random.choice(actions),             # zzim / view
-            "age": random.randint(20, 60),                # 나이 20~60
-            "gender": random.choice(genders),             # male / female
-            "dongId": random.choice(dong_ids),            # dongId 중 하나
-            # 최근 30일 범위에서 랜덤 시간
+            "userId": random.randint(1, 5000),
+            "propertyId": random.randint(0, 87500),
+            "action": random.choice(actions),
+            "age": random.randint(20, 60),
+            "gender": random.choice(genders),
+            "dongId": random.choice(dong_ids),
             "time": (datetime.utcnow() - timedelta(days=random.randint(0,30))).isoformat() + "Z"
         }
         logs.append(doc)
     return logs
 
-
 def bulk_insert_es(logs, index_name="logs"):
     """ Bulk API로 logs를 ES에 넣는 함수 """
     bulk_data = []
     for doc in logs:
-        meta = {
-            "index": {
-                "_index": index_name
-            }
-        }
+        meta = {"index": {"_index": index_name}}
         bulk_data.append(json.dumps(meta))
         bulk_data.append(json.dumps(doc))
 
     body = "\n".join(bulk_data) + "\n"
     headers = {"Content-Type": "application/x-ndjson"}
 
-    # 인증 (Basic Auth)
+    # ES Basic Auth
     res = requests.post(
         f"{ES_URL}/_bulk",
         data=body,
         headers=headers,
-        auth=(ES_USER, ES_PASS),  # fastapi_user + e203@Password!
+        auth=(ES_USER, ES_PASS),
         verify=False
     )
     print("Status:", res.status_code)
