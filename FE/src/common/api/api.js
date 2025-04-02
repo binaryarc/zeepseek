@@ -327,11 +327,15 @@ export const postDongComment = async (dongId, nickname, content, token) => {
 
 export const deleteDongComment = async (dongId, commentId, token) => {
   try {
-    const res = await zeepApi.delete(`/dong/${dongId}/comment/${commentId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await zeepApi.delete(
+      `/dong/${dongId}/comment/${commentId}`,
+      null, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return res.data;
   } catch (err) {
     console.error("댓글 삭제 실패:", err);
