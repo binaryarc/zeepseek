@@ -67,34 +67,48 @@ dong_ids = [
     11740590, 11740600, 11740610, 11740620, 11740640, 11740650, 11740660, 11740685,
     11740690, 11740700
 ]
-
 @router.post("/create-logs")
 def create_logs_api(count: int = 1000, index_name: str = "logs"):
     """ 
     [POST] /activity-logs/create-logs?count=...&index_name=...
-    → count만큼 무작위 로그를 생성하고 ES에 저장 
+    => count만큼 무작위 로그를 생성하고 ES에 저장 (남녀별 행동 확률차 적용)
     """
     logs = generate_activity_logs(count)
     bulk_insert_es(logs, index_name)
     return {"message": f"{count} logs inserted into ES index '{index_name}' successfully!"}
 
 def generate_activity_logs(n=1000):
-    """ n개의 액티비티 로그를 무작위로 생성하여 리스트로 반환 """
-    actions = ["zzim", "view"]
-    genders = ["male", "female"]
+    """
+    n개의 액티비티 로그를 무작위로 생성하되,
+    - 남성(0): 'view' 확률 높음 (예: 70% view, 30% zzim)
+    - 여성(1): 'zzim' 확률 높음 (예: 40% view, 60% zzim)
+    """
     logs = []
 
     for _ in range(n):
+        # 0=male, 1=female
+        gender = random.choice([0, 1])
+        
+        # 남성(0)이면 view 확률 높게, 여성(1)이면 zzim 확률 높게
+        if gender == 0:
+            # 남성: 70% view, 30% zzim
+            action = random.choices(["view", "zzim"], weights=[0.7, 0.3], k=1)[0]
+        else:
+            # 여성: 40% view, 60% zzim
+            action = random.choices(["view", "zzim"], weights=[0.4, 0.6], k=1)[0]
+
         doc = {
             "userId": random.randint(1, 5000),
             "propertyId": random.randint(0, 87500),
-            "action": random.choice(actions),
+            "action": action,              # 위에서 결정된 action
             "age": random.randint(20, 60),
-            "gender": random.choice(genders),
+            "gender": gender,             # 0 or 1
             "dongId": random.choice(dong_ids),
+            # 최근 30일 범위에서 랜덤 시간
             "time": (datetime.utcnow() - timedelta(days=random.randint(0,30))).isoformat() + "Z"
         }
         logs.append(doc)
+
     return logs
 
 def bulk_insert_es(logs, index_name="logs"):
