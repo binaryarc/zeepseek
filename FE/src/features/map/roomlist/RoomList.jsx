@@ -14,18 +14,30 @@ import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { likeProperty, unlikeProperty } from "../../../common/api/api";
 
 const RoomList = () => {
-  const [selectedTab, setSelectedTab] = useState("원룸/투룸");
+  const reduxSelectedRoomType = useSelector(
+    (state) => state.roomList.selectedRoomType
+  );
+
+  const [selectedTab, setSelectedTab] = useState(
+    reduxSelectedRoomType || "원룸/투룸"
+  );
+
   const dispatch = useDispatch();
   const { currentGuName, currentDongName } = useSelector(
     (state) => state.roomList
   );
 
-  const level = window.map?.getLevel();
+  let level = null;
+  if (window.isMapReady && typeof window.map?.getLevel === "function") {
+    level = window.map.getLevel();
+  } else {
+    console.warn("❗맵이 아직 준비되지 않았습니다.");
+  }
   const user = useSelector((state) => state.auth.user);
 
   const toggleLike = async (room) => {
     const { propertyId } = room;
-    if (user===null) return alert("로그인이 필요합니다.");
+    if (user === null) return alert("로그인이 필요합니다.");
 
     try {
       if (room.liked) {
