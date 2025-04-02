@@ -61,8 +61,8 @@ public class ZzimController {
     public ResponseEntity<?> propertyZzim(
             @PathVariable("userId") int userId,
             @PathVariable("propertyId") int propertyId,
-            @CookieValue(name = "age") int age,
-            @CookieValue(name = "gender") String gender) {
+            @CookieValue(name = "age", defaultValue = "-1", required = false ) int age,
+            @CookieValue(name = "gender", defaultValue = "-1", required = false ) String gender) {
         return zzimService.zzimProperty(userId, propertyId);
     }
 
@@ -78,8 +78,8 @@ public class ZzimController {
     public ResponseEntity<?> deletePropertyZzim(
             @PathVariable("userId") int userId,
             @PathVariable("propertyId") int propertyId,
-            @CookieValue(name = "age") int age,
-            @CookieValue(name = "gender") String gender) {
+            @CookieValue(name = "age", defaultValue = "-1", required = false ) int age,
+            @CookieValue(name = "gender", defaultValue = "-1", required = false ) String gender) {
         return zzimService.deletePropertyZzim(userId, propertyId);
     }
 
