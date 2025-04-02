@@ -5,6 +5,7 @@ import { fetchLikedProperties } from "../../../common/api/api";
 import "./Zzim.css";
 import Navbar from "../../../common/navbar/Navbar";
 import { useSelector } from "react-redux";
+import blankImg from "../../../assets/logo/512image.png"
 
 const Zzim = () => {
   const [groupedZzims, setGroupedZzims] = useState({});
@@ -12,7 +13,7 @@ const Zzim = () => {
 
   useEffect(() => {
     if (!user?.idx) return;
-    console.log('실행되니?')
+    console.log(groupedZzims)
     fetchLikedProperties(user.idx).then((zzims) => {
       // 구 단위로 그룹핑
       const grouped = zzims.reduce((acc, item) => {
@@ -36,7 +37,7 @@ const Zzim = () => {
             {groupedZzims[gu].map((room) => (
               <div key={room.propertyId} className="zzim-card">
                 <img
-                  src={room.imageUrl}
+                  src={room.imageUrl || blankImg}
                   alt="매물 이미지"
                   className="zzim-img"
                 />
