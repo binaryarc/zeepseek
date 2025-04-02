@@ -17,7 +17,7 @@ public class LogService {
     private final ElasticsearchClient elasticsearchClient;
 
     @Async
-    public void logAction(String action,int userId, int age, String gender, String type, int propertyId, int dongId) {
+    public void logAction(String action, String type,int userId, int age, String gender,int propertyId, int dongId) {
         // 고유 ID를 생성합니다. (예시로 현재 타임스탬프 사용)
         String id = "activity_log_" + System.currentTimeMillis();
 
@@ -26,6 +26,7 @@ public class LogService {
         logData.put("userId", userId);
         logData.put("time", Instant.now().toString());
         logData.put("action", action);
+        logData.put("type", type);
         // 기타 필드 (예시)
         logData.put("age", age);
         logData.put("gender", gender);
