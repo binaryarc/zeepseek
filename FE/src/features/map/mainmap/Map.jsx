@@ -23,6 +23,8 @@ const Map = () => {
   const { currentGuName, currentDongName, selectedRoomType } = useSelector(
     (state) => state.roomList
   );
+  // 컴포넌트 상단
+  window.isMapReady = false;
 
   // 아래 window 객체에 등록
   window.setHoverMarker = (lat, lng) => {
@@ -91,6 +93,12 @@ const Map = () => {
 
         // 🌐 지도가 이동할 때마다 보이는 동들만 폴리곤으로 그리기
         window.kakao.maps.event.addListener(mapInstance, "idle", () => {
+          // ✅ 맵 준비 완료 시점 표시
+          if (!window.isMapReady) {
+            console.log("✅ 지도 준비 완료!");
+            window.isMapReady = true;
+          }
+
           if (markerRef.current) {
             markerRef.current.setMap(null);
             markerRef.current = null;
