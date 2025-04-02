@@ -7,6 +7,7 @@
     border-radius: 10px;
     box-shadow: 0 0 4px rgba(0,0,0,0.1);
     animation: fadeIn 0.3s ease-in-out;
+    font-family: KOROAD;
   }
   
   .community-header {
@@ -30,26 +31,26 @@
     font-size: 14px;
   }
   
-  .comment-list {
+  .dong-comment-list {
     max-height: 270px;
     overflow-y: auto;
-    background-color: #f8f8f8;
+    background-color: #e7fceb;
     border-radius: 6px;
 
   }
   
-  .comment-item {
+  .dong-comment-item {
     margin-bottom: 10px;
     font-size: 13px;
   }
   
-  .comment-item .comment-content {
+  .dong-comment-item .comment-content {
     font-size: 14px;
     color: #333;
     margin-bottom: 4px;
   }
   
-  .comment-item .comment-meta {
+  .dong-comment-item .comment-meta {
     font-size: 12px;
     color: #999;
   }
@@ -66,27 +67,32 @@
     }
   }
   
-  .comment-form {
+  .dong-comment-form {
     margin-top: 14px;
     display: flex;
     gap: 8px;
   }
   
-  .comment-form input {
+  .dong-comment-form input {
     flex: 1;
     padding: 6px 10px;
-    font-size: 13px;
+    font-size: 12px;
     border: 1px solid #ccc;
     border-radius: 5px;
   }
   
-  .comment-form button {
+  .dong-comment-form input::placeholder {
+    font-size: 12px;  
+    color: #bbb;       /* 살짝 연한 색 추천 */
+  }
+
+  .dong-comment-form button {
     background-color: #6caf4f;
     color: white;
     border: none;
     border-radius: 5px;
     padding: 6px 12px;
-    font-size: 13px;
+    font-size: 14px;
     cursor: pointer;
   }
   
