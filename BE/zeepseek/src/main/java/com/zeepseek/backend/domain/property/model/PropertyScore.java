@@ -1,16 +1,12 @@
 package com.zeepseek.backend.domain.property.model;
 
 import jakarta.persistence.*;
-import lombok.*;
-
+import lombok.Data;
 import java.time.LocalDateTime;
 
+@Data
 @Entity
-@Builder
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Table(name = "property_score")
 public class PropertyScore {
 
     @Id
@@ -62,6 +58,6 @@ public class PropertyScore {
     @Column(name = "leisure_score")
     private Float leisureScore;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
 }

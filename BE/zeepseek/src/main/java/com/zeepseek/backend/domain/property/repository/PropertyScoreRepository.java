@@ -3,8 +3,8 @@ package com.zeepseek.backend.domain.property.repository;
 import com.zeepseek.backend.domain.property.model.PropertyScore;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PropertyScoreRepository extends JpaRepository<PropertyScore, Integer> {
+import java.util.Optional;
 
-    public PropertyScore findByPropertyId(int propertyId);
-
+public interface PropertyScoreRepository extends JpaRepository<PropertyScore, Long> {
+    Optional<PropertyScore> findByPropertyId(Integer propertyId);
 }
