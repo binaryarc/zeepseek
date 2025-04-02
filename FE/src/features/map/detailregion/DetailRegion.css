@@ -11,34 +11,35 @@
   transform: translateY(-275px) translateX(80px);
 }
 
-.score-bars {
+.dong-score-bars {
   margin-bottom: 12px;
   z-index: 1000;
 }
 
-.score-item {
+.dong-score-item {
   display: flex;
   align-items: center;
   margin: 15px 0;
   z-index: 1000;
 }
 
-.score-label {
+.dong-score-label {
+  font-size: 16px;
   width: 50px;
   font-weight: 500;
   z-index: 1000;
 }
 
-.score-bar-wrapper {
+.dong-score-bar-wrapper {
   flex: 1;
   height: 8px;
   background-color: #eee;
   border-radius: 4px;
-  margin-left: 10px;
+  margin-left: 22px;
   z-index: 1000;
 }
 
-.score-bar {
+.dong-score-bar {
   height: 120%;
   background-color: #5cb85c;
   border-radius: 4px;

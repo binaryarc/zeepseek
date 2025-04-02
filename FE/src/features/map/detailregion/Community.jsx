@@ -57,16 +57,19 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
       };
 
     return (
-      <div className="community-box">
+      <div
+          className="community-box"
+          onWheel={(e) => e.stopPropagation()}
+        >
         <div className="community-header">
           <h4>{guName} {dongName}</h4>
           <img src={back} alt="" onClick={onClose} className="community-back"/>
         </div>
-        <ul className="comment-list">
+        <ul className="dong-comment-list">
           {comments.map((c, i) => (
-            <li key={i} className="comment-item">
-              <p className="comment-content">{c.content}</p>
-              <p className="comment-meta">
+            <li key={i} className="dong-comment-item">
+              <p className="dong-comment-content">{c.content}</p>
+              <p className="dong-comment-meta">
                 - {c.nickname ?? "익명"} | {new Date(c.createdAt).toLocaleDateString()}
                 {/* 🔐 로그인 사용자와 닉네임 일치 시에만 보여주기 */}
                 {c.nickname === nickname && (
@@ -81,15 +84,21 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
             </li>
           ))}
         </ul>
-        <div className="comment-form">
+        <div className="dong-comment-form">
         <input
             type="text"
             placeholder="댓글을 입력하세요"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handlePost();
+              }
+            }}
             disabled={loading}
-        />
-        <button onClick={handlePost} disabled={loading}>
+          />
+                  <button onClick={handlePost} disabled={loading}>
             등록
         </button>
         </div>

@@ -7,7 +7,7 @@
     flex-direction: row;
     justify-content: space-between;
     font-size: 1rem;
-    font-family: KOROAD;
+    font-family: KOROAD_Light;
     height: 7vh;
     align-items: center;
     padding-right: 5%;
@@ -128,7 +128,7 @@
   .pagination button.active {
     background-color: #f9b233;
     color: white;
-    font-weight: bold;
+    /* font-weight: bold; */
   }
   
   .like-btn {
