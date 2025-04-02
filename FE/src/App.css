@@ -52,6 +52,11 @@ body {
 }
 
 @font-face {
-  font-family: 'GangwonEduBold';
-  src: url('/fonts/GangwonEduLight.ttf');
+  font-family: 'GangwonEduAll';
+  src: url('/fonts/강원교육모두 Bold.ttf');
+}
+
+@font-face {
+  font-family: 'GangwonEduAll';
+  src: url('/fonts/강원교육모두 Light.ttf');
 }
