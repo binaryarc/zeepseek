@@ -20,6 +20,7 @@
     gap: 1rem;
   }
   .zzim-card {
+    position: relative;
     width: 200px;
     border: 1px solid #ddd;
     border-radius: 8px;
@@ -34,8 +35,8 @@
   .zzim-info {
     padding: 0.5rem;
   }
-  .room-type {
-    font-size: 0.9rem;
+  .zzim-room-type {
+    font-size: 1.2rem;
     font-weight: 600;
   }
   .price {
@@ -46,4 +47,24 @@
     font-size: 0.85rem;
     color: #666;
   }
+  .zzim-delete-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 35px;
+    height: 35px;
+    background-color: #fff;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+  }
   
+  .zzim-delete-btn:hover {
+    background-color: #f0f0f0;
+    transform: scale(1.1);
+  }
