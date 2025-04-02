@@ -16,8 +16,8 @@
   background-color: white;
   padding: 2rem;
   border-radius: 1rem;
-  max-width: 500px;
-  width: 100%;
+  width: 70vw;
+  height: 70vh;
   position: relative;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
 }
@@ -27,8 +27,8 @@
 }
 
 .modal-image {
-  width: 100%;
-  height: auto;
+  width: 70%;
+  height: 80%;
   border-radius: 0.5rem;
   margin-bottom: 1rem;
 }
@@ -39,7 +39,7 @@
   line-height: 1.5;
 }
 
-.close-btn {
+.recommend-modal-close-btn {
   position: absolute;
   top: 1rem;
   right: 1rem;

@@ -7,7 +7,7 @@ const AiRecommendList = ({ room, onClose }) => {
   return (
     <div className="recommend-modal-overlay">
       <div className="recommend-modal">
-        <button className="close-btn" onClick={onClose}>
+        <button className="recommend-modal-close-btn" onClick={onClose}>
           &times;
         </button>
         <div className="modal-header">
