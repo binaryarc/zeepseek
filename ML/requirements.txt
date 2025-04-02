@@ -10,3 +10,4 @@ cryptography
 pandas
 elasticsearch
 scikit-surprise
+requests
