@@ -35,9 +35,9 @@ public class PropertyController {
     @Loggable(action = "view", type = "property")
     public ResponseEntity<Property> getPropertyDetail(
             @PathVariable int propertyId,
-            @CookieValue(name = "userId") int userId,
-            @CookieValue(name = "age") int age,
-            @CookieValue(name = "gender") String gender) {
+            @CookieValue(name = "userId", defaultValue = "-1", required = false ) int userId,
+            @CookieValue(name = "age", defaultValue = "-1", required = false ) int age,
+            @CookieValue(name = "gender", defaultValue = "-1", required = false ) String gender) {
         Property property = propertyService.getPropertyDetail((long) propertyId);
         return ResponseEntity.ok(property);
     }
