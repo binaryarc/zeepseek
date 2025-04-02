@@ -11,7 +11,7 @@ public class PropertyScore {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Column(name = "property_id", nullable = false)
     private Integer propertyId;
