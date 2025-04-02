@@ -119,7 +119,8 @@ public class CookieUtils {
             ResponseCookie refreshTokenCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
                     .httpOnly(true) // JavaScript에서 접근 불가능하도록 설정
                     .secure(true) // HTTPS에서만 전송되도록 설정
-                    .path("/")
+                    .path("/" +
+                            "")
                     .maxAge(DEFAULT_MAX_AGE)
                     .sameSite("None")
                     .build();
