@@ -1,0 +1,73 @@
+.recommend-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.recommend-modal {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  width: 80vw;
+  height: 70vh;
+  position: relative;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-body {
+  display: flex;
+  height: 100%;
+  gap: 2rem;
+}
+
+.modal-image-section {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-image {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  border-radius: 0.5rem;
+  object-fit: cover;
+}
+
+.modal-info-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.modal-title {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.modal-info-section p {
+  margin: 0.6rem 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.recommend-modal-close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}

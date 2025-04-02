@@ -37,7 +37,7 @@ export const fetchGuPropertyCounts = async (filterKey) => {
 export const fetchDongPropertyCounts = async (filterKey) => {
   try {
     const res = await zeepApi.get(`/property/count/dong/${filterKey}`);
-    // console.log("동동별 매물 개수 조회 결과:", res);
+    // console.log("동별 매물 개수 조회 결과:", res);
     return res.data;
   } catch (err) {
     console.error("동별 매물 개수 조회 실패:", err);
@@ -276,15 +276,32 @@ export const unlikeDongApi = async (dongId, userId) => {
   }
 };
 
+const authApi = axios.create({
+  baseURL: `http://localhost:8082/api/v1`, // ✅ API 서버 주소
+  withCredentials: true, // ✅ 쿠키 포함 요청
+});
+
+
 export const postSurvey = async (surveyData, accessToken) => {
   // console.log("accessToken:", accessToken);
-  const response = await zeepApi.post("/auth/survey", surveyData, {
+  const response = await authApi.post("/auth/survey", surveyData, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
   });
   return response.data;
 };
+
+export const fetchNearbyPlaces = async (type, lng, lat) => {
+  try {
+    const response = await zeepApi.get(`/places/search?type=${type}&x=${lng}&y=${lat}`)
+    console.log("추천 매물 반경 위치 정보 요청 성공: ", response);
+    return response;
+  } catch (err) {
+    console.log("추천 매물 반경 위치 정보 요청 실패: ", err);
+    return [];
+  }
+}
 
 
 // 동네 댓글 조회

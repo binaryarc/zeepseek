@@ -48,6 +48,7 @@ function SaleCountMarkers({ map }) {
       let countData = [];
 
       if (currentLevel >= 6) {
+        if (!filterKey) return;
         countData = await fetchGuPropertyCounts(filterKey);
       } else if (currentLevel < 6 && currentLevel >= 3) {
         if (!filterKey) return;
