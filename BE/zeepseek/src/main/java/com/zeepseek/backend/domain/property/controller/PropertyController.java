@@ -33,7 +33,11 @@ public class PropertyController {
     // 매물 상세 조회 API: GET /api/v1/property/{propertyId}
     @GetMapping("/{propertyId}")
     @Loggable(action = "view", type = "property")
-    public ResponseEntity<Property> getPropertyDetail(@PathVariable int propertyId) {
+    public ResponseEntity<Property> getPropertyDetail(
+            @PathVariable int propertyId,
+            @CookieValue(name = "userId") int userId,
+            @CookieValue(name = "age") int age,
+            @CookieValue(name = "gender") String gender) {
         Property property = propertyService.getPropertyDetail((long) propertyId);
         return ResponseEntity.ok(property);
     }

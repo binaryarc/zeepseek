@@ -8,6 +8,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.lang.annotation.Annotation;
@@ -45,6 +46,21 @@ public class LogAspect {
         Object[] args = joinPoint.getArgs();
         for (int i = 0; i < parameterAnnotations.length; i++) {
             for (Annotation annotation : parameterAnnotations[i]) {
+                if (annotation instanceof CookieValue) {
+                    CookieValue cv = (CookieValue) annotation;
+                    String cookieName = cv.value();
+                    if ("userId".equals(cookieName)) {
+                        extraData.put("userId", args[i]);
+                    }
+                    if ("age".equals(cookieName)) {
+                        extraData.put("age", args[i]);
+                    }
+                    if ("gender".equals(cookieName)) {
+                        extraData.put("gender", args[i]);
+                    }
+                    // 다른 쿠키 이름도 필요하면 추가 조건문 작성
+                }
+
                 if (annotation instanceof PathVariable) {
                     PathVariable pv = (PathVariable) annotation;
                     String value = pv.value();
