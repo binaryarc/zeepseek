@@ -99,6 +99,8 @@ public class RecommendationServiceImpl implements RecommendationService {
                 dto.setChickenCount(score.getChickenCount());
                 dto.setLeisureScore(score.getLeisureScore());
                 dto.setLeisureCount(score.getLeisureCount());
+                dto.setLatitude(property.getLatitude());
+                dto.setLongitude(property.getLongitude());
 
                 dto.setSimilarity(rec.getSimilarity());  // 추천 유사도 세팅
 
