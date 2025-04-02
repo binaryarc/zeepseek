@@ -66,9 +66,9 @@ function Navbar() {
                 <div onClick={() => handleMenuClick("/zzim")}>
                   찜한 매물
                 </div>
-                <div onClick={() => handleMenuClick("/profile")}>
+                {/* <div onClick={() => handleMenuClick("/profile")}>
                   내 정보 수정
-                </div>
+                </div> */}
                 <div onClick={handleLogout}>로그아웃</div>
               </div>
             )}
