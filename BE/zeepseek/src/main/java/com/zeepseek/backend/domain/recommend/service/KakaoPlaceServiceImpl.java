@@ -34,72 +34,95 @@ public class KakaoPlaceServiceImpl implements KakaoPlaceService {
 
     @Override
     public Mono<List<?>> findPlacesWithinOneKmByType(String type, String longitude, String latitude) {
-        if (type.equalsIgnoreCase("chicken")) {
-            // type이 "chicken"인 경우 DB의 chicken 테이블(저장 프로시저 사용)에서 조회
-            return Mono.fromCallable(() -> {
-                try {
-                    // 저장 프로시저 결과를 PlaceInfo 객체로 매핑하도록 설정
-                    SimpleJdbcCall simpleJdbcCall = new SimpleJdbcCall(jdbcTemplate)
-                            .withProcedureName("find_chicken_within_radius")
-                            .returningResultSet("result", (rs, rowNum) ->
-                                    new PlaceInfo(
-                                            rs.getString("name"),
-                                            rs.getString("latitude"),
-                                            rs.getString("longitude")
-                                    )
-                            );
-                    MapSqlParameterSource inParams = new MapSqlParameterSource()
-                            .addValue("in_longitude", longitude)
-                            .addValue("in_latitude", latitude)
-                            .addValue("in_radius", DEFAULT_RADIUS);
+        switch (type.toLowerCase()) {
+            case "chicken":
+                return Mono.fromCallable(() -> {
+                    try {
+                        SimpleJdbcCall simpleJdbcCall = new SimpleJdbcCall(jdbcTemplate)
+                                .withProcedureName("find_chicken_within_radius")
+                                .returningResultSet("result", (rs, rowNum) ->
+                                        new PlaceInfo(
+                                                rs.getString("name"),
+                                                rs.getString("latitude"),
+                                                rs.getString("longitude")
+                                        )
+                                );
+                        MapSqlParameterSource inParams = new MapSqlParameterSource()
+                                .addValue("in_longitude", longitude)
+                                .addValue("in_latitude", latitude)
+                                .addValue("in_radius", DEFAULT_RADIUS);
+                        Map<String, Object> out = simpleJdbcCall.execute(inParams);
+                        List<PlaceInfo> resultSet = (List<PlaceInfo>) out.get("result");
+                        return resultSet == null ? Collections.emptyList() : resultSet;
+                    } catch (Exception e) {
+                        throw new DataRetrievalException("Error retrieving chicken data", e);
+                    }
+                }).subscribeOn(Schedulers.boundedElastic());
 
-                    // 저장 프로시저 실행
-                    Map<String, Object> out = simpleJdbcCall.execute(inParams);
-                    List<PlaceInfo> resultSet = (List<PlaceInfo>) out.get("result");
-                    // 결과셋이 null이면 빈 리스트 반환
-                    return resultSet == null ? Collections.emptyList() : resultSet;
-                } catch (Exception e) {
-                    throw new DataRetrievalException("Error retrieving chicken data", e);
+            case "transport":
+                return Mono.fromCallable(() -> {
+                    try {
+                        SimpleJdbcCall simpleJdbcCall = new SimpleJdbcCall(jdbcTemplate)
+                                .withProcedureName("find_transport_within_radius")
+                                .returningResultSet("result", (rs, rowNum) ->
+                                        new PlaceInfo(
+                                                rs.getString("name"),
+                                                rs.getString("latitude"),
+                                                rs.getString("longitude")
+                                        )
+                                );
+                        MapSqlParameterSource inParams = new MapSqlParameterSource()
+                                .addValue("in_longitude", longitude)
+                                .addValue("in_latitude", latitude)
+                                .addValue("in_radius", DEFAULT_RADIUS);
+                        Map<String, Object> out = simpleJdbcCall.execute(inParams);
+                        List<PlaceInfo> resultSet = (List<PlaceInfo>) out.get("result");
+                        return resultSet == null ? Collections.emptyList() : resultSet;
+                    } catch (Exception e) {
+                        throw new DataRetrievalException("Error retrieving transport data", e);
+                    }
+                }).subscribeOn(Schedulers.boundedElastic());
+
+            case "cafe":
+            case "restaurant":
+            case "health":
+            case "leisure":
+            case "convenience":
+                String mappedCode;
+                if (type.equalsIgnoreCase("cafe")) {
+                    mappedCode = "CE7";
+                } else if (type.equalsIgnoreCase("restaurant")) {
+                    mappedCode = "FD6";
+                } else if (type.equalsIgnoreCase("health")) {
+                    mappedCode = "HP8";
+                } else if (type.equalsIgnoreCase("leisure")) {
+                    mappedCode = "AT4";
+                } else { // convenience
+                    mappedCode = "CS2";
                 }
-            }).subscribeOn(Schedulers.boundedElastic());
-        } else {
-            String mappedCode;
-            // cafe, restaurant, medical 타입 처리
-            if (type.equalsIgnoreCase("cafe") || type.equalsIgnoreCase("restaurant") || type.equalsIgnoreCase("health")) {
-                mappedCode = type.equalsIgnoreCase("cafe") ? "CE7"
-                        : type.equalsIgnoreCase("restaurant") ? "FD6" : "HP8";
-            }
-            // transport, leisure, convenience 타입 처리
-            else if (type.equalsIgnoreCase("transport") || type.equalsIgnoreCase("leisure")
-                    || type.equalsIgnoreCase("convenience") ) {
-                mappedCode = type.equalsIgnoreCase("transport") ? "SW8"    // 교통 관련 장소
-                        : type.equalsIgnoreCase("leisure") ? "AT4"         // 레저/관광 관련 장소
-                        : "CS2";                                        // 편의점
-            } else {
+                return webClient.get()
+                        .uri(uriBuilder -> uriBuilder
+                                .path("/v2/local/search/category.json")
+                                .queryParam("category_group_code", mappedCode)
+                                .queryParam("x", longitude)
+                                .queryParam("y", latitude)
+                                .queryParam("radius", DEFAULT_RADIUS)
+                                .build())
+                        .retrieve()
+                        .bodyToMono(KakaoPlaceResponse.class)
+                        .map(response -> {
+                            if (response.getDocuments() == null) {
+                                return Collections.emptyList();
+                            }
+                            return response.getDocuments().stream()
+                                    .map(doc -> new PlaceInfo(doc.getPlaceName(), doc.getY(), doc.getX()))
+                                    .collect(Collectors.toList());
+                        })
+                        .onErrorMap(e -> new DataRetrievalException("Error retrieving data from Kakao API", e));
+
+            default:
                 return Mono.error(new IllegalArgumentException("Unsupported category type: " + type));
-            }
-
-            return webClient.get()
-                    .uri(uriBuilder -> uriBuilder
-                            .path("/v2/local/search/category.json")
-                            .queryParam("category_group_code", mappedCode)
-                            .queryParam("x", longitude)
-                            .queryParam("y", latitude)
-                            .queryParam("radius", DEFAULT_RADIUS)
-                            .build())
-                    .retrieve()
-                    .bodyToMono(KakaoPlaceResponse.class)
-                    .map(response -> {
-                        // documents가 null일 경우 빈 리스트를 반환
-                        if (response.getDocuments() == null) {
-                            return Collections.emptyList();
-                        }
-                        return response.getDocuments().stream()
-                                .map(doc -> new PlaceInfo(doc.getPlaceName(), doc.getY(), doc.getX()))
-                                .collect(Collectors.toList());
-                    })
-                    .onErrorMap(e -> new DataRetrievalException("Error retrieving data from Kakao API", e));
-
         }
     }
+
 }
