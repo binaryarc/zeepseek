@@ -1,7 +1,7 @@
 from sqlalchemy import text
 from app.config.database import SessionLocal
 from app.modules.property_scoring.dynamic_score_min_max import get_score_min_max_values
-from app.modules.property_scoring.normalization_utils import scale_score
+from app.utils.normalization_utils import scale_score
 from app.utils.logger import logger
 
 def normalize_scores_and_update():
