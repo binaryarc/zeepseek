@@ -99,3 +99,12 @@
     width: 34px;
     height: auto
   }
+
+  .delete-btn {
+    margin-left: 8px;
+    background: none;
+    border: none;
+    color: red;
+    font-size: 12px;
+    cursor: pointer;
+  }
