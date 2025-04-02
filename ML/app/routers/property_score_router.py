@@ -3,7 +3,7 @@
 from typing import Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-
+from app.modules.property_scoring.normalization_service import normalize_scores_and_update
 # 배치 처리 로직 (scoring_batch.py)
 from app.modules.property_scoring.scoring_batch import (
     recalculate_all_scores_no_batch,
@@ -109,3 +109,13 @@ def recommend_properties_endpoint(user_scores: UserCategoryScore):
     if not recommendations:
         raise HTTPException(status_code=404, detail="No properties found")
     return {"recommended_properties": recommendations}
+
+
+
+@router.post("/normalize", summary="Normalize all property scores (0~100 scale)")
+def normalize_all_property_scores():
+    """
+    property_score 테이블의 점수를 정규화하여 0~100 범위로 저장합니다.
+    """
+    normalize_scores_and_update()
+    return {"message": "All property scores normalized successfully (0~100 scale)."}

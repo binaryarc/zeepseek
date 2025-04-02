@@ -4,7 +4,7 @@ sqlalchemy
 pymysql
 pymongo
 python-dotenv
-numpy
+numpy<2
 scikit-learn
 cryptography
 pandas

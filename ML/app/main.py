@@ -3,6 +3,7 @@ import logging
 from fastapi import FastAPI, Request
 # 라우터 모듈에서 APIRouter 인스턴스(router)를 가져옵니다.
 from app.routers.property_score_router import router as property_score_router
+from app.routers.recommend_router import router as ai_recommend_router
 
 app = FastAPI()
 
@@ -54,3 +55,4 @@ def read_root():
 
 # 올바른 APIRouter 인스턴스를 등록합니다.
 app.include_router(property_score_router)
+app.include_router(ai_recommend_router)
