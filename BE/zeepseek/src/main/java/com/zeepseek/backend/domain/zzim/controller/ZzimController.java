@@ -58,7 +58,11 @@ public class ZzimController {
     // 매물 찜
     @Loggable(action = "zzim", type = "dong")
     @PostMapping("/property/{propertyId}/{userId}")
-    public ResponseEntity<?> propertyZzim(@PathVariable("userId") int userId, @PathVariable("propertyId") int propertyId) {
+    public ResponseEntity<?> propertyZzim(
+            @PathVariable("userId") int userId,
+            @PathVariable("propertyId") int propertyId,
+            @CookieValue(name = "age") int age,
+            @CookieValue(name = "gender") String gender) {
         return zzimService.zzimProperty(userId, propertyId);
     }
 
@@ -71,7 +75,11 @@ public class ZzimController {
     // 매물 찜 삭제
     @Loggable(action = "zzim_delete", type = "property")
     @DeleteMapping("/property/{propertyId}/{userId}")
-    public ResponseEntity<?> deletePropertyZzim(@PathVariable("userId") int userId, @PathVariable("propertyId") int propertyId) {
+    public ResponseEntity<?> deletePropertyZzim(
+            @PathVariable("userId") int userId,
+            @PathVariable("propertyId") int propertyId,
+            @CookieValue(name = "age") int age,
+            @CookieValue(name = "gender") String gender) {
         return zzimService.deletePropertyZzim(userId, propertyId);
     }
 
