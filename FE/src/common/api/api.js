@@ -295,7 +295,7 @@ export const fetchDongComments = async (dongId, token) => {
         Authorization: `Bearer ${token}`,
       },
     });
-    console.log(res)
+    console.log(res.data)
     return res.data; // ✅ 댓글 배열만 추출
   } catch (err) {
     console.error("댓글 조회 실패:", err);
@@ -324,5 +324,27 @@ export const postDongComment = async (dongId, nickname, content, token) => {
     throw err;
   }
 };
+
+export const deleteDongComment = async (dongId, commentId, token) => {
+  try {
+    const res = await zeepApi.delete(
+      `/dong/${dongId}/comment`, // ✅ commentId는 query로
+      {
+        params: {
+          commentId: commentId, // ✅ 쿼리 파라미터로 전달
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return res.data;
+  } catch (err) {
+    console.error("댓글 삭제 실패:", err);
+    throw err;
+  }
+};
+
+
 
 export default zeepApi;
