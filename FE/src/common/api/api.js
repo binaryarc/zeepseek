@@ -2,6 +2,11 @@
 import axios from "axios";
 import store from "../../store/store";
 
+// const authApi = axios.create({
+//   baseURL: `http://localhost:8082/api/v1`, // ✅ API 서버 주소
+//   withCredentials: true, // ✅ 쿠키 포함 요청
+// });
+
 const zeepApi = axios.create({
   baseURL: `https://j12e203.p.ssafy.io/api/v1`, // ✅ API 서버 주소
   withCredentials: false, // ✅ 쿠키 포함 요청
@@ -174,9 +179,9 @@ export const fetchRegionSummary = async (region1, region2) => {
 };
 
 // 매물 찜 추가 (POST)
-export const likeProperty = async (propertyId, userId) => {
+export const likeProperty = async (propertyId) => {
   try {
-    const res = await zeepApi.post(`/zzim/property/${propertyId}/${userId}`, {
+    const res = await zeepApi.post(`/zzim/property/${propertyId}`, {
       headers: {
         Authorization: `Bearer ${store.getState().auth.accessToken}`,
       },
@@ -189,10 +194,10 @@ export const likeProperty = async (propertyId, userId) => {
 };
 
 // 매물 찜 삭제 (DELETE)
-export const unlikeProperty = async (propertyId, userId) => {
+export const unlikeProperty = async (propertyId) => {
   try {
     const res = await zeepApi.delete(
-      `/zzim/property/${propertyId}/${userId}`,
+      `/zzim/property/${propertyId}`,
       {}, // body 없음
       {
         headers: {
@@ -208,9 +213,9 @@ export const unlikeProperty = async (propertyId, userId) => {
 };
 
 // 찜한 동네 리스트 불러오는 api
-export const fetchLikedRegions = async (userId) => {
+export const fetchLikedRegions = async () => {
   try {
-    const res = await zeepApi.get(`/zzim/select/dong/${userId}`);
+    const res = await zeepApi.get(`/zzim/select/dong`);
     console.log("찜한 동네 리스트 호출: ", res);
     return res;
   } catch (err) {
@@ -219,10 +224,10 @@ export const fetchLikedRegions = async (userId) => {
 };
 
 // 찜한 매물 리스트 불러오기
-export const fetchLikedProperties = async (userId) => {
+export const fetchLikedProperties = async () => {
   try {
     const res = await zeepApi.get(
-      `/zzim/select/property/${userId}`,
+      `/zzim/select/property`,
       {},
       {
         headers: {
@@ -237,17 +242,48 @@ export const fetchLikedProperties = async (userId) => {
   }
 };
 
+// 동네 찜 추가 (POST)
+export const likeDongApi = async (dongId) => {
+  try {
+    const res = await zeepApi.post(
+      `/zzim/dong/${dongId}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${store.getState().auth.accessToken}`,
+        },
+        withCredentials: true,
+      }
+    );
+    return res.data;
+  } catch (error) {
+    console.error("동네 찜 추가 실패:", error);
+    throw error;
+  }
+};
+
+// 동네 찜 삭제 (DELETE)
+export const unlikeDongApi = async (dongId) => {
+  try {
+    const res = await zeepApi.delete(`/zzim/dong/${dongId}`, {
+      headers: {
+        Authorization: `Bearer ${store.getState().auth.accessToken}`,
+      },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("동네 찜 삭제 실패:", error);
+    throw error;
+  }
+};
+
 export const postSurvey = async (surveyData, accessToken) => {
   // console.log("accessToken:", accessToken);
-  const response = await zeepApi.post(
-    "/auth/survey",
-    surveyData ,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
+  const response = await zeepApi.post("/auth/survey", surveyData, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
   return response.data;
 };
 

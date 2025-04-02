@@ -1,79 +1,93 @@
 /* map/detailregion/DetailRegion.css */
 .detail-region-box {
-    background-color: white;
-    border-radius: 8px;
-    padding: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    width: 240px;
-    font-family: KOROAD;
-    z-index: 1000;
-    transform: translateY(-275px) translateX(80px);
-    
-  }
-  
-  .score-bars {
-    margin-bottom: 12px;
-    z-index: 1000;
-  }
-  
-  .score-item {
-    display: flex;
-    align-items: center;
-    margin: 15px 0;
-    z-index: 1000;
-  }
-  
-  .score-label {
-    width: 50px;
-    font-weight: 500;
-    z-index: 1000;
-  }
-  
-  .score-bar-wrapper {
-    flex: 1;
-    height: 8px;
-    background-color: #eee;
-    border-radius: 4px;
-    margin-left: 10px;
-    z-index: 1000;
-  }
-  
-  .score-bar {
-    height: 120%;
-    background-color: #5cb85c;
-    border-radius: 4px;
-    /* transition: width 0.3s ease; */
-  }
+  position: relative;
+  background-color: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  width: 240px;
+  font-family: KOROAD;
+  z-index: 1000;
+  transform: translateY(-275px) translateX(80px);
+}
 
+.score-bars {
+  margin-bottom: 12px;
+  z-index: 1000;
+}
 
-  .summary {
-    height: auto;
-    width: 240px;
-    font-size: 14px;
-    color: #444;
-    line-height: 1.4;
-    white-space: pre-line; /* 줄바꿈 유지 */
-    word-break: keep-all;
-  }
+.score-item {
+  display: flex;
+  align-items: center;
+  margin: 15px 0;
+  z-index: 1000;
+}
 
-  .spinner-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 120px; /* 적당한 높이로 DetailRegion 박스 형태 유지 */
+.score-label {
+  width: 50px;
+  font-weight: 500;
+  z-index: 1000;
+}
+
+.score-bar-wrapper {
+  flex: 1;
+  height: 8px;
+  background-color: #eee;
+  border-radius: 4px;
+  margin-left: 10px;
+  z-index: 1000;
+}
+
+.score-bar {
+  height: 120%;
+  background-color: #5cb85c;
+  border-radius: 4px;
+  /* transition: width 0.3s ease; */
+}
+
+.summary {
+  height: auto;
+  width: 240px;
+  font-size: 14px;
+  color: #444;
+  line-height: 1.4;
+  white-space: pre-line; /* 줄바꿈 유지 */
+  word-break: keep-all;
+}
+
+.spinner-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 120px; /* 적당한 높이로 DetailRegion 박스 형태 유지 */
+}
+
+.spinner {
+  border: 4px solid #ddd;
+  border-top: 4px solid #3cb371;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
-  
-  .spinner {
-    border: 4px solid #ddd;
-    border-top: 4px solid #3cb371;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    animation: spin 0.8s linear infinite;
-  }
-  
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
+}
+
+.detail-zzim-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 22px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.detail-zzim-button.liked {
+  color: red;
+}
