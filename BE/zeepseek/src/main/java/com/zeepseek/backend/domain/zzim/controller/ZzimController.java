@@ -56,7 +56,7 @@ public class ZzimController {
     }
 
     // 매물 찜
-    @Loggable(action = "zzim")
+    @Loggable(action = "zzim", type = "dong")
     @PostMapping("/property/{propertyId}/{userId}")
     public ResponseEntity<?> propertyZzim(@PathVariable("userId") int userId, @PathVariable("propertyId") int propertyId) {
         return zzimService.zzimProperty(userId, propertyId);
@@ -69,6 +69,7 @@ public class ZzimController {
     }
 
     // 매물 찜 삭제
+    @Loggable(action = "zzim_delete", type = "property")
     @DeleteMapping("/property/{propertyId}/{userId}")
     public ResponseEntity<?> deletePropertyZzim(@PathVariable("userId") int userId, @PathVariable("propertyId") int propertyId) {
         return zzimService.deletePropertyZzim(userId, propertyId);
@@ -82,7 +83,7 @@ public class ZzimController {
 //        return ResponseEntity.ok(response);
 //    }
 
-    // 개발용 추후 삭제 예정
+    // 유저의 찜한 동네정보 리스트로 조회
     @GetMapping("/select/dong/{userId}")
     public ResponseEntity<?> selectAllDongZzim(@PathVariable(name = "userId") int userId) {
 
@@ -99,7 +100,7 @@ public class ZzimController {
 //        return ResponseEntity.ok(response);
 //    }
 
-    // 개발용 추후 삭제 예정
+    // 유저가 찜한 매물 정보 리스트로 조회
     @GetMapping("/select/property/{userId}")
     public ResponseEntity<?> selectAllPropertyZzim(@PathVariable(name = "userId") int userId) {
 
@@ -108,7 +109,7 @@ public class ZzimController {
         return ResponseEntity.ok(response);
     }
 
-    // 개발용 추후 수정예정
+    // 유저가 찜한 동네 id만 리스트로 조회
     @GetMapping("/select/dong_zzimid/{userId}")
     public ResponseEntity<?> selectAllDongZzimId(@PathVariable(name = "userId") int userId) {
 
@@ -117,7 +118,7 @@ public class ZzimController {
         return ResponseEntity.ok(response);
     }
 
-    // 개발용 추후 수정예정
+    // 유저가 찜한 매물 id만 리스트로 조회
     @GetMapping("/select/property_zzimid/{userId}")
     public ResponseEntity<?> selectAllPropertyZzimId(@PathVariable(name = "userId") int userId) {
 
@@ -132,6 +133,7 @@ public class ZzimController {
 //        return ResponseEntity.ok(zzimService.findAllDongLiked(userId));
 //    }
 
+    // 유저가 찜했는지 안했는지 (isLiked) 여부를 포함한 동네 id 리스트를 조회
     @GetMapping("/select/all_dong/{userId}")
     public ResponseEntity<?> selectAllDongs(@PathVariable(name = "userId") int userId) {
 
