@@ -9,7 +9,9 @@ import com.zeepseek.backend.domain.property.dto.response.GuPropertyCountDtoImpl;
 import com.zeepseek.backend.domain.property.dto.response.PropertySummaryDto;
 import com.zeepseek.backend.domain.property.exception.PropertyNotFoundException;
 import com.zeepseek.backend.domain.property.model.Property;
+import com.zeepseek.backend.domain.property.model.PropertyScore;
 import com.zeepseek.backend.domain.property.repository.PropertyRepository;
+import com.zeepseek.backend.domain.property.repository.PropertyScoreRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,10 +28,12 @@ public class PropertyServiceImpl implements PropertyService {
 
     private static final Logger logger = LoggerFactory.getLogger(PropertyServiceImpl.class);
     private final PropertyRepository propertyRepository;
+    private final PropertyScoreRepository propertyScoreRepository;
 
     @Autowired
-    public PropertyServiceImpl(PropertyRepository propertyRepository) {
+    public PropertyServiceImpl(PropertyRepository propertyRepository,  PropertyScoreRepository propertyScoreRepository) {
         this.propertyRepository = propertyRepository;
+        this.propertyScoreRepository = propertyScoreRepository;
     }
 
     @Override
@@ -236,5 +240,14 @@ public class PropertyServiceImpl implements PropertyService {
         return counts.stream()
                 .map(c -> new GuPropertyCountDtoImpl(c.getGuName(), c.getPropertyCount()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public PropertyScore getPropertyScoreByPropertyId(Integer propertyId) {
+        return propertyScoreRepository.findByPropertyId(propertyId)
+                .orElseThrow(() -> {
+                    logger.warn("PropertyScore not found for propertyId: {}", propertyId);
+                    return new PropertyNotFoundException("Score not found for propertyId: " + propertyId);
+                });
     }
 }
