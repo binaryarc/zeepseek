@@ -309,8 +309,7 @@ export const postDongComment = async (dongId, nickname, content, token) => {
     const res = await zeepApi.post(
       `/dong/${dongId}/comment`,
       {
-        neighborhoodId: dongId,
-        nickName: nickname,
+        nickname: nickname,
         content: content,
       },
       {
