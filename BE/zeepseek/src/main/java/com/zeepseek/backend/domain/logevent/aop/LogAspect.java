@@ -2,6 +2,7 @@ package com.zeepseek.backend.domain.logevent.aop;
 
 import com.zeepseek.backend.domain.logevent.annotation.Loggable;
 import com.zeepseek.backend.domain.logevent.event.LogEvent;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -16,6 +17,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Aspect
 @Component
 public class LogAspect {
@@ -77,7 +79,7 @@ public class LogAspect {
             }
         }
 
-
+        log.info("extra data: {}", extraData.toString());
         // 로그 이벤트 발행
         eventPublisher.publishEvent(new LogEvent(this, loggable.action(), loggable.type(), extraData));
 

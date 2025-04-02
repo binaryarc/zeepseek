@@ -34,7 +34,7 @@ public class PropertyController {
     @GetMapping("/{propertyId}")
     @Loggable(action = "view", type = "property")
     public ResponseEntity<Property> getPropertyDetail(
-            @PathVariable int propertyId,
+            @PathVariable("propertyId") int propertyId,
             @CookieValue(name = "userId", defaultValue = "-1", required = false ) int userId,
             @CookieValue(name = "age", defaultValue = "-1", required = false ) int age,
             @CookieValue(name = "gender", defaultValue = "-1", required = false ) String gender) {
