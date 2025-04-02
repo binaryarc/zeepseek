@@ -1,29 +1,33 @@
 package com.zeepseek.backend.domain.auth.controller;
 
 import com.zeepseek.backend.domain.auth.dto.*;
-import com.zeepseek.backend.domain.auth.security.UserPrincipal;
 import com.zeepseek.backend.domain.auth.service.AuthService;
+import com.zeepseek.backend.domain.auth.util.CookieUtils;
+import com.zeepseek.backend.domain.user.dto.UserDto;
+import com.zeepseek.backend.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
+import jakarta.servlet.http.HttpServletResponse;
+
 @RestController
-@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 @Slf4j
 public class AuthController {
 
     private final AuthService authService;
+    private final UserService userService;
 
     /**
      * 소셜 로그인 처리
      */
-    @PostMapping("/sessions")
-    public ResponseEntity<ApiResponse<TokenDto>> socialLogin(@RequestBody SocialLoginRequest request) {
+    @PostMapping("/api/v1/auth/sessions")
+    public ResponseEntity<ApiResponse<TokenDto>> socialLogin(
+            @RequestBody SocialLoginRequest request,
+            HttpServletResponse response) {
         log.info("=== 소셜 로그인 요청 시작 ===");
         log.info("인증 코드: {}", request.getAuthorizationCode());
         log.info("제공자: {}", request.getProvider());
@@ -31,20 +35,20 @@ public class AuthController {
         try {
             // 인증 코드로 토큰 요청 및 사용자 정보 조회
             TokenDto tokenDto = authService.processSocialLogin(request.getAuthorizationCode(), request.getProvider());
+
+            // 사용자 정보 및 리프레시 토큰을 쿠키에 저장
+            if (tokenDto.getUser() != null && tokenDto.getUser().getIdx() != null) {
+                UserDto userDto = userService.getUserById(tokenDto.getUser().getIdx());
+
+                // 세 가지 쿠키 모두 설정
+                CookieUtils.addAllUserCookies(response, userDto, tokenDto.getRefreshToken());
+            }
+
             log.info("로그인 성공! 토큰 생성됨: accessToken={}, refreshToken={}",
                     tokenDto.getAccessToken().substring(0, 10) + "...",
                     tokenDto.getRefreshToken().substring(0, 10) + "...");
 
-            ResponseCookie cookie = ResponseCookie.from("refresh_token", tokenDto.getRefreshToken())
-                    .httpOnly(true)
-                    .secure(false)
-                    .path("/")
-                    .sameSite("Lax")
-                    .build();
-
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                    .body(ApiResponse.success(tokenDto));
+            return ResponseEntity.ok(ApiResponse.success(tokenDto));
         } catch (Exception e) {
             log.error("소셜 로그인 처리 중 오류 발생", e);
             throw e;
@@ -56,80 +60,58 @@ public class AuthController {
     /**
      * 로그아웃 - access token 무효화
      */
-    @DeleteMapping("/sessions")
-    public ResponseEntity<ApiResponse<Void>> logout(@RequestHeader("Authorization") String authHeader) {
+    @DeleteMapping("/api/v1/auth/sessions")
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @RequestHeader("Authorization") String authHeader,
+            HttpServletRequest request,
+            HttpServletResponse response) {
         // Bearer 접두사 제거
         String accessToken = authHeader.replace("Bearer ", "");
         authService.logout(accessToken);
+
+        // 모든 인증 관련 쿠키 삭제
+        CookieUtils.deleteAuthCookies(request, response);
+
         return ResponseEntity.ok(ApiResponse.success("성공적으로 로그아웃 되었습니다.", null));
     }
 
     /**
      * 토큰 갱신 - refresh token을 사용하여 access token 재발급
      */
-    @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<TokenDto>> refreshToken(@CookieValue("refresh_token")  String refreshToken) {
+    @PostMapping("/api/v1/auth/refresh")
+    public ResponseEntity<ApiResponse<TokenDto>> refreshToken(
+            @CookieValue(name = "refreshtoken", required = false) String cookieRefreshToken,
+            @RequestBody(required = false) RefreshTokenRequest refreshTokenRequest,
+            HttpServletResponse response) {
+        // 쿠키 또는 요청 본문에서 리프레시 토큰 가져오기
+        String refreshToken = cookieRefreshToken != null ? cookieRefreshToken :
+                (refreshTokenRequest != null ? refreshTokenRequest.getRefreshToken() : null);
+
+        if (refreshToken == null) {
+            throw new IllegalArgumentException("리프레시 토큰이 제공되지 않았습니다.");
+        }
+
         TokenDto tokenDto = authService.refreshToken(refreshToken);
-        // ✅ 새로운 refreshToken도 다시 쿠키로 설정
-        ResponseCookie cookie = ResponseCookie.from("refresh_token", tokenDto.getRefreshToken())
-                .httpOnly(true)
-                .secure(false) // 로컬 테스트 시 false, 배포 시 true
-                .path("/")
-                .sameSite("Lax") // 배포 시 None + secure=true
-                .build();
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString()) // ✅ 여기가 핵심
-                .body(ApiResponse.success(tokenDto));
+        // 사용자 정보 및 리프레시 토큰을 쿠키에 저장
+        if (tokenDto.getUser() != null && tokenDto.getUser().getIdx() != null) {
+            // 세 가지 쿠키 모두 설정
+            CookieUtils.addAllUserCookies(response, tokenDto.getUser(), tokenDto.getRefreshToken());
+        }
+
+        return ResponseEntity.ok(ApiResponse.success(tokenDto));
     }
 
     /**
-     * 회원 정보 수정
+     * 로그인 후 리다이렉트 엔드포인트
+     * - 인가 코드를 받아 처리하는 역할
      */
-    @PatchMapping("/{idx}")
-    public ResponseEntity<ApiResponse<UserDto>> updateUser(
-            @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @RequestBody UserDto userDto) {
-        UserDto updatedUser = authService.updateUser(userPrincipal.getId(), userDto);
-        return ResponseEntity.ok(ApiResponse.success(updatedUser));
-    }
-
-    /**
-     * 회원 탈퇴
-     */
-    @DeleteMapping("/{idx}")
-    public ResponseEntity<ApiResponse<Void>> deleteUser(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        authService.deleteUser(userPrincipal.getId());
-        return ResponseEntity.ok(ApiResponse.success("계정이 삭제되었습니다.", null));
-    }
-
-    /**
-     * 첫 로그인 시 추가 데이터 처리
-     */
-    @PostMapping("/first-data")
-    public ResponseEntity<ApiResponse<UserDto>> firstLoginData(
-            @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @RequestBody UserProfileDto profileDto) {
-        log.info("첫 로그인 데이터 처리: userId={}, profileDto={}", userPrincipal.getId(), profileDto);
-        UserDto updatedUser = authService.processFirstLoginData(userPrincipal.getId(), profileDto);
-        return ResponseEntity.ok(ApiResponse.success(updatedUser));
-    }
-
-    /**
-     * 현재 사용자 정보 조회 (필요시)
-     */
-    @GetMapping("/me")
-    public ResponseEntity<ApiResponse<UserDto>> getCurrentUser(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        UserDto userDto = authService.getCurrentUser(userPrincipal.getId());
-        return ResponseEntity.ok(ApiResponse.success(userDto));
-    }
-
-    /**
-     * 카카오 로그인 후 리다이렉트 엔드포인트
-     * - 카카오에서 인가 코드를 받아 처리하는 역할
-     */
-    @GetMapping("/redirect")
-    public ResponseEntity<ApiResponse<TokenDto>> oauthRedirect(@RequestParam("code") String code, @RequestParam(value = "state", required = false) String state, HttpServletRequest request) {
+    @GetMapping("/api/v1/auth/redirect")
+    public ResponseEntity<ApiResponse<TokenDto>> oauthRedirect(
+            @RequestParam("code") String code,
+            @RequestParam(value = "state", required = false) String state,
+            HttpServletRequest request,
+            HttpServletResponse response) {
         log.info("=== 소셜 로그인 리다이렉트 시작 ===");
         log.info("요청 URL: {}", request.getRequestURL());
         log.info("전체 URI: {}", request.getRequestURI());
@@ -145,6 +127,15 @@ public class AuthController {
             // 인가 코드를 사용하여 로그인 처리
             log.info("authService.processSocialLogin 호출 중...");
             TokenDto tokenDto = authService.processSocialLogin(code, provider);
+
+            // 사용자 정보 및 리프레시 토큰을 쿠키에 저장
+            if (tokenDto.getUser() != null && tokenDto.getUser().getIdx() != null) {
+                UserDto userDto = userService.getUserById(tokenDto.getUser().getIdx());
+
+                // 세 가지 쿠키 모두 설정
+                CookieUtils.addAllUserCookies(response, userDto, tokenDto.getRefreshToken());
+            }
+
             log.info("로그인 성공! 토큰 생성됨: accessToken={}, refreshToken={}",
                     tokenDto.getAccessToken().substring(0, 10) + "...",
                     tokenDto.getRefreshToken().substring(0, 10) + "...");
@@ -157,5 +148,4 @@ public class AuthController {
             log.info("=== 소셜 로그인 리다이렉트 종료 ===");
         }
     }
-
 }

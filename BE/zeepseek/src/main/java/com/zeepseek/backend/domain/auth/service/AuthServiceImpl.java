@@ -4,16 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zeepseek.backend.domain.auth.dto.TokenDto;
-import com.zeepseek.backend.domain.auth.dto.UserDto;
-import com.zeepseek.backend.domain.auth.dto.UserProfileDto;
-import com.zeepseek.backend.domain.auth.entity.User;
-import com.zeepseek.backend.domain.auth.entity.UserPreferences;
-import com.zeepseek.backend.domain.auth.entity.UserRole;
+import com.zeepseek.backend.domain.user.dto.UserDto;
+import com.zeepseek.backend.domain.user.entity.User;
+import com.zeepseek.backend.domain.user.entity.UserRole;
 import com.zeepseek.backend.domain.auth.exception.AuthException;
-import com.zeepseek.backend.domain.auth.repository.UserPreferencesRepository;
-import com.zeepseek.backend.domain.auth.repository.UserRepository;
+import com.zeepseek.backend.domain.user.repository.UserRepository;
 import com.zeepseek.backend.domain.auth.security.UserPrincipal;
 import com.zeepseek.backend.domain.auth.security.jwt.JwtTokenProvider;
+import com.zeepseek.backend.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +19,7 @@ import org.springframework.http.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -38,9 +37,10 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final JwtTokenProvider tokenProvider;
+    private final UserService userService; // UserService 의존성 추가
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final UserPreferencesRepository userPreferencesRepository;
+
     @Value("${spring.security.oauth2.client.registration.kakao.client-id}")
     private String kakaoClientId;
 
@@ -59,46 +59,61 @@ public class AuthServiceImpl implements AuthService {
     @Value("${spring.security.oauth2.client.registration.naver.redirect-uri}")
     private String naverRedirectUri;
 
-    @Override
+    /**
+     * 리프레시 토큰을 사용하여 새 토큰 발급
+     */
     @Transactional
     public TokenDto refreshToken(String refreshToken) {
-        // 리프레시 토큰 유효성 검사
+        // 리프레시 토큰 유효성 검증
         if (!tokenProvider.validateToken(refreshToken)) {
-            throw new AuthException("Invalid refresh token");
+            throw new RuntimeException("리프레시 토큰이 유효하지 않습니다.");
         }
 
-        // 리프레시 토큰으로 사용자 조회
-        User user = userRepository.findByRefreshToken(refreshToken)
-                .orElseThrow(() -> new AuthException("User not found with this refresh token"));
+        // 방법 1: 리프레시 토큰으로 직접 사용자 조회
+        Optional<User> userOptional = userRepository.findByRefreshToken(refreshToken);
 
-        // Authentication 객체 생성
+        if (userOptional.isEmpty()) {
+            // 방법 2: 토큰에서 Claims을 파싱하여 사용자 ID 추출
+            try {
+                // 토큰에서 Authentication 객체 얻기
+                Authentication authentication = tokenProvider.getAuthentication(refreshToken);
+                String userId = authentication.getName();
+                Integer userIdInt = Integer.parseInt(userId);
+
+                // ID로 사용자 조회
+                userOptional = userRepository.findById(userIdInt);
+
+                if (userOptional.isEmpty()) {
+                    throw new RuntimeException("존재하지 않는 사용자입니다.");
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("리프레시 토큰 처리 중 오류 발생: " + e.getMessage());
+            }
+        }
+
+        User user = userOptional.get();
+
+        // DB에 저장된 리프레시 토큰과 일치하는지 확인
+        if (user.getRefreshToken() == null || !user.getRefreshToken().equals(refreshToken)) {
+            throw new RuntimeException("저장된 리프레시 토큰과 일치하지 않습니다.");
+        }
+
+        // 인증 객체 생성
         UserPrincipal userPrincipal = UserPrincipal.create(user);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                userPrincipal, null,
-                Collections.singletonList(new SimpleGrantedAuthority(
-                        user.getIsSeller() == 1 ? UserRole.ROLE_SELLER.name() : UserRole.ROLE_USER.name()))
-        );
+                userPrincipal, null, userPrincipal.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // 새 토큰 발급
+        // 새 토큰 생성
         TokenDto tokenDto = tokenProvider.generateToken(authentication);
 
-        // ✅ user 정보 추가
-        tokenDto.setUser(UserDto.builder()
-                .idx(user.getIdx())
-                .isFirst(user.getIsFirst())
-                .isSeller(user.getIsSeller())
-                .gender(user.getGender())
-                .age(user.getAge())
-                .nickname(user.getNickname())
-                .provider(user.getProvider())
-                .build());
-
-        // 리프레시 토큰 DB 업데이트
+        // 새 리프레시 토큰 저장
         user.setRefreshToken(tokenDto.getRefreshToken());
         userRepository.save(user);
 
-        // isFirst 설정
-        tokenDto.setIsFirst(user.getIsFirst());
+        // 유저 정보를 가져와서 TokenDto에 설정
+        UserDto userDto = userService.getUserById(user.getIdx());
+        tokenDto.setUser(userDto);
 
         return tokenDto;
     }
@@ -156,139 +171,6 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public UserDto updateUser(Integer userId, UserDto userDto) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AuthException("User not found"));
-
-        // 업데이트 가능한 필드만 변경
-        if (userDto.getNickname() != null) {
-            user.setNickname(userDto.getNickname());
-        }
-        if (userDto.getGender() != null) {
-            user.setGender(userDto.getGender());
-        }
-        if (userDto.getAge() != null) {
-            user.setAge(userDto.getAge());
-        }
-        if (userDto.getIsSeller() != null) {
-            user.setIsSeller(userDto.getIsSeller());
-        }
-
-        User updatedUser = userRepository.save(user);
-
-        return UserDto.builder()
-                .idx(updatedUser.getIdx())
-                .nickname(updatedUser.getNickname())
-                .gender(updatedUser.getGender())
-                .age(updatedUser.getAge())
-                .isFirst(updatedUser.getIsFirst())
-                .isSeller(updatedUser.getIsSeller())
-                .provider(updatedUser.getProvider())
-                .build();
-    }
-
-    @Override
-    @Transactional
-    public void deleteUser(Integer userId) {
-        userRepository.findById(userId)
-                .ifPresent(userRepository::delete);
-    }
-
-    @Override
-    @Transactional
-    public UserDto processFirstLoginData(Integer userId, UserProfileDto profileDto) {
-        // 사용자 조회
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AuthException("User not found"));
-
-        // 이미 첫 로그인이 아니면 에러
-        if (user.getIsFirst() != 1) {
-            throw new AuthException("User is not a first-time user");
-        }
-
-        // 사용자 기본 정보 업데이트
-        if (profileDto.getGender() != null) {
-            user.setGender(profileDto.getGender());
-        }
-        if (profileDto.getAge() != null) {
-            user.setAge(profileDto.getAge());
-        }
-
-        // 첫 로그인 플래그 변경 (중요: 프로필 설정 완료 시 0으로 변경)
-        user.setIsFirst(0);
-        User updatedUser = userRepository.save(user);
-
-        if (profileDto.getPropertyPreferences() != null && !profileDto.getPropertyPreferences().isEmpty()) {
-            Map<String, Float> preferences = profileDto.getPropertyPreferences();
-
-            // 새 선호도 객체 생성
-            UserPreferences userPreferences = UserPreferences.builder()
-                    .user(user)
-                    .safe(preferences.getOrDefault("safe", 0.0f))
-                    .leisure(preferences.getOrDefault("leisure", 0.0f))
-                    .restaurant(preferences.getOrDefault("restaurant", 0.0f))
-                    .health(preferences.getOrDefault("health", 0.0f))
-                    .convenience(preferences.getOrDefault("convenience", 0.0f))
-                    .transport(preferences.getOrDefault("transport", 0.0f))
-                    .cafe(preferences.getOrDefault("cafe", 0.0f))
-                    .build();
-
-            // 한국어 키도 지원 (필요시)
-            if (preferences.containsKey("안전")) {
-                userPreferences.setSafe(preferences.get("안전"));
-            }
-            if (preferences.containsKey("여가")) {
-                userPreferences.setLeisure(preferences.get("여가"));
-            }
-            if (preferences.containsKey("식당")) {
-                userPreferences.setRestaurant(preferences.get("식당"));
-            }
-            if (preferences.containsKey("건강")) {
-                userPreferences.setHealth(preferences.get("건강"));
-            }
-            if (preferences.containsKey("편의")) {
-                userPreferences.setConvenience(preferences.get("편의"));
-            }
-            if (preferences.containsKey("교통")) {
-                userPreferences.setTransport(preferences.get("교통"));
-            }
-            if (preferences.containsKey("카페")) {
-                userPreferences.setCafe(preferences.get("카페"));
-            }
-
-            userPreferencesRepository.save(userPreferences);
-        }
-
-        // 업데이트된 사용자 정보 반환
-        return UserDto.builder()
-                .idx(updatedUser.getIdx())
-                .nickname(updatedUser.getNickname())
-                .gender(updatedUser.getGender())
-                .age(updatedUser.getAge())
-                .isFirst(updatedUser.getIsFirst())
-                .isSeller(updatedUser.getIsSeller())
-                .provider(updatedUser.getProvider())
-                .build();
-    }
-
-    @Override
-    public UserDto getCurrentUser(Integer userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AuthException("User not found"));
-
-        return UserDto.builder()
-                .idx(user.getIdx())
-                .nickname(user.getNickname())
-                .gender(user.getGender())
-                .age(user.getAge())
-                .isFirst(user.getIsFirst())
-                .isSeller(user.getIsSeller())
-                .provider(user.getProvider())
-                .build();
-    }
-
-    @Override
-    @Transactional
     public TokenDto processSocialLogin(String authorizationCode, String provider) {
         try {
             if ("kakao".equalsIgnoreCase(provider)) {
@@ -303,6 +185,28 @@ public class AuthServiceImpl implements AuthService {
             throw new AuthException("소셜 로그인 처리 실패: " + e.getMessage());
         }
     }
+
+    @Override
+    public UserDto getCurrentUserByToken(String accessToken) {
+        // 액세스 토큰 유효성 검사
+        if (!tokenProvider.validateToken(accessToken)) {
+            throw new AuthException("Invalid access token");
+        }
+
+        // 토큰에서 사용자 ID 추출
+        Authentication authentication = tokenProvider.getAuthentication(accessToken);
+        String userId = authentication.getName();
+
+        try {
+            Integer userIdInt = Integer.parseInt(userId);
+            // UserService를 통해 사용자 정보 조회
+            return userService.getUserById(userIdInt);
+        } catch (NumberFormatException e) {
+            throw new AuthException("Invalid user ID format");
+        }
+    }
+
+    // 이하 비즈니스 로직 - 소셜 로그인 관련 메서드들은 그대로 유지
 
     private TokenDto processKakaoLogin(String authorizationCode) {
         // 1. 인증 코드로 액세스 토큰 요청
@@ -552,22 +456,16 @@ public class AuthServiceImpl implements AuthService {
         // JWT 토큰 생성
         TokenDto tokenDto = tokenProvider.generateToken(authentication);
 
-        tokenDto.setUser(UserDto.builder()
-                .idx(user.getIdx())
-                .isFirst(user.getIsFirst())
-                .isSeller(user.getIsSeller())
-                .gender(user.getGender())
-                .age(user.getAge())
-                .nickname(user.getNickname())
-                .provider(user.getProvider())
-                .build());
-
         // 리프레시 토큰 DB에 저장
         user.setRefreshToken(tokenDto.getRefreshToken());
         userRepository.save(user);
 
         // isFirst 플래그 설정
         tokenDto.setIsFirst(user.getIsFirst());
+
+        //사용자 정보 구성 - UserService 활용
+        UserDto userDto = userService.getUserById(user.getIdx());
+        tokenDto.setUser(userDto);
 
         return tokenDto;
     }
