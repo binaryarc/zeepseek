@@ -19,46 +19,89 @@ public class ZzimController {
 
     private final ZzimService zzimService;
 
-    // 동네 찜
-    @Loggable(action = "zzim")
-    @PostMapping("/dong/{dongId}")
-    public ResponseEntity<?> dongZzim(@CookieValue(value = "userId", defaultValue = "") int userId, @PathVariable(name = "dongId") int dongId) {
+//    // 동네 찜
+//    @Loggable(action = "zzim")
+//    @PostMapping("/dong/{dongId}")
+//    public ResponseEntity<?> dongZzim(@CookieValue(value = "userId", defaultValue = "") int userId, @PathVariable(name = "dongId") int dongId) {
+//
+//        return zzimService.zzimDong(userId, dongId);
+//    }
+//
+//    // 매물 찜
+//    @Loggable(action = "zzim")
+//    @PostMapping("/property/{propertyId}")
+//    public ResponseEntity<?> propertyZzim(@CookieValue(value = "userId", defaultValue = "") int userId, @PathVariable(name = "propertyId") int propertyId) {
+//
+//        return zzimService.zzimProperty(userId, propertyId);
+//    }
+//
+//    // 동네 찜 삭제
+//    @DeleteMapping("/dong/{dongId}")
+//    public ResponseEntity<?> deleteDongZzim(@CookieValue(value = "userId", defaultValue = "") int userId, @PathVariable(name = "dongId") int dongId) {
+//
+//        return zzimService.deleteDongZzim(userId, dongId);
+//    }
+//
+//    // 매물 찜 삭제
+//    @DeleteMapping("/property/{propertyId}")
+//    public ResponseEntity<?> deletePropertyZzim(@CookieValue(value = "userId", defaultValue = "") int userId, @PathVariable(name = "propertyId") int propertyId) {
+//
+//        return zzimService.deletePropertyZzim(userId, propertyId);
+//    }
 
+    // 동네 찜
+    @PostMapping("/dong/{dongId}/{userId}")
+    public ResponseEntity<?> dongZzim(@PathVariable("userId") int userId, @PathVariable("dongId") int dongId) {
         return zzimService.zzimDong(userId, dongId);
     }
 
     // 매물 찜
     @Loggable(action = "zzim")
-    @PostMapping("/property/{propertyId}")
-    public ResponseEntity<?> propertyZzim(@CookieValue(value = "userId", defaultValue = "") int userId, @PathVariable(name = "propertyId") int propertyId) {
-
+    @PostMapping("/property/{propertyId}/{userId}")
+    public ResponseEntity<?> propertyZzim(@PathVariable("userId") int userId, @PathVariable("propertyId") int propertyId) {
         return zzimService.zzimProperty(userId, propertyId);
     }
 
     // 동네 찜 삭제
-    @DeleteMapping("/dong/{dongId}")
-    public ResponseEntity<?> deleteDongZzim(@CookieValue(value = "userId", defaultValue = "") int userId, @PathVariable(name = "dongId") int dongId) {
-
+    @DeleteMapping("/dong/{dongId}/{userId}")
+    public ResponseEntity<?> deleteDongZzim(@PathVariable("userId") int userId, @PathVariable("dongId") int dongId) {
         return zzimService.deleteDongZzim(userId, dongId);
     }
 
     // 매물 찜 삭제
-    @DeleteMapping("/property/{propertyId}")
-    public ResponseEntity<?> deletePropertyZzim(@CookieValue(value = "userId", defaultValue = "") int userId, @PathVariable(name = "propertyId") int propertyId) {
-
+    @DeleteMapping("/property/{propertyId}/{userId}")
+    public ResponseEntity<?> deletePropertyZzim(@PathVariable("userId") int userId, @PathVariable("propertyId") int propertyId) {
         return zzimService.deletePropertyZzim(userId, propertyId);
     }
 
-    @GetMapping("/select/dong")
-    public ResponseEntity<?> selectAllDongZzim(@CookieValue(value = "userId", defaultValue = "") int userId) {
+//    @GetMapping("/select/dong")
+//    public ResponseEntity<?> selectAllDongZzim(@CookieValue(value = "userId", defaultValue = "") int userId) {
+//
+//        List<DongInfoDocs> response = zzimService.selectDongZzimList(userId);
+//
+//        return ResponseEntity.ok(response);
+//    }
+
+    // 개발용 추후 삭제 예정
+    @GetMapping("/select/dong/{userId}")
+    public ResponseEntity<?> selectAllDongZzim(@PathVariable(name = "userId") int userId) {
 
         List<DongInfoDocs> response = zzimService.selectDongZzimList(userId);
 
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/select/property")
-    public ResponseEntity<?> selectAllPropertyZzim(@CookieValue(value = "userId", defaultValue = "") int userId) {
+//    @GetMapping("/select/property")
+//    public ResponseEntity<?> selectAllPropertyZzim(@CookieValue(value = "userId", defaultValue = "") int userId) {
+//
+//        List<Property> response = zzimService.selectPropertyZzimList(userId);
+//
+//        return ResponseEntity.ok(response);
+//    }
+
+    // 개발용 추후 삭제 예정
+    @GetMapping("/select/property/{userId}")
+    public ResponseEntity<?> selectAllPropertyZzim(@PathVariable(name = "userId") int userId) {
 
         List<Property> response = zzimService.selectPropertyZzimList(userId);
 
@@ -83,8 +126,14 @@ public class ZzimController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/select/all_dong")
-    public ResponseEntity<?> selectAllDongs(@CookieValue(value = "userId", defaultValue = "") int userId) {
+//    @GetMapping("/select/all_dong")
+//    public ResponseEntity<?> selectAllDongs(@CookieValue(value = "userId", defaultValue = "") int userId) {
+//
+//        return ResponseEntity.ok(zzimService.findAllDongLiked(userId));
+//    }
+
+    @GetMapping("/select/all_dong/{userId}")
+    public ResponseEntity<?> selectAllDongs(@PathVariable(name = "userId") int userId) {
 
         return ResponseEntity.ok(zzimService.findAllDongLiked(userId));
     }
