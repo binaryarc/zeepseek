@@ -1,9 +1,12 @@
 // map/detailregion/DetailRegion.jsx
 import "./DetailRegion.css";
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { fetchDongDetail, fetchDongComments } from "../../../common/api/api";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchDongDetail } from "../../../common/api/api";
 import Community from "./Community";
+import { likeDong, unlikeDong } from "../../../store/slices/dongLikeSlice";
+import { unlikeDongApi, likeDongApi } from "../../../common/api/api";
+import { fetchDongComments } from "../../../common/api/api";
 
 const getTop3Scores = (dongData) => {
   const categories = {
@@ -27,12 +30,18 @@ const getTop3Scores = (dongData) => {
     .slice(0, 3);
 };
 
-
 const DetailRegion = () => {
   const dongId = useSelector((state) => state.roomList.currentDongId); // Redux에서 가져오기
+  const liked = useSelector((state) => {
+    const result = state.dongLike?.[dongId];
+    console.log("💚 현재 동 ID:", dongId, "찜 여부:", result);
+    console.log('아아', state)
+    return result === true;
+  });
+  const user = useSelector((state) => state.auth.user);
   const [dongData, setDongData] = useState(null);
   const [comments, setComments] = useState([]);
-  const [showCommunity, setShowCommunity] = useState(false);
+  const [showCommunity, setShowCommunity] = useState(false);  const dispatch = useDispatch();
 
   useEffect(() => {
     if (!dongId) return;
@@ -47,6 +56,24 @@ const DetailRegion = () => {
 
     loadDongDetail();
   }, [dongId]);
+
+  const handleToggleZzim = async () => {
+    if (!user) return alert("로그인이 필요합니다!");
+
+    try {
+      if (liked) {
+        await unlikeDongApi(dongId, user.idx);
+        dispatch(unlikeDong(dongId));
+        console.log("하트 눌러졌으요");
+      } else {
+        await likeDongApi(dongId, user.idx);
+        dispatch(likeDong(dongId));
+        console.log("하트 빠졌으요");
+      }
+    } catch (err) {
+      console.error("찜 토글 실패:", err);
+    }
+  };
 
   if (!dongData) {
     return (
@@ -64,14 +91,22 @@ const DetailRegion = () => {
     <div className="detail-region-box">
       {!showCommunity ? (
         <>
-          <h3 className="dong-title">
+          <button
+        className={`detail-zzim-button ${liked ? "liked" : ""}`}
+        onClick={handleToggleZzim}
+      >
+        {liked ? "❤️" : "🤍"}
+      </button>
+      <h3 className="dong-title">
             {dongData.guName} {dongData.name}
           </h3>
 
           <div className="score-bars">
             {topScores.map(({ label, icon, value }) => (
               <div key={label} className="score-item">
-                <span className="score-label">{icon} {label}</span>
+                <span className="score-label">
+              {icon} {label}
+            </span>
                 <div className="score-bar-wrapper">
                   <div className="score-bar" style={{ width: `${value}%` }} />
                 </div>
