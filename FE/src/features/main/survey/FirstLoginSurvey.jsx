@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./FirstLoginSurvey.css";
 import DaumPostcode from "react-daum-postcode";
-import KOROAD from "../../../assets/font/KOROAD_Medium.ttf";
+
 import { useSelector, useDispatch } from "react-redux";
 import { postSurvey } from "../../../common/api/api"; // 경로 맞춰주세요
 import { setUser } from "../../../store/slices/authSlice";
@@ -135,7 +135,7 @@ const FirstLoginSurvey = () => {
               padding: "0.5rem",
               border: "1px solid #ccc",
               borderRadius: "0.5rem",
-              fontFamily: KOROAD,
+              fontFamily: "KOROAD",
             }}
           />
           <button
@@ -148,7 +148,7 @@ const FirstLoginSurvey = () => {
               border: "none",
               borderRadius: "0.5rem",
               cursor: "pointer",
-              fontFamily: KOROAD,
+              fontFamily: "KOROAD",
               fontWeight: "bold",
             }}
           >
