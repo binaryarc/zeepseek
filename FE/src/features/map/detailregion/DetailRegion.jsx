@@ -56,11 +56,11 @@ const DetailRegion = () => {
 
     try {
       if (liked) {
-        await unlikeDongApi(dongId);
+        await unlikeDongApi(dongId, user.idx);
         dispatch(unlikeDong(dongId));
         console.log("하트 눌러졌으요");
       } else {
-        await likeDongApi(dongId);
+        await likeDongApi(dongId, user.idx);
         dispatch(likeDong(dongId));
         console.log("하트 빠졌으요");
       }
