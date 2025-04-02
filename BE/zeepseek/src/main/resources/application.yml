@@ -1,7 +1,7 @@
 recommendation:
   api:
-    host: http://recommend  # Docker 내부 서비스 이름
-    port: 8000              # FastAPI 컨테이너의 포트
+    host: http://localhost  # 로컬 환경
+    port: 8000              # FastAPI 서비스 포트
 
 logging:
   level:

@@ -1,5 +1,6 @@
 package com.zeepseek.backend.domain.auth.dto;
 
+import com.zeepseek.backend.domain.user.dto.UserDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

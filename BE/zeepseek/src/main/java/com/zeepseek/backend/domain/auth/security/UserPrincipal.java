@@ -1,7 +1,7 @@
 package com.zeepseek.backend.domain.auth.security;
 
-import com.zeepseek.backend.domain.auth.entity.User;
-import com.zeepseek.backend.domain.auth.entity.UserRole;
+import com.zeepseek.backend.domain.user.entity.User;
+import com.zeepseek.backend.domain.user.entity.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

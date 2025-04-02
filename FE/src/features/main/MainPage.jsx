@@ -25,14 +25,25 @@ function MainPage() {
     navigate("/map");
   };
 
-    // 🔹 로그인 필요 알림 함수
-    const handleProtectedMove = (path) => {
-      if (!user) {
-        alert("로그인 후 이용해주세요.");
-        return;
-      }
+  // 🔹 로그인 필요 알림 함수
+  const handleProtectedMove = (path) => {
+    if (!user) {
+      alert("로그인 후 이용해주세요.");
+      return;
+    } else {
       navigate(path);
-    };
+    }
+
+  };
+
+  const handleClickRecommendButton = () => {
+    if (!user) {
+      alert("로그인 후 이용해주세요.");
+      return;
+    }
+    dispatch(setSelectedRoomType("AI 추천")); // ✅ Redux에 탭 상태 저장
+    navigate("/map");
+  };
 
   return (
     <div className="main-container">
@@ -61,7 +72,7 @@ function MainPage() {
       </section>
 
       <section className="main-button-section-bottom">
-        <div className="main-button-bottom" onClick={() => handleProtectedMove("/map")}>
+        <div className="main-button-bottom" onClick={() => handleClickRecommendButton()}>
           <p className="main-button-text">매물 추천 받기</p>
           <img
             src={recommend_estate}
