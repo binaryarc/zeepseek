@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { oauthLogin } from "../../../common/api/authApi";
 import { setAccessToken, setUser } from "../../../store/slices/authSlice";
+import { setDongLikes } from "../../../store/slices/dongLikeSlice"
+import { fetchLikedRegions } from "../../../common/api/api";
 
 const NaverRedirectHandler = () => {
   const navigate = useNavigate();
@@ -24,6 +26,11 @@ const NaverRedirectHandler = () => {
           dispatch(setAccessToken(accessToken));
           dispatch(setUser(userInfoData)); // accessToken 제외한 나머지
           localStorage.setItem('isAuthenticated', 'true'); // local storage에 로그인 상태 저장
+
+          // ✅ 여기서 찜한 동네 연결
+          const likedDongRes = await fetchLikedRegions(userInfo.data.user.idx);
+          dispatch(setDongLikes(likedDongRes.data));
+
           // ✅ 여기서 분기 처리
           if (userInfoData.isFirst === 1) {
             navigate("/survey");

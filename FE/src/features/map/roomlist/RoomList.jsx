@@ -21,18 +21,17 @@ const RoomList = () => {
   );
 
   const level = window.map?.getLevel();
-
-  const userId = 2;
+  const user = useSelector((state) => state.auth.user);
 
   const toggleLike = async (room) => {
     const { propertyId } = room;
-    if (!userId) return alert("로그인이 필요합니다.");
+    if (user===null) return alert("로그인이 필요합니다.");
 
     try {
       if (room.liked) {
-        await unlikeProperty(propertyId, userId);
+        await unlikeProperty(propertyId, user.idx);
       } else {
-        await likeProperty(propertyId, userId);
+        await likeProperty(propertyId, user.idx);
       }
 
       // ✅ rooms 배열 업데이트

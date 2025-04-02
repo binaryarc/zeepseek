@@ -2,15 +2,15 @@
 import axios from "axios";
 import store from "../../store/store";
 
-// const authApi = axios.create({
-//   baseURL: `http://localhost:8082/api/v1`, // ✅ API 서버 주소
-//   withCredentials: true, // ✅ 쿠키 포함 요청
-// });
-
 const zeepApi = axios.create({
   baseURL: `https://j12e203.p.ssafy.io/api/v1`, // ✅ API 서버 주소
   withCredentials: false, // ✅ 쿠키 포함 요청
 });
+
+// const zeepApi_i = axios.create({
+//   baseURL: `https://j12e203.p.ssafy.io/api/v1`, // ✅ API 서버 주소
+//   withCredentials: true, // ✅ 쿠키 포함 요청
+// });
 
 // ✅ 요청 인터셉터 (모든 요청에 `accessToken` 자동 추가)
 // api.interceptors.request.use((config) => {
@@ -179,9 +179,9 @@ export const fetchRegionSummary = async (region1, region2) => {
 };
 
 // 매물 찜 추가 (POST)
-export const likeProperty = async (propertyId) => {
+export const likeProperty = async (propertyId, userId) => {
   try {
-    const res = await zeepApi.post(`/zzim/property/${propertyId}`, {
+    const res = await zeepApi.post(`/zzim/property/${propertyId}/${userId}`, {
       headers: {
         Authorization: `Bearer ${store.getState().auth.accessToken}`,
       },
@@ -194,10 +194,10 @@ export const likeProperty = async (propertyId) => {
 };
 
 // 매물 찜 삭제 (DELETE)
-export const unlikeProperty = async (propertyId) => {
+export const unlikeProperty = async (propertyId, userId) => {
   try {
     const res = await zeepApi.delete(
-      `/zzim/property/${propertyId}`,
+      `/zzim/property/${propertyId}/${userId}`,
       {}, // body 없음
       {
         headers: {
@@ -213,9 +213,9 @@ export const unlikeProperty = async (propertyId) => {
 };
 
 // 찜한 동네 리스트 불러오는 api
-export const fetchLikedRegions = async () => {
+export const fetchLikedRegions = async (userId) => {
   try {
-    const res = await zeepApi.get(`/zzim/select/dong`);
+    const res = await zeepApi.get(`/zzim/select/dong/${userId}`);
     console.log("찜한 동네 리스트 호출: ", res);
     return res;
   } catch (err) {
@@ -224,10 +224,10 @@ export const fetchLikedRegions = async () => {
 };
 
 // 찜한 매물 리스트 불러오기
-export const fetchLikedProperties = async () => {
+export const fetchLikedProperties = async (userId) => {
   try {
     const res = await zeepApi.get(
-      `/zzim/select/property`,
+      `/zzim/select/property/${userId}`,
       {},
       {
         headers: {
@@ -243,11 +243,10 @@ export const fetchLikedProperties = async () => {
 };
 
 // 동네 찜 추가 (POST)
-export const likeDongApi = async (dongId) => {
+export const likeDongApi = async (dongId, userId) => {
   try {
     const res = await zeepApi.post(
-      `/zzim/dong/${dongId}`,
-      {},
+      `/zzim/dong/${dongId}/${userId}`,
       {
         headers: {
           Authorization: `Bearer ${store.getState().auth.accessToken}`,
@@ -263,9 +262,9 @@ export const likeDongApi = async (dongId) => {
 };
 
 // 동네 찜 삭제 (DELETE)
-export const unlikeDongApi = async (dongId) => {
+export const unlikeDongApi = async (dongId, userId) => {
   try {
-    const res = await zeepApi.delete(`/zzim/dong/${dongId}`, {
+    const res = await zeepApi.delete(`/zzim/dong/${dongId}/${userId}`, {}, {
       headers: {
         Authorization: `Bearer ${store.getState().auth.accessToken}`,
       },
@@ -298,30 +297,44 @@ export const fetchNearbyPlaces = async (type, lng, lat) => {
   }
 }
 
-// // 응답 인터셉터
-// zeepApi.interceptors.response.use(
-//   (response) => response,
-//   async (error) => {
-//     const originalRequest = error.config;
 
-//     // 토큰 만료 시 재발급 시도
-//     if (error.response?.status === 401 && !originalRequest._retry) {
-//       originalRequest._retry = true;
+// 동네 댓글 조회
+export const fetchDongComments = async (dongId, token) => {
+  try {
+    const res = await zeepApi.get(`/dong/${dongId}/comment`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log(res)
+    return res.data; // ✅ 댓글 배열만 추출
+  } catch (err) {
+    console.error("댓글 조회 실패:", err);
+    return [];
+  }
+};
 
-//       try {
-//         const res = await zeepApi.post("/auth/refresh");
-//         const newToken = res.data.accessToken;
-//         store.dispatch(setAccessToken(newToken));
-//         originalRequest.headers.Authorization = `Bearer ${newToken}`;
-//         return zeepApi(originalRequest);
-//       } catch {
-//         store.dispatch(logout());
-//         window.location.href = "/login";
-//       }
-//     }
 
-//     return Promise.reject(error);
-//   }
-// );
+export const postDongComment = async (dongId, nickname, content, token) => {
+  try {
+    const res = await zeepApi.post(
+      `/dong/${dongId}/comment`,
+      {
+        neighborhoodId: dongId,
+        nickName: nickname,
+        content: content,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return res.data;
+  } catch (err) {
+    console.error("댓글 작성 실패:", err);
+    throw err;
+  }
+};
 
 export default zeepApi;

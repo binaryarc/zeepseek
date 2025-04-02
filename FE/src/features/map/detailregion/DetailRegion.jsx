@@ -3,8 +3,10 @@ import "./DetailRegion.css";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchDongDetail } from "../../../common/api/api";
+import Community from "./Community";
 import { likeDong, unlikeDong } from "../../../store/slices/dongLikeSlice";
 import { unlikeDongApi, likeDongApi } from "../../../common/api/api";
+import { fetchDongComments } from "../../../common/api/api";
 
 const getTop3Scores = (dongData) => {
   const categories = {
@@ -38,7 +40,8 @@ const DetailRegion = () => {
   });
   const user = useSelector((state) => state.auth.user);
   const [dongData, setDongData] = useState(null);
-  const dispatch = useDispatch();
+  const [comments, setComments] = useState([]);
+  const [showCommunity, setShowCommunity] = useState(false);  const dispatch = useDispatch();
 
   useEffect(() => {
     if (!dongId) return;
@@ -46,6 +49,9 @@ const DetailRegion = () => {
     const loadDongDetail = async () => {
       const data = await fetchDongDetail(dongId);
       setDongData(data);
+
+      const commentData = await fetchDongComments(dongId); // ⬅️ 댓글도 같이 불러오기
+      setComments(commentData);
     };
 
     loadDongDetail();
@@ -56,11 +62,11 @@ const DetailRegion = () => {
 
     try {
       if (liked) {
-        await unlikeDongApi(dongId);
+        await unlikeDongApi(dongId, user.idx);
         dispatch(unlikeDong(dongId));
         console.log("하트 눌러졌으요");
       } else {
-        await likeDongApi(dongId);
+        await likeDongApi(dongId, user.idx);
         dispatch(likeDong(dongId));
         console.log("하트 빠졌으요");
       }
@@ -83,31 +89,60 @@ const DetailRegion = () => {
 
   return (
     <div className="detail-region-box">
-      <button
+      {!showCommunity ? (
+        <>
+          <button
         className={`detail-zzim-button ${liked ? "liked" : ""}`}
         onClick={handleToggleZzim}
       >
         {liked ? "❤️" : "🤍"}
       </button>
       <h3 className="dong-title">
-        {dongData.guName} {dongData.name}
-      </h3>
+            {dongData.guName} {dongData.name}
+          </h3>
 
-      <div className="score-bars">
-        {topScores.map(({ label, icon, value }) => (
-          <div key={label} className="score-item">
-            <span className="score-label">
+          <div className="score-bars">
+            {topScores.map(({ label, icon, value }) => (
+              <div key={label} className="score-item">
+                <span className="score-label">
               {icon} {label}
             </span>
-            <div className="score-bar-wrapper">
-              <div className="score-bar" style={{ width: `${value}%` }} />
-            </div>
+                <div className="score-bar-wrapper">
+                  <div className="score-bar" style={{ width: `${value}%` }} />
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      <p className="summary-title">📍 동네 요약</p>
-      <p className="summary">{dongData.summary}</p>
+          <p className="summary-title">📍 동네 요약</p>
+          <p className="summary">{dongData.summary}</p>
+
+          <p className="comment-preview-title">💬 커뮤니티</p>
+          {/* 💬 최신 댓글 미리보기 */}
+          <div className="comment-preview">
+           
+            {comments.length > 0 ? (
+              <>
+                <p className="comment-content">"{comments[0].content}"</p>
+                <p className="comment-meta">- {comments[0].nickname}</p>
+              </>
+            ) : (
+              <p className="comment-content">아직 댓글이 없어요.</p>
+            )}
+            <hr />
+            <button className="comment-more-btn" onClick={() => setShowCommunity(true)}>
+              댓글 더 보기 ⟫
+            </button>
+          </div>
+        </>
+      ) : (
+        <Community
+          dongId={dongId}
+          dongName={dongData.name}
+          guName={dongData.guName}
+          onClose={() => setShowCommunity(false)}
+        />
+      )}
     </div>
   );
 };

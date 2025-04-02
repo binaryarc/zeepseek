@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './RegionCompare.css';
 import { fetchDongDetail, fetchRegionSummary, fetchLikedRegions } from '../../../common/api/api';
+import { useSelector } from 'react-redux';
 import {
   RadarChart,
   PolarGrid,
@@ -20,12 +21,14 @@ function RegionCompare() {
   const [searchText, setSearchText] = useState('');
   const [likedRegions, setLikedRegions] = useState([]);
 
-  const userId = 2; // 임시로 userId 2로 설정
+  const user = useSelector((state) => state.auth.user)
 
   useEffect(() => {
     const loadLikedRegions = async () => {
+      if (!user?.idx) return;
+      
       try {
-        const res = await fetchLikedRegions(userId);
+        const res = await fetchLikedRegions(user.idx);
         setLikedRegions(res?.data || []);
         console.log(likedRegions)
       } catch (err) {
@@ -33,7 +36,7 @@ function RegionCompare() {
       }
     };
     loadLikedRegions();
-  }, []);
+  }, [user?.idx]);
 
   const filteredRegions = likedRegions.filter((region) =>
     `${region.guName} ${region.name}`.includes(searchText)
