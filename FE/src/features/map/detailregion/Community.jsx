@@ -47,8 +47,8 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
         if (!confirmDelete) return;
       
         try {
-          await deleteDongComment(commentId, accessToken);
-          const updated = await fetchDongComments(dongId, accessToken);
+          await deleteDongComment(dongId, commentId, accessToken);
+          const updated = await fetchDongComments(dongId);
           setComments(updated);
         } catch {
           alert("삭제에 실패했어요 😢");
