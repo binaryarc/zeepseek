@@ -4,14 +4,16 @@ import React, { useEffect, useState } from "react";
 import { fetchLikedProperties } from "../../../common/api/api";
 import "./Zzim.css";
 import Navbar from "../../../common/navbar/Navbar";
+import { useSelector } from "react-redux";
 
 const Zzim = () => {
   const [groupedZzims, setGroupedZzims] = useState({});
-  const userId = 2
+  const user = useSelector((state) => state.auth.user)
 
   useEffect(() => {
+    if (!user?.idx) return;
     console.log('실행되니?')
-    fetchLikedProperties(userId).then((zzims) => {
+    fetchLikedProperties(user.idx).then((zzims) => {
       // 구 단위로 그룹핑
       const grouped = zzims.reduce((acc, item) => {
         const gu = item.address.split(" ")[1];
@@ -21,7 +23,7 @@ const Zzim = () => {
       }, {});
       setGroupedZzims(grouped);
     });
-  }, [userId]);
+  }, [user.idx]);
 
   return (
     <div className="zzim-page">
