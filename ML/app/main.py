@@ -4,7 +4,7 @@ from fastapi import FastAPI, Request
 # 라우터 모듈에서 APIRouter 인스턴스(router)를 가져옵니다.
 from app.routers.property_score_router import router as property_score_router
 from app.routers.recommend_router import router as ai_recommend_router
-from app.modules.generate_logs import router as activity_log_router
+from app.modules.generate_logs.generate_logs import router as activity_log_router
 app = FastAPI()
 
 # uvicorn 기본 로거 대신 별도의 로거 설정
