@@ -16,6 +16,7 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
     useEffect(() => {
       const loadComments = async () => {
         const res = await fetchDongComments(dongId);
+        console.log("🧾 댓글 확인:", res); // 👈 이거 찍어보세요!
         setComments(res);
       };
       loadComments();
@@ -66,12 +67,12 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
             <li key={i} className="comment-item">
               <p className="comment-content">{c.content}</p>
               <p className="comment-meta">
-                - {c.nickname} | {new Date(c.createdAt).toLocaleDateString()}
+                - {c.nickname ?? "익명"} | {new Date(c.createdAt).toLocaleDateString()}
                 {/* 🔐 로그인 사용자와 닉네임 일치 시에만 보여주기 */}
                 {c.nickname === nickname && (
                   <button
                     className="delete-btn"
-                    onClick={() => handleDelete(c.id)}
+                    onClick={() => handleDelete(c.commentId)}
                   >
                     삭제
                   </button>
