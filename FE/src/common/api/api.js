@@ -345,13 +345,14 @@ export const postDongComment = async (dongId, nickname, content, token) => {
 export const deleteDongComment = async (dongId, commentId, token) => {
   try {
     const res = await zeepApi.delete(
-      `/dong/${dongId}/comment`, // ✅ commentId는 query로
+      `/dong/${dongId}/comment`, // ✅ commentId는 query string으로 전달
+      null, // ✅ data는 없으므로 null 명시
       {
         params: {
-          commentId: commentId, // ✅ 쿼리 파라미터로 전달
+          commentId: commentId, // ✅ 쿼리 파라미터
         },
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`, // ✅ 토큰은 헤더에
         },
       }
     );
