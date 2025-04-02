@@ -65,13 +65,13 @@ public class KakaoPlaceServiceImpl implements KakaoPlaceService {
         } else {
             String mappedCode;
             // cafe, restaurant, medical 타입 처리
-            if (type.equalsIgnoreCase("cafe") || type.equalsIgnoreCase("restaurant") || type.equalsIgnoreCase("medical")) {
+            if (type.equalsIgnoreCase("cafe") || type.equalsIgnoreCase("restaurant") || type.equalsIgnoreCase("health")) {
                 mappedCode = type.equalsIgnoreCase("cafe") ? "CE7"
                         : type.equalsIgnoreCase("restaurant") ? "FD6" : "HP8";
             }
             // transport, leisure, convenience 타입 처리
             else if (type.equalsIgnoreCase("transport") || type.equalsIgnoreCase("leisure")
-                    || type.equalsIgnoreCase("convenience")) {
+                    || type.equalsIgnoreCase("convenience") ) {
                 mappedCode = type.equalsIgnoreCase("transport") ? "SW8"    // 교통 관련 장소
                         : type.equalsIgnoreCase("leisure") ? "AT4"         // 레저/관광 관련 장소
                         : "CS2";                                        // 편의점

@@ -1,5 +1,6 @@
 package com.zeepseek.backend.domain.property.controller;
 
+import com.zeepseek.backend.domain.logevent.annotation.Loggable;
 import com.zeepseek.backend.domain.property.dto.response.DongPropertyCountDto;
 import com.zeepseek.backend.domain.property.dto.response.GuPropertyCountDto;
 import com.zeepseek.backend.domain.property.dto.response.PropertySummaryDto;
