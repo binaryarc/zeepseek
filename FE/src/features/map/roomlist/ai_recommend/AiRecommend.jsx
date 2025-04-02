@@ -5,6 +5,7 @@ import defaultImage from "../../../../assets/logo/192image.png"
 import DongNameMarkers from "../../mainmap/salecountmarkers/DongNameMarkers/DongNameMarkers";
 import GuNameMarkers from "../../mainmap/salecountmarkers/GuNameMarkers/GuNameMarkers";
 import AiRecommendList from "./AiRecommendList/AiRecommendList";
+import zeepai from "../../../../assets/images/zeepai.png"
 
 const AiRecommend = () => {
 
@@ -106,8 +107,9 @@ const AiRecommend = () => {
 
       {isLoading && (
         <div className="loader-container">
-          <div className="spinner"></div>
+          <img src={zeepai} alt="ai_image" className="zeepai_image" />
           <p>AI가 매물을 추천 중이에요...</p>
+          <div className="spinner"></div>
         </div>
       )}
 

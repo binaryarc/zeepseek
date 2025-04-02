@@ -276,9 +276,15 @@ export const unlikeDongApi = async (dongId, userId) => {
   }
 };
 
+const authApi = axios.create({
+  baseURL: `http://localhost:8082/api/v1`, // ✅ API 서버 주소
+  withCredentials: true, // ✅ 쿠키 포함 요청
+});
+
+
 export const postSurvey = async (surveyData, accessToken) => {
   // console.log("accessToken:", accessToken);
-  const response = await zeepApi.post("/auth/survey", surveyData, {
+  const response = await authApi.post("/auth/survey", surveyData, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },

@@ -30,8 +30,9 @@ body {
 
 .region-input-row {
   display: flex;
+  justify-content: space-evenly;
   gap: 10px;
-  margin-bottom: 20px;
+  margin: 0.5rem 0;
 }
 
 .region-input-wrapper {
@@ -80,10 +81,6 @@ body {
   max-height: 300px;
   overflow-y: auto;
   padding-right: 4px;
-}
-
-.liked-list-box-title {
-  
 }
 
 .search-input {
@@ -143,8 +140,9 @@ input::placeholder {
   border-radius: 12px;
   padding: 1rem 4rem;
   font-size: 1.2rem;
-  margin-top: 2.5rem;
+  margin: 2.5rem 0;
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.05);
+  line-height: 2rem;
 }
 
 .summary-box-title {
@@ -156,4 +154,15 @@ input::placeholder {
   text-align: center;
   font-size: 18px;
   margin: 30px 0;
+}
+
+.zeepai_summary_image {
+  width: 6%;
+  height: 5%;
+  margin-right: 2%;
+}
+
+.summary-box-header {
+  display: flex;
+  align-items: center;
 }

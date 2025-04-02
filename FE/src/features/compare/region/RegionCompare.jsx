@@ -11,6 +11,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import zeepai from "../../../assets/images/zeepai.png"
 
 function RegionCompare() {
   const [selectedRegion1, setSelectedRegion1] = useState(null);
@@ -207,7 +208,10 @@ function RegionCompare() {
       <div className="region-ai-summary-container">
         {summary && (
           <div className="summary-box">
-            <p className="summary-box-title">ZEEPSEEK AI의 동네 비교 요약</p>
+            <div className="summary-box-header">
+              <img src={zeepai} alt="ai_image" className="zeepai_summary_image" />
+              <p className="summary-box-title">ZEEPSEEK AI의 동네 비교 요약</p>
+            </div>
             <p>{summary}</p>
           </div>
         )}
