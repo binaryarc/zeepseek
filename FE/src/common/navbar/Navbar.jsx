@@ -55,7 +55,7 @@ function Navbar() {
           <div className="nav-menu">
             <span onClick={() => navigate("/map")}>지도</span>
             <span onClick={() => navigate("/post-room")}>방 내놓기</span>
-            <span onClick={() => navigate("/wishlist")}>찜</span>
+            <span onClick={() => navigate("/zzim")}>찜</span>
           </div>
           <div className="nav-user-area" onClick={handleToggleDropdown}>
             <FaRegUserCircle size={22} style={{ marginRight: "6px" }} />
@@ -63,7 +63,7 @@ function Navbar() {
             {showDropdown && (
               <div className="nav-dropdown">
                 <div onClick={() => handleMenuClick("/mypage")}>마이페이지</div>
-                <div onClick={() => handleMenuClick("/wishlist")}>
+                <div onClick={() => handleMenuClick("/zzim")}>
                   찜한 매물
                 </div>
                 <div onClick={() => handleMenuClick("/profile")}>

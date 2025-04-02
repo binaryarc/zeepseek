@@ -2,11 +2,6 @@
 import axios from "axios";
 import store from "../../store/store";
 
-// const authApi = axios.create({
-//   baseURL: `http://localhost:8082/api/v1`, // ✅ API 서버 주소
-//   withCredentials: true, // ✅ 쿠키 포함 요청
-// });
-
 const zeepApi = axios.create({
   baseURL: `https://j12e203.p.ssafy.io/api/v1`, // ✅ API 서버 주소
   withCredentials: false, // ✅ 쿠키 포함 요청
@@ -291,30 +286,44 @@ export const postSurvey = async (surveyData, accessToken) => {
   return response.data;
 };
 
-// // 응답 인터셉터
-// zeepApi.interceptors.response.use(
-//   (response) => response,
-//   async (error) => {
-//     const originalRequest = error.config;
 
-//     // 토큰 만료 시 재발급 시도
-//     if (error.response?.status === 401 && !originalRequest._retry) {
-//       originalRequest._retry = true;
+// 동네 댓글 조회
+export const fetchDongComments = async (dongId, token) => {
+  try {
+    const res = await zeepApi.get(`/dong/${dongId}/comment`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log(res)
+    return res.data; // ✅ 댓글 배열만 추출
+  } catch (err) {
+    console.error("댓글 조회 실패:", err);
+    return [];
+  }
+};
 
-//       try {
-//         const res = await zeepApi.post("/auth/refresh");
-//         const newToken = res.data.accessToken;
-//         store.dispatch(setAccessToken(newToken));
-//         originalRequest.headers.Authorization = `Bearer ${newToken}`;
-//         return zeepApi(originalRequest);
-//       } catch {
-//         store.dispatch(logout());
-//         window.location.href = "/login";
-//       }
-//     }
 
-//     return Promise.reject(error);
-//   }
-// );
+export const postDongComment = async (dongId, nickname, content, token) => {
+  try {
+    const res = await zeepApi.post(
+      `/dong/${dongId}/comment`,
+      {
+        neighborhoodId: dongId,
+        nickName: nickname,
+        content: content,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return res.data;
+  } catch (err) {
+    console.error("댓글 작성 실패:", err);
+    throw err;
+  }
+};
 
 export default zeepApi;
