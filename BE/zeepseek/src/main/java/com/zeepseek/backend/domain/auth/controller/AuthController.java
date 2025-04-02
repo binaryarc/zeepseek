@@ -130,10 +130,11 @@ public class AuthController {
 
             // 사용자 정보 및 리프레시 토큰을 쿠키에 저장
             if (tokenDto.getUser() != null && tokenDto.getUser().getIdx() != null) {
-                UserDto userDto = userService.getUserById(tokenDto.getUser().getIdx());
+                // 여기서 불필요하게 userService를 통해 사용자 정보를 다시 조회하지 않음
+                // UserDto userDto = userService.getUserById(tokenDto.getUser().getIdx());
 
-                // 세 가지 쿠키 모두 설정
-                CookieUtils.addAllUserCookies(response, userDto, tokenDto.getRefreshToken());
+                // 직접 TokenDto에서 얻은 User 객체를 사용
+                CookieUtils.addAllUserCookies(response, tokenDto.getUser(), tokenDto.getRefreshToken());
             }
 
             log.info("로그인 성공! 토큰 생성됨: accessToken={}, refreshToken={}",
