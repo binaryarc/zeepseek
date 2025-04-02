@@ -101,14 +101,14 @@ const DetailRegion = () => {
             {dongData.guName} {dongData.name}
           </h3>
 
-          <div className="score-bars">
+          <div className="dong-score-bars">
             {topScores.map(({ label, icon, value }) => (
-              <div key={label} className="score-item">
-                <span className="score-label">
+              <div key={label} className="dong-score-item">
+                <span className="dong-score-label">
               {icon} {label}
             </span>
-                <div className="score-bar-wrapper">
-                  <div className="score-bar" style={{ width: `${value}%` }} />
+                <div className="dong-score-bar-wrapper">
+                  <div className="dong-score-bar" style={{ width: `${value}%` }} />
                 </div>
               </div>
             ))}
