@@ -11,6 +11,8 @@ import com.zeepseek.backend.domain.recommend.dto.response.DetailedRecommendation
 import com.zeepseek.backend.domain.recommend.dto.response.RecommendationDto;
 import com.zeepseek.backend.domain.recommend.dto.response.RecommendationResponseDto;
 import com.zeepseek.backend.domain.recommend.exception.RecommendationException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -33,7 +35,29 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     @Override
-    public DetailedRecommendationResponseDto getRecommendations(UserRecommendationRequestDto requestDto) {
+    public DetailedRecommendationResponseDto getRecommendations(UserRecommendationRequestDto requestDto, HttpServletRequest request) {
+        // 쿠키에서 age와 gender 정보 추출
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("age".equals(cookie.getName())) {
+                    try {
+                        requestDto.setAge(Integer.parseInt(cookie.getValue()));
+                        logger.info("사용자 나이 설정: {}", cookie.getValue());
+                    } catch (NumberFormatException e) {
+                        logger.warn("쿠키에서 나이 파싱 실패: {}", cookie.getValue());
+                    }
+                } else if ("gender".equals(cookie.getName())) {
+                    try {
+                        requestDto.setGender(Integer.parseInt(cookie.getValue()));
+                        logger.info("사용자 성별 설정: {}", cookie.getValue());
+                    } catch (NumberFormatException e) {
+                        logger.warn("쿠키에서 성별 파싱 실패: {}", cookie.getValue());
+                    }
+                }
+            }
+        } else {
+            logger.warn("쿠키가 없습니다. 기본 인구통계 정보를 사용합니다.");
+        }
         RecommendationResponseDto originalResponse = recommendationWebClient.post()
                 .body(Mono.just(requestDto), UserRecommendationRequestDto.class)
                 .retrieve()
@@ -79,7 +103,6 @@ public class RecommendationServiceImpl implements RecommendationService {
                 dto.setLongitude(property.getLongitude());
 
                 dto.setSimilarity(rec.getSimilarity());  // 추천 유사도 세팅
-
                 detailedList.add(dto);
             } catch (PropertyNotFoundException ex) {
                 logger.warn("Property not found for id: {}", rec.getPropertyId());
@@ -91,13 +114,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         detailedResponse.setTotalElements(detailedList.size());
         detailedResponse.setTotalPages(1);
         detailedResponse.setCurrentPage(0);
-        // 여기서 우선순위가 가장 높은 게 두 개 이상이라면 미리 정의해둔 우선순위로 하나 선별
-
-
-
         // 위에 계산해서 나온 한 카테고리를 requestDto.getMaxScoreType()을 대체
-        detailedResponse.setMaxType(requestDto.getMaxScoreType());
-
+        detailedResponse.setMaxType(originalResponse.getMaxType());
         return detailedResponse;
     }
 }
