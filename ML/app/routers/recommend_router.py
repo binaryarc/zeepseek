@@ -3,7 +3,7 @@
 from typing import Optional
 import logging
 from fastapi import APIRouter, HTTPException, Body, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 # 콘텐츠 기반 추천 서비스 (사용자 점수 기반 추천)
 from app.modules.content_based.services.recommend_service import recommend_properties
@@ -19,19 +19,16 @@ router = APIRouter()
 # 1. 사용자 카테고리 점수를 이용한 추천
 # ==========================
 class UserCategoryScore(BaseModel):
-    transport_score: float = Field(..., alias="transportScore")
-    restaurant_score: float = Field(..., alias="restaurantScore")
-    health_score: float = Field(..., alias="healthScore")
-    convenience_score: float = Field(..., alias="convenienceScore")
-    cafe_score: float = Field(..., alias="cafeScore")
-    chicken_score: float = Field(..., alias="chickenScore")
-    leisure_score: float = Field(..., alias="leisureScore")
-    gender: Optional[int] = Field(None, alias="gender")
-    age: Optional[int] = Field(None, alias="age")
-    user_id: Optional[int] = Field(None, alias="userId")
-    
-    class Config:
-        allow_population_by_field_name = True
+    transportScore: float
+    restaurantScore: float
+    healthScore: float
+    convenienceScore: float
+    cafeScore: float
+    chickenScore: float
+    leisureScore: float
+    gender: Optional[int] = None
+    age: Optional[int] = None
+    userId: Optional[int] = None
 
 @router.post("/recommend", summary="Recommend top 10 properties based on user's category scores")
 def recommend_properties_endpoint(user_scores: UserCategoryScore):
@@ -61,7 +58,7 @@ def recommend_properties_endpoint(user_scores: UserCategoryScore):
             break
 
     return {
-        "recommended_properties": recommendations,
+        "recommendedProperties": recommendations,
         "maxType": global_max_type
     }
 
@@ -69,13 +66,13 @@ def recommend_properties_endpoint(user_scores: UserCategoryScore):
 # 2. AI 기반 추천 엔드포인트
 # ==========================
 @router.get("/ai-recommend", summary="AI 기반 추천 (GET)")
-def get_ai_recommend(user_id: int = Query(..., description="추천 요청 대상 사용자 ID")):
+def get_ai_recommend(userId: int = Query(..., description="추천 요청 대상 사용자 ID")):
     """
     GET 방식 AI 추천 엔드포인트.
     - recommend_for_mainpage 함수를 사용하여 AI 추천을 수행합니다.
     """
-    logger.info("GET AI 추천 요청: user_id=%s", user_id)
-    result = recommend_for_mainpage(user_id)
+    logger.info("GET AI 추천 요청: userId=%s", userId)
+    result = recommend_for_mainpage(userId)
     logger.info("GET AI 추천 결과: %s", result)
     return result
 
@@ -85,12 +82,12 @@ def post_ai_recommend(data: dict = Body(...)):
     POST 방식 AI 추천 엔드포인트.
     요청 Body 예시:
     {
-      "user_id": 123
+      "userId": 123
     }
     """
     logger.info("POST AI 추천 요청 데이터: %s", data)
-    user_id = data.get("user_id")
-    result = recommend_for_mainpage(user_id)
+    userId = data.get("userId")
+    result = recommend_for_mainpage(userId)
     logger.info("POST AI 추천 결과: %s", result)
     return result
 

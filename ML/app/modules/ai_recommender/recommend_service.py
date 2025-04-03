@@ -29,8 +29,8 @@ model = RecommenderModel()
 
 def fetch_logs_from_es():
     """
-    ES에서 최근 30일간의 로그 데이터를 조회하여, 
-    필요한 컬럼(userId, propertyId, action, dongId)을 포함한 DataFrame으로 반환.
+    ES에서 최근 30일간의 로그 데이터를 조회하여,
+    필요한 컬럼(userId, propertyId, action, dongId)을 포함한 DataFrame으로 반환합니다.
     """
     logger.info("Fetching logs from ES (last 30 days)...")
     query = {
@@ -46,13 +46,14 @@ def fetch_logs_from_es():
     df = pd.DataFrame(docs)
     logger.info("Fetched %d logs from ES.", len(df))
     df['score'] = df['action'].map(ACTION_SCORE)
-    df.rename(columns={"userId": "user_id", "propertyId": "property_id", "dongId": "dong_id"}, inplace=True)
-    return df[['user_id', 'property_id', 'score', 'dong_id']]
+    # 컬럼명을 camelCase로 유지
+    df.rename(columns={"userId": "userId", "propertyId": "propertyId", "dongId": "dongId"}, inplace=True)
+    return df[['userId', 'propertyId', 'score', 'dongId']]
 
 def train_model():
     """
-    ES에서 로그 데이터를 가져와 추천 모델을 학습시킴.
-    학습된 모델 인스턴스를 반환.
+    ES에서 로그 데이터를 가져와 추천 모델을 학습시킵니다.
+    학습된 모델 인스턴스를 반환합니다.
     """
     logger.info("Training model with ES logs...")
     df = fetch_logs_from_es()
@@ -60,19 +61,19 @@ def train_model():
     logger.info("Model training completed.")
     return model
 
-def get_most_frequent_dong_for_user(user_id: int, duration="2h"):
+def get_most_frequent_dong_for_user(userId: int, duration="2h"):
     """
-    최근 duration(기본 2시간) 이내, user_id가 남긴 로그 중
+    최근 duration(기본 2시간) 이내, userId가 남긴 로그 중
     action이 "search", "view", "comment", "zzim", "compare" 인 로그를 조회하고,
     로그 수가 5건 미만이면 None을 반환합니다.
-    그렇지 않으면 가장 많이 등장한 dongId를 반환합니다.
+    충분하면 가장 많이 등장한 dongId를 반환합니다.
     """
-    logger.info("Fetching recent dong logs for user %d in the last %s...", user_id, duration)
+    logger.info("Fetching recent dong logs for user %d in the last %s...", userId, duration)
     query = {
         "query": {
             "bool": {
                 "must": [
-                    {"term": {"userId": user_id}},
+                    {"term": {"userId": userId}},
                     {"range": {"time": {"gte": f"now-{duration}"}}}
                 ],
                 "should": [
@@ -91,76 +92,76 @@ def get_most_frequent_dong_for_user(user_id: int, duration="2h"):
     res = es.search(index="logs", body=query, scroll="2m")
     docs = [doc["_source"] for doc in res["hits"]["hits"] if doc["_source"].get("dongId")]
     if len(docs) < 5:
-        logger.info("Insufficient dong logs for user %d. Found only %d logs.", user_id, len(docs))
+        logger.info("Insufficient dong logs for user %d. Found only %d logs.", userId, len(docs))
         return None
     df = pd.DataFrame(docs)
     most_common = df['dongId'].value_counts().idxmax()
-    logger.info("User %d most frequent dong: %s", user_id, most_common)
+    logger.info("User %d most frequent dong: %s", userId, most_common)
     return most_common
 
-def recommend_by_dong(user_id: int, top_k=10):
+def recommend_by_dong(userId: int, top_k=10):
     """
     사용자의 최근 2시간 로그에서 가장 많이 등장한 dongId를 추출하고,
-    해당 dong에 속한 매물들만 대상으로 SVD 예측을 수행하여 추천 property_id 리스트를 반환합니다.
+    해당 dong에 속한 매물들에 대해 SVD 예측을 수행하여 추천 propertyId 리스트를 반환합니다.
     만약 dong 로그가 없거나 후보가 부족하면 빈 리스트를 반환합니다.
     """
-    logger.info("Starting dong-based recommendation for user %d...", user_id)
-    target_dong = get_most_frequent_dong_for_user(user_id, duration="2h")
-    if target_dong is None:
-        logger.info("No sufficient dong logs for user %d.", user_id)
+    logger.info("Starting dong-based recommendation for user %d...", userId)
+    targetDong = get_most_frequent_dong_for_user(userId, duration="2h")
+    if targetDong is None:
+        logger.info("No sufficient dong logs for user %d.", userId)
         return []
     
     df = fetch_logs_from_es()
-    candidates_df = df[df['dong_id'] == target_dong]
+    candidates_df = df[df['dongId'] == targetDong]
     if candidates_df.empty:
-        logger.info("No candidate properties found in dong %s.", target_dong)
+        logger.info("No candidate properties found in dong %s.", targetDong)
         return []
     
-    seen = df[df['user_id'] == user_id]['property_id'].unique()
-    candidate_items = candidates_df['property_id'].unique()
+    seen = df[df['userId'] == userId]['propertyId'].unique()
+    candidate_items = candidates_df['propertyId'].unique()
     unseen = [pid for pid in candidate_items if pid not in seen]
     if not unseen:
         unseen = candidate_items
-    logger.info("Found %d candidate properties in dong %s for user %d.", len(unseen), target_dong, user_id)
+    logger.info("Found %d candidate properties in dong %s for user %d.", len(unseen), targetDong, userId)
     
-    predictions = [(pid, model.predict(user_id, pid)) for pid in unseen]
+    predictions = [(pid, model.predict(userId, pid)) for pid in unseen]
     predictions.sort(key=lambda x: x[1], reverse=True)
     recommended = [int(pid) for pid, _ in predictions[:top_k]]
-    logger.info("Dong-based recommendations for user %d: %s", user_id, recommended)
+    logger.info("Dong-based recommendations for user %d: %s", userId, recommended)
     return recommended
 
-def recommend(user_id: int, top_k=10):
+def recommend(userId: int, top_k=10):
     """
     기본 SVD 협업 필터링 추천:
     해당 사용자가 이미 본 매물을 제외한 unseen 매물에 대해
-    예측 점수를 계산하여 상위 top_k property_id 리스트를 반환합니다.
+    예측 점수를 계산하여 상위 top_k propertyId 리스트를 반환합니다.
     """
-    logger.info("Starting default SVD recommendation for user %d...", user_id)
+    logger.info("Starting default SVD recommendation for user %d...", userId)
     df = fetch_logs_from_es()
-    seen = df[df['user_id'] == user_id]['property_id'].unique()
-    all_items = df['property_id'].unique()
+    seen = df[df['userId'] == userId]['propertyId'].unique()
+    all_items = df['propertyId'].unique()
     unseen = [pid for pid in all_items if pid not in seen]
-    logger.info("User %d has seen %d properties; %d unseen candidates.", user_id, len(seen), len(unseen))
+    logger.info("User %d has seen %d properties; %d unseen candidates.", userId, len(seen), len(unseen))
     
-    predictions = [(pid, model.predict(user_id, pid)) for pid in unseen]
+    predictions = [(pid, model.predict(userId, pid)) for pid in unseen]
     predictions.sort(key=lambda x: x[1], reverse=True)
     recommended = [int(pid) for pid, _ in predictions[:top_k]]
-    logger.info("Default recommendations for user %d: %s", user_id, recommended)
+    logger.info("Default recommendations for user %d: %s", userId, recommended)
     return recommended
 
-def get_user_preferences_from_db(user_id: int):
+def get_user_preferences_from_db(userId: int):
     """
-    user_preference 테이블에서 해당 user_id의 선호 데이터를 조회합니다.
-    (transport, restaurant, health, convenience, cafe, leisure) 중 값이 1인 항목은 1, 아니면 0.
+    user_preference 테이블에서 해당 userId의 선호 데이터를 조회합니다.
+    (transport, restaurant, health, convenience, cafe, leisure) 중 값이 1이면 1, 아니면 0.
     'chicken'은 테이블에 없으므로 기본값 0으로 설정합니다.
     """
     session = SessionLocal()
     try:
         query = text(
             "SELECT transport, restaurant, health, convenience, cafe, leisure "
-            "FROM user_preference WHERE user_id = :user_id"
+            "FROM user_preference WHERE user_id = :userId"
         )
-        result = session.execute(query, {"user_id": user_id}).fetchone()
+        result = session.execute(query, {"userId": userId}).fetchone()
         if result:
             prefs = dict(result._mapping)
             processed = {k: 1 if float(v) == 1 else 0 for k, v in prefs.items()}
@@ -171,25 +172,25 @@ def get_user_preferences_from_db(user_id: int):
     finally:
         session.close()
 
-def recommend_for_mainpage(user_id: int, top_k=10, gender=None, age=None, user_preferences=None):
+def recommend_for_mainpage(userId: int, top_k=10, gender=None, age=None, user_preferences=None):
     """
     메인페이지 추천:
       - 최근 2시간 내의 로그를 기반으로 dongId를 추출하고, 로그 수가 충분해야만 추천을 수행합니다.
-      - 로그 수가 부족하면 추천을 아예 수행하지 않고 빈 결과를 반환합니다.
+      - 로그 수가 부족하면 추천을 수행하지 않고 빈 결과를 반환합니다.
     """
-    logger.info("Starting mainpage recommendation for user %d...", user_id)
-    target_dong = get_most_frequent_dong_for_user(user_id, duration="2h")
-    if target_dong is None:
-        logger.info("Insufficient log data for user %d. No recommendation will be provided.", user_id)
+    logger.info("Starting mainpage recommendation for user %d...", userId)
+    targetDong = get_most_frequent_dong_for_user(userId, duration="2h")
+    if targetDong is None:
+        logger.info("Insufficient log data for user %d. No recommendation will be provided.", userId)
         return {"dongId": None, "propertyIds": []}
     
     # dong 기반 추천 수행
-    recs = recommend_by_dong(user_id, top_k=top_k)
-    return {"dongId": target_dong, "propertyIds": recs}
+    recs = recommend_by_dong(userId, top_k=top_k)
+    return {"dongId": targetDong, "propertyIds": recs}
 
 def load_property_vectors():
     """
-    매물 벡터와 property_id를 DB에서 읽어 글로벌 캐시에 저장합니다.
+    매물 벡터와 propertyId를 DB에서 읽어 글로벌 캐시에 저장합니다.
     캐시 TTL 내라면 기존 캐시를 반환합니다.
     """
     global PROPERTY_VECTORS_CACHE, PROPERTY_IDS_CACHE, PROPERTY_CACHE_TIMESTAMP
@@ -231,10 +232,9 @@ def load_property_vectors():
     finally:
         session.close()
 
-# 별도의 래퍼 함수: user 테이블에서 (idx, gender, age) 조회 후 메인 추천 수행
-def get_recommendations_for_user(user_id: int):
+def get_recommendations_for_user(userId: int):
     """
-    user 테이블에서 user_id에 해당하는 사용자의 정보를 조회한 후,
+    user 테이블에서 userId에 해당하는 사용자의 정보를 조회한 후,
     recommend_for_mainpage 함수에 전달하여 추천 결과를 반환합니다.
     """
     session = SessionLocal()
@@ -242,9 +242,9 @@ def get_recommendations_for_user(user_id: int):
         query = text("""
             SELECT idx, gender, age
             FROM user
-            WHERE idx = :user_id
+            WHERE idx = :userId
         """)
-        result = session.execute(query, {"user_id": user_id}).fetchone()
+        result = session.execute(query, {"userId": userId}).fetchone()
         if not result:
             return {"error": "User not found"}
         user = dict(result)
@@ -252,7 +252,7 @@ def get_recommendations_for_user(user_id: int):
         session.close()
 
     return recommend_for_mainpage(
-        user_id=user["idx"],
+        userId=user["idx"],
         top_k=5,
         gender=user.get("gender", 0),
         age=user.get("age", 0)
