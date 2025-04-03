@@ -34,15 +34,6 @@
   flex-wrap: wrap;
 }
 
-.main-button-section-bottom {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin: 30px 0;
-  flex-wrap: wrap;
-  font-family: "강원교육모두 Bold";
-}
-
 .main-button-top {
   padding: 15px 20px;
   border-radius: 1.25rem;
@@ -79,34 +70,6 @@
     flex-wrap: wrap;
     font-family: "GangwonEdu_Bold";
   }
-  
-  .main-button-top {
-    padding: 15px 20px;
-    border-radius: 1.25rem;
-    border: 3px solid rgba(135, 205, 108, 0.60);
-    background: #F1FAD3;
-    cursor: pointer;
-    font-weight: bold;
-    width: 12rem;
-    height: 7.8125rem;
-    flex-shrink: 0;
-    text-align: center;
-    transition: background 0.3s;
-  }
-  
-  .main-button-bottom {
-    padding: 15px 20px;
-    border-radius: 1.25rem;
-    border: 3px solid rgba(135, 205, 108, 0.60);
-    background: #F1FAD3;
-    cursor: pointer;
-    font-weight: bold;
-    width: 20rem;
-    height: 7.8125rem;
-    flex-shrink: 0;
-    text-align: center;
-    transition: background 0.3s;
-  }
 
 .main-button:hover {
   background-color: #d4e9b2;
@@ -115,7 +78,7 @@
 .main-button-text {
   color: #412a0b;
   text-align: left;
-  font-family: GangwonEduAll;
+  font-family: "GangwonEdu_Bold";
   font-size: 1.7rem;
   margin: 8px;
 }
