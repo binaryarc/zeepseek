@@ -1,3 +1,10 @@
- .body {
-  
- }
+@import url("../region/RegionCompare.css"); /* 스타일 재활용 */
+
+.region-compare-container {
+  background-color: #e3eafc;
+}
+
+.selected-region {
+  background-color: #d0e1ff;
+  font-weight: bold;
+}
