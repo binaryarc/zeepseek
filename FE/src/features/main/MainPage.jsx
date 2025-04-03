@@ -13,7 +13,7 @@ import Searchbar from "../../common/searchbar/SearchBar";
 import "./MainPage.css";
 import MainSearchbar from "../../common/searchbar/MainSearchBar";
 import { useSelector } from "react-redux";
-
+import MainListingSection from "./recommend/MainListingSection";
 
 function MainPage() {
   const navigate = useNavigate();
@@ -33,7 +33,6 @@ function MainPage() {
     } else {
       navigate(path);
     }
-
   };
 
   const handleClickRecommendButton = () => {
@@ -57,22 +56,34 @@ function MainPage() {
       {/* 버튼 섹션 */}
 
       <section className="main-button-section-top">
-        <div className="main-button-top" onClick={() => handleMoveToMap("원룸/투룸")}>
+        <div
+          className="main-button-top"
+          onClick={() => handleMoveToMap("원룸/투룸")}
+        >
           <p className="main-button-text">원룸 / 투룸</p>
           <img src={oneroom} alt="원룸" className="main-png-top" />
         </div>
-        <div className="main-button-top" onClick={() => handleMoveToMap("오피스텔")}>
+        <div
+          className="main-button-top"
+          onClick={() => handleMoveToMap("오피스텔")}
+        >
           <p className="main-button-text">오피스텔</p>
           <img src={officetel} alt="오피스텔" className="main-png-top" />
         </div>
-        <div className="main-button-top" onClick={() => handleMoveToMap("주택/빌라")}>
+        <div
+          className="main-button-top"
+          onClick={() => handleMoveToMap("주택/빌라")}
+        >
           <p className="main-button-text">주택 / 빌라</p>
           <img src={villa} alt="주택/빌라" className="main-png-top" />
         </div>
       </section>
 
       <section className="main-button-section-bottom">
-        <div className="main-button-bottom" onClick={() => handleClickRecommendButton()}>
+        <div
+          className="main-button-bottom"
+          onClick={() => handleClickRecommendButton()}
+        >
           <p className="main-button-text">매물 추천 받기</p>
           <img
             src={recommend_estate}
@@ -80,7 +91,10 @@ function MainPage() {
             className="main-png-bottom"
           />
         </div>
-        <div className="main-button-bottom" onClick={() => handleProtectedMove("/compare")}>
+        <div
+          className="main-button-bottom"
+          onClick={() => handleProtectedMove("/compare")}
+        >
           <p className="main-button-text">동네 비교</p>
           <img
             src={compare_estate}
@@ -90,16 +104,7 @@ function MainPage() {
         </div>
       </section>
 
-      {/* 추천 매물 섹션 */}
-      <section className="main-listing-section">
-        <h2>ZEEPSEEK AI가 추천하는 매물</h2>
-        <p>실시간 인기 매물🔥</p>
-        <div className="main-listing-container">
-          <div className="main-listing-item">매물 1</div>
-          <div className="main-listing-item">매물 2</div>
-          <div className="main-listing-item">매물 3</div>
-        </div>
-      </section>
+      <MainListingSection />
     </div>
   );
 }
