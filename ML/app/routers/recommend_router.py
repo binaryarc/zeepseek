@@ -7,9 +7,7 @@ from pydantic import BaseModel, Field
 
 # 콘텐츠 기반 추천 서비스 (사용자 점수 기반 추천)
 from app.modules.content_based.services.recommend_service import recommend_properties
-# AI 추천 관련 서비스: 학습용 함수는 그대로 사용
-from app.modules.ai_recommender.recommend_service import train_model
-# 수정: AI 추천시 user 테이블 조회 후 추천하는 래퍼 함수 사용
+# AI 추천 관련 서비스: 학습용 함수와 메인페이지 추천 함수 사용
 from app.modules.ai_recommender.recommend_service import train_model, recommend_for_mainpage
 
 logger = logging.getLogger(__name__)
@@ -74,10 +72,10 @@ def recommend_properties_endpoint(user_scores: UserCategoryScore):
 def get_ai_recommend(user_id: int = Query(..., description="추천 요청 대상 사용자 ID")):
     """
     GET 방식 AI 추천 엔드포인트.
-    - user 테이블에서 사용자 정보를 조회한 후 추천을 수행합니다.
+    - recommend_for_mainpage 함수를 사용하여 AI 추천을 수행합니다.
     """
     logger.info("GET AI 추천 요청: user_id=%s", user_id)
-    result = get_recommendations_for_user(user_id)
+    result = recommend_for_mainpage(user_id)
     logger.info("GET AI 추천 결과: %s", result)
     return result
 
@@ -92,7 +90,7 @@ def post_ai_recommend(data: dict = Body(...)):
     """
     logger.info("POST AI 추천 요청 데이터: %s", data)
     user_id = data.get("user_id")
-    result = get_recommendations_for_user(user_id)
+    result = recommend_for_mainpage(user_id)
     logger.info("POST AI 추천 결과: %s", result)
     return result
 
