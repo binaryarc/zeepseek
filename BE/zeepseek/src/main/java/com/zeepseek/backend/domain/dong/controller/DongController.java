@@ -24,7 +24,6 @@ public class DongController {
      * 요청 예: GET /api/dongs/search?name=신당
      */
     @GetMapping("/search")
-    @Loggable(action = "comment", type = "dong")
     public ResponseEntity<List<DongInfoDocs>> searchDongs(@RequestParam("name") String name) {
         List<DongInfoDocs> dongs = dongService.searchByName(name);
         return ResponseEntity.ok(dongs);
