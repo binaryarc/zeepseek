@@ -2,7 +2,9 @@ package com.zeepseek.backend.domain.dong.service;
 
 import com.zeepseek.backend.domain.dong.document.DongInfoDocs;
 import com.zeepseek.backend.domain.dong.dto.request.DongCommentRequestDto;
+import com.zeepseek.backend.domain.dong.entity.DongInfo;
 import com.zeepseek.backend.domain.dong.repository.MongoDongRepository;
+import com.zeepseek.backend.domain.dong.repository.MySQLDongRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -10,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -17,6 +20,7 @@ import java.util.stream.Collectors;
 public class DongService {
 
     private final MongoDongRepository dongRepository;
+    private final MySQLDongRepository mySQLDongRepository;
 
     /**
      * 동 이름을 포함한 검색 결과 반환
@@ -92,5 +96,12 @@ public class DongService {
     public List<DongInfoDocs> findAllDongsforZzim() {
         return dongRepository.findAll();
     }
+
+
+    public Integer findDongIdByName(String dongName) {
+        Optional<DongInfo> dongOpt = mySQLDongRepository.findByName(dongName);
+        return dongOpt.map(DongInfo::getDongId).orElse(-1);
+    }
+
 
 }

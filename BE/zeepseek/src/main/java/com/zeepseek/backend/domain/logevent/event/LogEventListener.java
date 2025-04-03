@@ -17,15 +17,20 @@ public class LogEventListener {
     @Async
     @EventListener
     public void handleLogEvent(LogEvent event) {
-        // event.getExtraData()를 활용하여 추가 데이터도 저장 가능
+        int userId = (int) event.getExtraData().getOrDefault("userId", -1);
+        int age = (int) event.getExtraData().getOrDefault("age", -1);
+        String gender = (String) event.getExtraData().getOrDefault("gender", "unknown");
+        int propertyId = (int) event.getExtraData().getOrDefault("propertyId", -1);
+        int dongId = (int) event.getExtraData().getOrDefault("dongId", -1);
+
         logService.logAction(
                 event.getAction(),
                 event.getType(),
-                (int) event.getExtraData().getOrDefault("userId", -1), // 필요에 따라 데이터 변환
-                (int) event.getExtraData().getOrDefault("age", -1),
-                (String) event.getExtraData().getOrDefault("gender", "unknown"),
-                (int) event.getExtraData().getOrDefault("propertyId", -1),
-                (int) event.getExtraData().getOrDefault("dongId", -1)
+                userId,
+                age,
+                gender,
+                propertyId,
+                dongId
         );
     }
 }

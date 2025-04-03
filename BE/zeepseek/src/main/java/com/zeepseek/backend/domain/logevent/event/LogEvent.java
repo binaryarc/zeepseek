@@ -1,6 +1,7 @@
 package com.zeepseek.backend.domain.logevent.event;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
 import java.util.Map;
 
@@ -16,18 +17,5 @@ public class LogEvent extends ApplicationEvent {
         this.action = action;
         this.type = type;
         this.extraData = extraData;
-    }
-
-    public String getAction() {
-        return action;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-
-    public Map<String, Object> getExtraData() {
-        return extraData;
     }
 }

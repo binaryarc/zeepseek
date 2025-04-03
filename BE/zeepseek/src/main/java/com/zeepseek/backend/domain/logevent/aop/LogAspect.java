@@ -1,5 +1,6 @@
 package com.zeepseek.backend.domain.logevent.aop;
 
+import com.zeepseek.backend.domain.dong.service.DongService;
 import com.zeepseek.backend.domain.logevent.annotation.Loggable;
 import com.zeepseek.backend.domain.logevent.event.LogEvent;
 import lombok.extern.slf4j.Slf4j;
@@ -23,27 +24,28 @@ import java.util.Map;
 public class LogAspect {
 
     private final ApplicationEventPublisher eventPublisher;
+    private final DongService dongService; // dong 테이블 조회를 위한 서비스
 
-    public LogAspect(ApplicationEventPublisher eventPublisher) {
+    public LogAspect(ApplicationEventPublisher eventPublisher, DongService dongService) {
         this.eventPublisher = eventPublisher;
+        this.dongService = dongService;
     }
 
     @Around("@annotation(com.zeepseek.backend.domain.logevent.annotation.Loggable)")
     public Object logEventTrigger(ProceedingJoinPoint joinPoint) throws Throwable {
-        // 메서드 실행 전 데이터를 수집할 수 있음
-        Object result = joinPoint.proceed(); // 메서드 실행
+        // 컨트롤러 메서드 실행
+        Object result = joinPoint.proceed();
 
-        // 메서드에 붙은 @Loggable 어노테이션 정보를 가져옴
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
         Loggable loggable = method.getAnnotation(Loggable.class);
 
-        // 추가 데이터는 필요에 따라 구성 (여기서는 예시로, 메서드 이름과 파라미터 값을 담습니다)
+        // 기본 extraData 구성
         Map<String, Object> extraData = new HashMap<>();
         extraData.put("method", method.getName());
         extraData.put("args", joinPoint.getArgs());
 
-        // 메서드 파라미터에서 @PathVariable("propertyId")를 찾아 extraData에 추가
+        // @CookieValue, @PathVariable 처리 (예시)
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
         Object[] args = joinPoint.getArgs();
         for (int i = 0; i < parameterAnnotations.length; i++) {
@@ -60,9 +62,7 @@ public class LogAspect {
                     if ("gender".equals(cookieName)) {
                         extraData.put("gender", args[i]);
                     }
-                    // 다른 쿠키 이름도 필요하면 추가 조건문 작성
                 }
-
                 if (annotation instanceof PathVariable) {
                     PathVariable pv = (PathVariable) annotation;
                     String value = pv.value();
@@ -79,7 +79,30 @@ public class LogAspect {
             }
         }
 
-        log.info("extra data: {}", extraData.toString());
+        // @RequestBody로 전달된 Map에서 dongName 추출 후 dong 테이블과 조인하여 dongId 조회
+        boolean foundDongName = false;
+        for (Object arg : args) {
+            if (arg instanceof Map) {
+                Map<?, ?> mapArg = (Map<?, ?>) arg;
+                if (mapArg.containsKey("dongName") && mapArg.get("dongName") != null) {
+                    try {
+                        String dongName = (String) mapArg.get("dongName");
+                        Integer dongId = dongService.findDongIdByName(dongName);
+                        extraData.put("dongId", dongId);
+                    } catch (Exception e) {
+                        // 예외 발생 시 기본값 (-1) 할당
+                        extraData.put("dongId", -1);
+                    }
+                    foundDongName = true;
+                    break;
+                }
+            }
+        }
+        if (!foundDongName) {
+            extraData.put("dongId", -1);
+        }
+
+        log.info("extra data: {}", extraData);
         // 로그 이벤트 발행
         eventPublisher.publishEvent(new LogEvent(this, loggable.action(), loggable.type(), extraData));
 
