@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { fetchDongComments } from "../../../common/api/api";
 import { useSelector } from "react-redux";
 import { postDongComment } from "../../../common/api/api";
@@ -12,7 +12,8 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
     const [loading, setLoading] = useState(false);
     const accessToken = useSelector((state) => state.auth.accessToken);
     const nickname = useSelector((state) => state.auth.user?.nickname);
-  
+    const commentListRef = useRef(null);
+    
     useEffect(() => {
       const loadComments = async () => {
         const res = await fetchDongComments(dongId);
@@ -22,6 +23,12 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
       loadComments();
     }, [dongId]);
     
+    useEffect(() => {
+      if (commentListRef.current) {
+        commentListRef.current.scrollTop = commentListRef.current.scrollHeight;
+      }
+    }, [comments]);
+
     const handlePost = async () => {
         if (!newComment.trim()) return;
         if (!accessToken || !nickname) {
@@ -65,14 +72,39 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
           <h4>{guName} {dongName}</h4>
           <img src={back} alt="" onClick={onClose} className="community-back"/>
         </div>
-        <ul className="dong-comment-list">
-          {comments.map((c, i) => (
+        <ul className="dong-comment-list" ref={commentListRef}>
+        {comments.map((c, i) => {
+          const isMine = c.nickname === nickname;
+          const createdDate = new Date(c.createdAt);
+          const kstDate = new Date(createdDate.getTime() + 9 * 60 * 60 * 1000);
+          const dateStr = kstDate.toISOString().split("T")[0]; // yyyy-mm-dd
+
+          const prevDateStr =
+            i > 0
+              ? new Date(new Date(comments[i - 1].createdAt).getTime() + 9 * 60 * 60 * 1000)
+                  .toISOString()
+                  .split("T")[0]
+              : null;
+        
+          const showDateLabel = i === 0 || dateStr !== prevDateStr;
+          
+          return (
             <li key={i} className="dong-comment-item">
-              <p className="dong-comment-content">{c.content}</p>
-              <p className="dong-comment-meta">
-                - {c.nickname ?? "익명"} | {new Date(c.createdAt).toLocaleDateString()}
-                {/* 🔐 로그인 사용자와 닉네임 일치 시에만 보여주기 */}
-                {c.nickname === nickname && (
+              {showDateLabel && <div className="comment-date-label">{dateStr}</div>}
+              <span className="nickname-label">{c.nickname ?? "익명"}</span>
+            <div className={`bubble-wrapper ${isMine ? "my-wrapper" : "other-wrapper"}`}>
+              <div className={`bubble ${isMine ? "my-comment" : "other-comment"}`}>
+                {c.content}
+              </div>
+              <div className={`bubble-meta ${isMine ? "meta-right" : "meta-left"}`}>
+                <span className="bubble-time">
+                  {kstDate.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                  })}
+                </span>
+                {isMine && (
                   <button
                     className="delete-btn"
                     onClick={() => handleDelete(c.commentId)}
@@ -80,9 +112,12 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
                     삭제
                   </button>
                 )}
-              </p>
-            </li>
-          ))}
+              </div>
+            </div>
+          </li>
+          
+          );
+        })}
         </ul>
         <div className="dong-comment-form">
         <input

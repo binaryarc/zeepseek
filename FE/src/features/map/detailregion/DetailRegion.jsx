@@ -7,6 +7,8 @@ import Community from "./Community";
 import { likeDong, unlikeDong } from "../../../store/slices/dongLikeSlice";
 import { unlikeDongApi, likeDongApi } from "../../../common/api/api";
 import { fetchDongComments } from "../../../common/api/api";
+import zeepAi from "../../../assets/images/zeepai.png"
+import people from "../../../assets/images/detail_png/people.png"
 
 const getTop3Scores = (dongData) => {
   const categories = {
@@ -114,24 +116,24 @@ const DetailRegion = () => {
             ))}
           </div>
 
-          <p className="summary-title">📍 동네 요약</p>
+          <p className="summary-title"><img src={zeepAi} alt="zeepai_이미지" className="detail-zeepai-image"/> 동네 요약</p>
           <p className="summary">{dongData.summary}</p>
 
-          <p className="comment-preview-title">💬 커뮤니티</p>
+          <p className="comment-preview-title"><img src={people} alt="커뮤니티" className="detail-people-image"  />커뮤니티</p>
           {/* 💬 최신 댓글 미리보기 */}
           <div className="comment-preview">
            
             {comments.length > 0 ? (
               <>
-                <p className="comment-content">"{comments[0].content}"</p>
-                {/* <p className="comment-meta">- {comments[0].nickname}</p> */}
+                <p className="comment-content">{comments[comments.length - 1].nickname}: {comments[comments.length - 1].content}</p>
+                {/* <p className="comment-meta">- C</p> */}
               </>
             ) : (
               <p className="comment-content">아직 댓글이 없어요.</p>
             )}
             <hr />
             <button className="comment-more-btn" onClick={() => setShowCommunity(true)}>
-              댓글 더 보기 ⟫
+              {comments.length}개의 댓글 더 보기 ⟫
             </button>
           </div>
         </>
