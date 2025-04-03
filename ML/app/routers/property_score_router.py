@@ -95,7 +95,9 @@ class UserCategoryScore(BaseModel):
     cafe_score: float = Field(..., alias="cafeScore")
     chicken_score: float = Field(..., alias="chickenScore")
     leisure_score: float = Field(..., alias="leisureScore")
-
+    gender: Optional[int] = Field(None, alias="gender")
+    age: Optional[int] = Field(None, alias="age")
+    user_id: Optional[int] = Field(None, alias="userId")
     class Config:
         allow_population_by_field_name = True
 
@@ -105,10 +107,21 @@ def recommend_properties_endpoint(user_scores: UserCategoryScore):
     """
     사용자 점수를 받아 코사인 유사도 기반으로 상위 10개 매물을 추천합니다.
     """
-    recommendations = recommend_properties(user_scores.dict(), top_n=10)
+    try:
+        # Pydantic v2
+        user_data = user_scores.model_dump()
+    except AttributeError:
+        # Pydantic v1
+        user_data = user_scores.dict()
+
+    recommendations = recommend_properties(user_scores = user_data, top_n=10, gender = user_scores.gender, age = user_scores.age)
+    global_max_type = max(recommendations, key=lambda x: x.get("similarity", 0)).get("maxType")
     if not recommendations:
         raise HTTPException(status_code=404, detail="No properties found")
-    return {"recommended_properties": recommendations}
+    return{
+        "recommended_properties": recommendations,
+        "maxType": global_max_type
+    }
 
 
 
