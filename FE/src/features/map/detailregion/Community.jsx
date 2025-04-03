@@ -85,16 +85,24 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
 
 
   useEffect(() => {
-  const handleMouseDown = (e) => {
-    // 마우스 왼쪽 버튼 클릭일 때만
-    if (e.button === 0) {
-      handleClickOutside();
-    }
-  };
-  window.addEventListener("mousedown", handleMouseDown);
-  return () => window.removeEventListener("mousedown", handleMouseDown);
-}, []);
-
+    const handleMouseDown = (e) => {
+      // 삭제 버튼(span.bubble-delete) 클릭한 경우는 무시
+      if (
+        e.target.classList.contains("bubble-delete") || 
+        e.target.closest(".bubble-delete")
+      ) {
+        return; // ❌ 닫지 마!
+      }
+  
+      // 마우스 왼쪽 버튼 클릭일 때만 닫기
+      if (e.button === 0) {
+        handleClickOutside();
+      }
+    };
+  
+    window.addEventListener("mousedown", handleMouseDown);
+    return () => window.removeEventListener("mousedown", handleMouseDown);
+  }, []);
 
   return (
     <div className="community-box" onWheel={(e) => e.stopPropagation()}>
