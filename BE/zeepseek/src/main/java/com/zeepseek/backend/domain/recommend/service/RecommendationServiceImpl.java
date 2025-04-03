@@ -128,10 +128,11 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     @Override
     public AiRecommendationResponseDto getAiRecommendation(Integer userId) {
-        // FastAPI GET /ai-recommend?user_id={userId} 호출, FastAPI 응답은 AiRecommendationFastApiResponseDto로 받음
+        // FastAPI GET /ai-recommend?user_id={userId} 호출
+        // replacePath()를 사용해 기본 base URL의 경로를 무시하고 "/ai-recommend"로 설정
         AiRecommendationFastApiResponseDto originalResponse = recommendationWebClient.get()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/ai-recommend")
+                        .replacePath("/ai-recommend")
                         .queryParam("user_id", userId)
                         .build())
                 .retrieve()
