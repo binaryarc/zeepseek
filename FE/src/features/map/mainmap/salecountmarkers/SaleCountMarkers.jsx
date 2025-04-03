@@ -22,6 +22,8 @@ function SaleCountMarkers({ map }) {
   };
   const filterKey = roomTypeMap[selectedRoomType];
 
+  const likedDongs = useSelector((state) => state.dongLike); // ✔ 찜한 동 ID 배열
+
   // const [dongId, setDongId] = useState(null);
   const [level, setLevel] = useState(null);
 
@@ -72,29 +74,40 @@ function SaleCountMarkers({ map }) {
       overlaysRef.current = [];
 
       targetData.forEach((region) => {
-        // console.log(targetData)
         const position = new window.kakao.maps.LatLng(region.lat, region.lng);
-
-        // ✅ '공덕동', '마포구' 등 마지막 단어만 추출
         const splitName = region.name.trim().split(" ");
         const displayName = splitName[splitName.length - 1];
-
+      
         let count = 0;
+        let labelContent = "";
         if (currentLevel >= 6) {
+          // 구 단위: 하트 표시 X
           count = countMap[region.name] || 0;
+      
+          labelContent = `
+            <div class="marker-container">
+              <div class="circle-count">${count}</div>
+              <div class="region-label">${displayName}</div>
+            </div>
+          `;
         } else if (currentLevel > 3) {
-          // console.log(region)
+          // 동 단위: 하트 표시 O
           const dongId = region.dongId;
           count = countMap[dongId] || 0;
-          // console.log("동별 매물 개수:", dongId, count);
-        }
-
-        const contentDiv = document.createElement("div");
-        contentDiv.className = "marker-container";
-        contentDiv.innerHTML = `
-          <div class="circle-count">${count}</div>
-          <div class="region-label">${displayName}</div>
+          const isLiked = likedDongs[String(dongId)];
+      
+          labelContent = `
+          <div class="marker-container">
+            <div class="circle-count">${count}</div>
+            <div class="region-label">${displayName}</div>
+            ${isLiked ? '<div class="heart-overlay">❤️</div>' : ""}
+          </div>
         `;
+        }
+      
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "marker-wrapper";
+        contentDiv.innerHTML = labelContent;
 
         const overlay = new window.kakao.maps.CustomOverlay({
           position,
@@ -122,7 +135,7 @@ function SaleCountMarkers({ map }) {
       overlaysRef.current = [];
       window.kakao.maps.event.removeListener(map, "idle", drawMarkers);
     };
-  }, [map, filterKey]);
+  }, [map, filterKey, likedDongs]);
 
   return level <= 3 ? <GridClustering map={map} /> : null;
 }

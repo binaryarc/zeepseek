@@ -7,8 +7,12 @@ import Navbar from "../../../common/navbar/Navbar";
 import { useDispatch, useSelector } from "react-redux";
 import blankImg from "../../../assets/logo/512image.png"
 import { FaHeart } from "react-icons/fa";
+import { setKeyword, setSelectedPropertyId } from "../../../store/slices/roomListSlice";
+import { useNavigate } from "react-router-dom";
 
 const Zzim = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [groupedZzims, setGroupedZzims] = useState({});
   const user = useSelector((state) => state.auth.user)
   const [flag, setFlag] = useState(false)
@@ -58,6 +62,13 @@ const toggleLike = async (room) => {
     }
   };
 
+  // 카드 클릭 시: Redux에 선택된 매물 정보 및 검색 키워드(주소) 업데이트 후 map 페이지로 이동
+  const handleCardClick = (room) => {
+    dispatch(setSelectedPropertyId(room.propertyId));
+    dispatch(setKeyword(room.propertyId)); // 해당 매물의 주소로 검색되도록
+    navigate("/map");
+  };
+
   return (
     <div className="zzim-page">
       <Navbar />
@@ -85,7 +96,11 @@ const toggleLike = async (room) => {
             <h3 className="gu-name">{gu}</h3>
             <div className="zzim-list">
               {groupedZzims[gu].map((room) => (
-                <div key={room.propertyId} className="zzim-card">
+                <div 
+                  key={room.propertyId} 
+                  className="zzim-card"
+                  onClick={() => handleCardClick(room)}
+                >
                   <img
                     src={room.imageUrl || blankImg}
                     alt="매물 이미지"
