@@ -307,8 +307,8 @@ def get_user_preference_weights(user_id):
     try:
         query = text("""
             SELECT 
-                transport_preference, restaurant_preference, health_preference, 
-                convenience_preference, cafe_preference, chicken_preference, leisure_preference
+                transport, restaurant, health, 
+                convenience, cafe, chicken, leisure
             FROM user_preference
             WHERE user_id = :user_id
         """)
@@ -320,13 +320,13 @@ def get_user_preference_weights(user_id):
         
         # 선호도가 1인 항목에 추가 가중치 1.0 적용
         preference_adjustments = np.array([
-            1.0 if result._mapping["transport_preference"] == 1 else 0.0,
-            1.0 if result._mapping["restaurant_preference"] == 1 else 0.0,
-            1.0 if result._mapping["health_preference"] == 1 else 0.0,
-            1.0 if result._mapping["convenience_preference"] == 1 else 0.0,
-            1.0 if result._mapping["cafe_preference"] == 1 else 0.0,
-            1.0 if result._mapping["chicken_preference"] == 1 else 0.0,
-            1.0 if result._mapping["leisure_preference"] == 1 else 0.0
+            1.0 if result._mapping["transport"] == 1 else 0.0,
+            1.0 if result._mapping["restaurant"] == 1 else 0.0,
+            1.0 if result._mapping["health"] == 1 else 0.0,
+            1.0 if result._mapping["convenience"] == 1 else 0.0,
+            1.0 if result._mapping["cafe"] == 1 else 0.0,
+            1.0 if result._mapping["chicken"] == 1 else 0.0,
+            1.0 if result._mapping["leisure"] == 1 else 0.0
         ])
         
         # 캐시 업데이트
