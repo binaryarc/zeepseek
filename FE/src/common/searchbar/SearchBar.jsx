@@ -12,7 +12,7 @@ import {
   setCurrentGuAndDongName,
   setKeyword,
 } from "../../store/slices/roomListSlice";
-import { searchProperties } from "../../common/api/api";
+// import { searchProperties } from "../../common/api/api";
 import { logoutOAuth } from "../../common/api/authApi";
 import { logout } from "../../store/slices/authSlice";
 import { useEffect } from "react";
@@ -28,7 +28,7 @@ function Searchbar() {
   const user = useSelector((state) => state.auth.user);
   const nickname = user?.nickname || "로그인 유저";
   const keywordFromRedux = useSelector((state) => state.roomList.keyword); // ✅ 추가
-  const mapReady = useSelector((state) => state.roomList.mapReady);
+  // const mapReady = useSelector((state) => state.roomList.mapReady);
 
   useEffect(() => {
     if (keywordFromRedux ) {
