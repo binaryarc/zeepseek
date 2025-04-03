@@ -45,7 +45,9 @@
   border-radius: 4px;
   /* transition: width 0.3s ease; */
 }
-
+.summary-title {
+  font-size: 17px;
+}
 .summary {
   height: auto;
   width: 240px;
@@ -95,7 +97,7 @@
 
   
   .comment-preview {
-    background-color: #ebf3fa;
+    background-color: #f2f7fc;
     height: 75px;
     border-radius: 12px;
     padding: 3px 16px;
@@ -105,7 +107,7 @@
   }
   
   .comment-preview-title {
-    font-size: 15px;
+    font-size: 17px;
   }
   
   .comment-content {
@@ -129,3 +131,12 @@
     cursor: pointer;
   }
   
+  .detail-zeepai-image {
+    width: 1.8rem;
+    margin-right: 1.5%
+  }
+
+  .detail-people-image{
+    width: 1.8rem;
+    margin-right: 3%
+  }

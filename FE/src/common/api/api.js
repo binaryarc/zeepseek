@@ -7,7 +7,7 @@ const zeepApi = axios.create({
   withCredentials: false, // ✅ 쿠키 포함 요청
 });
 
-// const zeepApi_i = axios.create({
+// const authApi = axios.create({
 //   baseURL: `https://j12e203.p.ssafy.io/api/v1`, // ✅ API 서버 주소
 //   withCredentials: true, // ✅ 쿠키 포함 요청
 // });
@@ -76,7 +76,7 @@ export const fetchPropertiesByBounds = async (
   filter, // ✅ 추가
   page = 1,
   size = 10000,
-  userId = 2
+  userId
 ) => {
   try {
     const res = await zeepApi.post("/search/mapper", {
@@ -205,6 +205,7 @@ export const likeProperty = async (propertyId, userId) => {
         Authorization: `Bearer ${store.getState().auth.accessToken}`,
       },
     });
+    console.log(res)
     return res.data;
   } catch (error) {
     console.error("찜 추가 실패:", error);
