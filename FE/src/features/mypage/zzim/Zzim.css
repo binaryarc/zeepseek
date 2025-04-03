@@ -1,13 +1,14 @@
 .zzim-page {
-    padding: 2rem;
   }
   .zzim-title {
     font-size: 1.8rem;
     font-weight: bold;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
+    padding: 0 2rem;
   }
   .zzim-gu-section {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
+    padding: 0 3rem;
   }
   .gu-name {
     font-size: 1.4rem;

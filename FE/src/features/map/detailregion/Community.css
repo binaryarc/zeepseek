@@ -7,6 +7,7 @@
     border-radius: 10px;
     box-shadow: 0 0 4px rgba(0,0,0,0.1);
     animation: fadeIn 0.3s ease-in-out;
+    pointer-events: auto;
   }
   
   .community-header {
@@ -66,6 +67,8 @@
     position: relative;
     word-break: break-word;
     margin-bottom: 2%;
+    cursor: default;
+    z-index: 300;
   }
 
   /* 간단한 fade in 애니메이션 */
@@ -126,15 +129,6 @@
     height: auto
   }
 
-  .delete-btn {
-    margin-left: 8px;
-    background: none;
-    border: none;
-    color: red;
-    font-size: 12px;
-    cursor: pointer;
-  }
-
   .my-comment {
     align-self: flex-end;
     background-color: #dcf8c6;
@@ -152,11 +146,21 @@
 
   .nickname-label {
     font-size: 11px;
-    /* font-weight: bold; */
     margin-bottom: 4px;
     color: #555;
   }
-
+  
+  .nickname-left {
+    text-align: left;
+    align-self: flex-start;
+  }
+  
+  .nickname-right {
+    margin-right: 10%;
+    text-align: right;
+    align-self: flex-end;
+  }
+  
 
   .meta-left {
     text-align: left;
@@ -167,6 +171,7 @@
   
   .meta-right {
     text-align: right;
+
     margin-right: 4px;
     font-size: 11px;
     color: gray;
@@ -181,16 +186,20 @@
   }
   
   .my-wrapper {
-    justify-content: flex-end;
+    flex-direction: row-reverse;
   }
   
   .other-wrapper {
     justify-content: flex-start;
+    flex-direction: row;
   }
   
   .bubble-time {
     font-size: 11px;
     color: gray;
+    white-space: nowrap;
+
+    
   }
   
   .time-right {
@@ -206,4 +215,12 @@
     font-size: 12px;
     color: #888;
     margin: 8px 0;
+  }
+
+  .bubble-delete {
+    font-size: 11px;
+    color: red;
+    cursor: pointer;
+    text-decoration: underline;
+    z-index: 9000;
   }
