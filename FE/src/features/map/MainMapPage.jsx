@@ -7,9 +7,16 @@ import RoomDetail from "./roomlist/RoomDetail";
 import { useSelector } from "react-redux";
 import AiSlidePanel from "./AiSlidePanel/AiSlidePanel"
 import AIRecommendModal from "./mainmap/AiRecommendModal/AiRecommendModal";
+import { useEffect } from "react";
 
 const MainMapPage = () => {
   const selectedPropertyId = useSelector((state) => state.roomList.selectedPropertyId);
+  useEffect(() => {
+    return () => {
+      // 이 컴포넌트가 언마운트될 때 전체 새로고침
+      window.location.reload();
+    };
+  }, []);
 
 
   return (

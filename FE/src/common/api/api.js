@@ -49,17 +49,17 @@ export const fetchDongPropertyCounts = async (filterKey) => {
 export const searchProperties = async (
   keyword,
   filter,
+  userId,
   page = 1,
   size = 10000,
-  userId = 2
 ) => {
   try {
     const res = await zeepApi.post("/search", {
       keyword,
       filter, // ✅ roomType 필드 추가
+      userId,
       page,
       size,
-      userId,
     });
     console.log(res.data);
     return res.data;
@@ -74,18 +74,18 @@ export const fetchPropertiesByBounds = async (
   guName,
   dongName,
   filter, // ✅ 추가
+  userId,
   page = 1,
   size = 10000,
-  userId
 ) => {
   try {
     const res = await zeepApi.post("/search/mapper", {
       guName,
       dongName,
       filter,
+      userId,
       page,
       size,
-      userId,
     });
     console.log(res.data);
     return res.data;
@@ -139,18 +139,37 @@ export const fetchDongDetail = async (dongId) => {
   }
 };
 
-// 매물 비교 용 api(아직 안됨, 다시 만들어야 함)
-export const fetchPropertyCompare = async (payload) => {
+
+// 매물 점수 불러오는 api
+export const fetchProPertyScore = async (propertyId) => {
   try {
-    const token = store.getState().auth.accessToken;
-    const res = await zeepApi.post("/compare/property", payload, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await zeepApi.get(`/property/score/${propertyId}`);
+    console.log("매물 점수 호출 성공: ", res);
     return res.data;
   } catch (err) {
-    console.error("매물 비교 실패:", err);
+    console.error("매물 점수 호출 실패:", err)
+  }
+}
+
+
+// 매물 비교 용 api(아직 안됨, 다시 만들어야 함)
+export const fetchPropertyCompare = async (prop1, prop2) => {
+  console.log("token값: ", store.getState().auth.accessToken)
+  try {
+    const res = await zeepApi.post("/dong/compare/property",
+      {
+        "prop1": prop1,
+        "prop2": prop2
+      });
+      // {
+      // headers: {
+      //     Authorization: `Bearer ${store.getState().auth.accessToken}`,
+      //   },
+      // });
+    console.log("매물 비교 요청 성공: ", res)
+    return res;
+  } catch (err) {
+    console.error("매물 비교 실패b:", err);
     return null;
   }
 };
@@ -226,6 +245,7 @@ export const fetchLikedRegions = async (userId) => {
 
 // 찜한 매물 리스트 불러오기
 export const fetchLikedProperties = async (userId) => {
+  console.log("토큰?", store.getState().auth.accessToken)
   try {
     const res = await zeepApi.get(
       `/zzim/select/property/${userId}`,
@@ -236,6 +256,7 @@ export const fetchLikedProperties = async (userId) => {
         },
       }
     );
+    console.log("찜한 매물 리스트 호출: ", res)
     return res.data;
   } catch (err) {
     console.error("찜한 매물 불러오기 실패:", err);
@@ -358,5 +379,20 @@ export const deleteDongComment = async (dongId, commentId, token) => {
     throw err;
   }
 };
+
+
+// 찜한 동네 리스트에서 동네 이름 검색하는 api
+export const searchDongByName = async (dongName) => {
+  try {
+    const res = await zeepApi.get(`/dong/search?name=${dongName}`)
+    console.log("동 이름 검색 결과: ", res);
+    return res;
+  } catch (err) {
+    console.error("동 이름 검색 실패: ", err);
+    throw err;
+  }
+}
+
+
 
 export default zeepApi;

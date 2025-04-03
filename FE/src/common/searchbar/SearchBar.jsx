@@ -109,6 +109,7 @@ function Searchbar() {
         fetchRoomList({
           keyword,
           filter: roomType,
+          userId: user?.idx ?? null,
         })
       );
     } catch (err) {
