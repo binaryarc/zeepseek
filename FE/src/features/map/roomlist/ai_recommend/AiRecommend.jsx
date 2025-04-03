@@ -177,6 +177,8 @@ const AiRecommend = () => {
                         console.error('마커 불러오기 실패:', err);
                       }
                     setNearbyMarkers(newMarkers);
+                  } else {
+                    console.log("그럼 여기야?")
                   }
                 }}
                 onMouseLeave={() => {
