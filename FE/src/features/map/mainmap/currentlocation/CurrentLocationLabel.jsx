@@ -59,7 +59,7 @@ function CurrentLocationLabel({ map }) {
           }
 
           // ✅ 일반 이동 시 동이 변경되면 fetch
-          if (dongCode && dongCode !== currentDongId) {
+          if (dongCode && dongCode !== currentDongId && !searchLockRef.current) {
             dispatch(setCurrentDongId(dongCode));
             dispatch(setCurrentGuAndDongName({ guName, dongName }));
 
