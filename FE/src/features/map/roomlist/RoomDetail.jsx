@@ -55,30 +55,30 @@ const RoomDetail = ({ propertyId }) => {
             {detail.contractType} {detail.price}
           </h2>
           <p>관리비 {formatFee(detail.maintenanceFee)}</p>
-          <hr />
           <div className="detail-description">{detail.description}</div>
+          <hr />
           
           <div className="detail-line">
             <img src={date} alt="날짜 아이콘" className="detail-icons" />
-            <p>{detail.moveInDate}</p>
+            <p>{detail.moveInDate || "-"}</p>
           </div>
 
           <div className="detail-line">
             <img src={size} alt="면적 아이콘" className="detail-icons" />
-            <p>{detail.area}</p>
+            <p>{detail.area || "-"}</p>
           </div>
 
           <div className="detail-line">
             <img src={floor} alt="층수 아이콘" className="detail-icons" />
-            <p>{detail.floorInfo}</p>
+            <p>{detail.floorInfo || "-"}</p>
           </div>
           <div className="detail-line">
             <img src={room} alt="방욕실 아이콘" className="detail-icons" />
-            <p>{detail.roomBathCount}</p>
+            <p>{detail.roomBathCount || "-"}</p>
           </div>
           <div className="detail-line">
             <img src={direction} alt="방향" className="detail-icons" />
-            <p>{detail.direction}</p>
+            <p>{detail.direction || "-"}</p>
           </div>
             {/* <div className="detail-fixed-footer">
             <img src={phone} alt="전화" />
