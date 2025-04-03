@@ -12,12 +12,8 @@ from app.modules.property_scoring.scoring_batch import (
     recalculate_incomplete_scores_batch,
     update_property_score_optimized
 )
-
 # 점수 계산 서비스 (scoring_service.py)
 from app.modules.property_scoring.scoring_service import compute_property_score
-
-# 추천 로직 (recommend_service.py)
-from app.modules.content_based.services.recommend_service import recommend_properties
 
 router = APIRouter()
 
@@ -85,44 +81,6 @@ def recalculate_incomplete():
     """
     total = recalculate_incomplete_scores_batch()
     return {"message": f"Processed {total} incomplete properties."}
-
-
-class UserCategoryScore(BaseModel):
-    transport_score: float = Field(..., alias="transportScore")
-    restaurant_score: float = Field(..., alias="restaurantScore")
-    health_score: float = Field(..., alias="healthScore")
-    convenience_score: float = Field(..., alias="convenienceScore")
-    cafe_score: float = Field(..., alias="cafeScore")
-    chicken_score: float = Field(..., alias="chickenScore")
-    leisure_score: float = Field(..., alias="leisureScore")
-    gender: Optional[int] = Field(None, alias="gender")
-    age: Optional[int] = Field(None, alias="age")
-    user_id: Optional[int] = Field(None, alias="userId")
-    class Config:
-        allow_population_by_field_name = True
-
-
-@router.post("/recommend", summary="Recommend top 10 properties based on user's category scores")
-def recommend_properties_endpoint(user_scores: UserCategoryScore):
-    """
-    사용자 점수를 받아 코사인 유사도 기반으로 상위 10개 매물을 추천합니다.
-    """
-    try:
-        # Pydantic v2
-        user_data = user_scores.model_dump()
-    except AttributeError:
-        # Pydantic v1
-        user_data = user_scores.dict()
-
-    recommendations = recommend_properties(user_scores = user_data, top_n=10, gender = user_scores.gender, age = user_scores.age)
-    global_max_type = max(recommendations, key=lambda x: x.get("similarity", 0)).get("maxType")
-    if not recommendations:
-        raise HTTPException(status_code=404, detail="No properties found")
-    return{
-        "recommended_properties": recommendations,
-        "maxType": global_max_type
-    }
-
 
 
 @router.post("/normalize", summary="Normalize all property scores (0~100 scale)")

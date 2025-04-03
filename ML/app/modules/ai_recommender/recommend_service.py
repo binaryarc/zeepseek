@@ -3,13 +3,16 @@ import time
 import numpy as np
 from datetime import datetime, timedelta
 from sqlalchemy import text
-from sklearn.metrics.pairwise import cosine_similarity
 import logging
+from sklearn.metrics.pairwise import cosine_similarity
 
 from app.config.elasticsearch import get_es_client  # ES 클라이언트를 생성하는 함수
 from app.modules.ai_recommender.svd_model import RecommenderModel  # SVD 기반 추천 모델 클래스
 from app.modules.ai_recommender.action_score import ACTION_SCORE  # 업데이트된 ACTION_SCORE 매핑 (zzim, search, compare, comment 포함)
 from app.config.database import SessionLocal
+
+# 콘텐츠 기반 추천: 수정 - 로컬 함수 대신 외부 모듈에서 recommend_properties를 import 함
+from app.modules.content_based.services.recommend_service import recommend_properties
 
 # 로거 설정
 logger = logging.getLogger(__name__)
@@ -143,52 +146,37 @@ def recommend(user_id: int, top_k=10):
     logger.info("Default recommendations for user %d: %s", user_id, recommended)
     return recommended
 
-def recommend_content_based(user_preferences: dict, top_k=10, dong_id=None):
+def get_user_preferences_from_db(user_id: int):
     """
-    콘텐츠 기반 추천:
-    - 사용자가 중요하게 생각하는 최대 3개 카테고리 점수를 기반으로 매물의 콘텐츠 점수를 계산.
-    - property_score 데이터를 load_property_vectors()를 통해 가져와,
-      사용자 선호 벡터와 내적(dot product)하여 점수를 산출.
-    - dong_id가 제공되면 해당 dong의 매물만 필터링.
+    user_preference 테이블에서 해당 user_id의 선호 데이터를 조회합니다.
+    아래 컬럼들 중 (transport, restaurant, health, convenience, cafe, leisure)
+    값이 1인 항목들만 1로 표시하고, 나머지는 0으로 반환합니다.
+    'chicken'은 테이블에 없으므로 기본값 0으로 설정합니다.
     """
-    logger.info("Starting content-based recommendation with preferences: %s", user_preferences)
-    property_array, property_ids = load_property_vectors()
-    if property_array is None:
-        logger.error("No property vectors available.")
-        return []
-    category_names = ["transport", "restaurant", "health", "convenience", "cafe", "chicken", "leisure"]
-    user_vector = np.array([user_preferences.get(cat, 0) for cat in category_names])
-    logger.info("User preference vector: %s", user_vector)
-    
-    if dong_id is not None:
-        logger.info("Filtering properties by dong_id: %s", dong_id)
-        session = SessionLocal()
-        try:
-            query = text("SELECT property_id FROM property WHERE dong_id = :dong_id")
-            rows = session.execute(query, {"dong_id": dong_id}).fetchall()
-            valid_ids = set([row[0] for row in rows])
-            logger.info("Found %d properties in dong_id %s from DB.", len(valid_ids), dong_id)
-        finally:
-            session.close()
-        indices = [i for i, pid in enumerate(property_ids) if pid in valid_ids]
-        if not indices:
-            logger.info("No properties found in dong_id %s after filtering.", dong_id)
-            return []
-        property_array = property_array[indices]
-        property_ids = [property_ids[i] for i in indices]
-    
-    scores = property_array.dot(user_vector)
-    sorted_indices = np.argsort(scores)[::-1]
-    recommended = [int(property_ids[i]) for i in sorted_indices[:top_k]]
-    logger.info("Content-based recommendations: %s", recommended)
-    return recommended
+    session = SessionLocal()
+    try:
+        query = text(
+            "SELECT transport, restaurant, health, convenience, cafe, leisure "
+            "FROM user_preference WHERE user_id = :user_id"
+        )
+        result = session.execute(query, {"user_id": user_id}).fetchone()
+        if result:
+            prefs = dict(result)
+            processed = {k: 1 if float(v) == 1 else 0 for k, v in prefs.items()}
+            processed["chicken"] = 0
+            return processed
+        else:
+            return None
+    finally:
+        session.close()
 
 def recommend_for_mainpage(user_id: int, top_k=10, gender=None, age=None, user_preferences=None):
     """
     메인페이지 추천:
       1. 최근 2시간 내 사용자의 'search', 'view', 'comment', 'zzim', 'compare' 로그를 확인하여,
          가장 많이 등장한 dongId가 있으면 해당 dong에 속한 매물들만 대상으로 SVD 추천을 수행.
-      2. 로그가 충분하지 않으면, 파라미터로 넘어온 user_preferences(최대 3개 중요 카테고리)를 활용한 콘텐츠 기반 추천 수행.
+      2. 로그가 충분하지 않으면, 전달된 user_preferences가 없을 경우 DB에서 선호 데이터를 조회한 후,
+         콘텐츠 기반 추천 (외부 모듈의 recommend_properties 함수 사용)을 수행.
       3. fallback: 기본 SVD 협업 필터링 추천.
     """
     logger.info("Starting mainpage recommendation for user %d...", user_id)
@@ -202,9 +190,19 @@ def recommend_for_mainpage(user_id: int, top_k=10, gender=None, age=None, user_p
         else:
             logger.info("Dong-based recommendations insufficient for user %d.", user_id)
     
+    # user_preferences가 전달되지 않은 경우 DB에서 조회
+    if user_preferences is None:
+        user_preferences = get_user_preferences_from_db(user_id)
+        logger.info("Fetched user preferences from DB for user %d: %s", user_id, user_preferences)
+    
     if user_preferences is not None:
-        logger.info("Using content-based recommendation for user %d with preferences: %s", user_id, user_preferences)
-        recs = recommend_content_based(user_preferences, top_k=top_k, dong_id=target_dong)
+        # 수정: 로컬 콘텐츠 기반 함수 대신 외부 모듈의 recommend_properties 호출
+        recs = recommend_properties(
+            user_scores=user_preferences,
+            top_n=top_k,
+            gender=gender,
+            age=age
+        )
         return {"dongId": target_dong, "propertyIds": recs}
     
     logger.info("Falling back to default SVD recommendation for user %d.", user_id)
@@ -215,7 +213,6 @@ def load_property_vectors():
     """
     매물 벡터와 property_id를 DB에서 읽어 글로벌 캐시에 저장합니다.
     캐시 TTL 내라면 기존 캐시를 반환합니다.
-    최적화를 위해 캐싱 외에, 실제 운영 환경에서는 대용량 데이터 처리를 위한 streaming 또는 ANN 인덱스 도 고려해야 합니다.
     """
     global PROPERTY_VECTORS_CACHE, PROPERTY_IDS_CACHE, PROPERTY_CACHE_TIMESTAMP
     current_time = time.time()
@@ -255,3 +252,30 @@ def load_property_vectors():
         return None, None
     finally:
         session.close()
+
+# 별도의 래퍼 함수: user 테이블에서 (idx, gender, age) 조회 후 콘텐츠 기반 추천 수행
+def get_recommendations_for_user(user_id: int):
+    """
+    user 테이블에서 user_id에 해당하는 사용자의 정보를 조회한 후,
+    gender와 age를 recommend_for_mainpage 함수에 전달하여 추천 결과를 반환합니다.
+    """
+    session = SessionLocal()
+    try:
+        query = text("""
+            SELECT idx, gender, age
+            FROM user
+            WHERE idx = :user_id
+        """)
+        result = session.execute(query, {"user_id": user_id}).fetchone()
+        if not result:
+            return {"error": "User not found"}
+        user = dict(result)
+    finally:
+        session.close()
+
+    return recommend_for_mainpage(
+        user_id=user["idx"],
+        top_k=5,
+        gender=user.get("gender", 0),
+        age=user.get("age", 0)
+    )
