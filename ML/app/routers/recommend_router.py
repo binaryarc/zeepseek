@@ -1,9 +1,7 @@
-# app/routers/recommendation_router.py
-
 from typing import Optional
 import logging
 from fastapi import APIRouter, HTTPException, Body, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 # 콘텐츠 기반 추천 서비스 (사용자 점수 기반 추천)
 from app.modules.content_based.services.recommend_service import recommend_properties
@@ -30,6 +28,9 @@ class UserCategoryScore(BaseModel):
     age: Optional[int] = None
     userId: Optional[int] = None
 
+    class Config:
+        allow_population_by_field_name = True
+
 @router.post("/recommend", summary="Recommend top 10 properties based on user's category scores")
 def recommend_properties_endpoint(user_scores: UserCategoryScore):
     """
@@ -50,7 +51,6 @@ def recommend_properties_endpoint(user_scores: UserCategoryScore):
     if not recommendations:
         raise HTTPException(status_code=404, detail="No properties found")
     
-    # maxType이 존재하면 이를 반환 (없으면 None)
     global_max_type = None
     for rec in recommendations:
         if rec.get("maxType") is not None:
@@ -66,7 +66,7 @@ def recommend_properties_endpoint(user_scores: UserCategoryScore):
 # 2. AI 기반 추천 엔드포인트
 # ==========================
 @router.get("/ai-recommend", summary="AI 기반 추천 (GET)")
-def get_ai_recommend(userId: int = Query(..., description="추천 요청 대상 사용자 ID")):
+def get_ai_recommend(userId: int = Query(..., alias="user_id", description="추천 요청 대상 사용자 ID")):
     """
     GET 방식 AI 추천 엔드포인트.
     - recommend_for_mainpage 함수를 사용하여 AI 추천을 수행합니다.
@@ -82,11 +82,11 @@ def post_ai_recommend(data: dict = Body(...)):
     POST 방식 AI 추천 엔드포인트.
     요청 Body 예시:
     {
-      "userId": 123
+      "user_id": 123
     }
     """
     logger.info("POST AI 추천 요청 데이터: %s", data)
-    userId = data.get("userId")
+    userId = data.get("user_id")
     result = recommend_for_mainpage(userId)
     logger.info("POST AI 추천 결과: %s", result)
     return result
