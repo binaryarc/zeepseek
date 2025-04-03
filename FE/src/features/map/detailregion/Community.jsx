@@ -56,6 +56,7 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
   };
 
   const handleDelete = async (commentId) => {
+    console.log("🗑 삭제 시도", commentId);
     if (!accessToken) return alert("로그인이 필요합니다!");
     const confirmDelete = window.confirm("댓글을 삭제하시겠습니까?");
     if (!confirmDelete) return;
@@ -152,11 +153,20 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
                   {c.content}
                 </div>
 
-                <div
-                  className={`bubble-meta ${
-                    isMine ? "meta-right" : "meta-left"
-                  }`}
-                >
+                <div className={`bubble-meta ${isMine ? "meta-right" : "meta-left"}`}>
+                {contextMenu.visible && contextMenu.commentId === c.commentId ? (
+                  <span
+                    className="bubble-delete"
+                    onClick={(e) => {
+                      e.stopPropagation(); 
+                      console.log("🧹 삭제 클릭됨!", c.commentId);
+                      handleDelete(c.commentId);
+                      handleClickOutside();
+                    }}
+                  >
+                    삭제
+                  </span>
+                ) : (
                   <span className="bubble-time">
                     {kstDate.toLocaleTimeString([], {
                       hour: "2-digit",
@@ -164,20 +174,10 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
                       hour12: false,
                     })}
                   </span>
+                )}
+
                 </div>
               </div>
-              {contextMenu.visible && contextMenu.commentId === c.commentId && (
-                <div
-                  className="context-menu"
-                  style={{ top: contextMenu.y, left: contextMenu.x }}
-                  onClick={() => {
-                    handleDelete(contextMenu.commentId);
-                    handleClickOutside();
-                  }}
-                >
-                  삭제
-                </div>
-              )}
             </li>
           );
         })}
