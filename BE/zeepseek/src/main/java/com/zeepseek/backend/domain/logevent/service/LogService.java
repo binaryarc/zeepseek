@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +20,7 @@ public class LogService {
     @Async
     public void logAction(String action, String type, int userId, int age, String gender, int propertyId, int dongId) {
         // 고유 ID 생성 (예: 현재 타임스탬프 기반)
-        String id = "activity_log_" + System.currentTimeMillis();
+        String id = "activity_log_" + System.currentTimeMillis() + "_" + new Random().nextInt(10000);
 
         Map<String, Object> logData = new HashMap<>();
         logData.put("userId", userId);
@@ -37,7 +38,7 @@ public class LogService {
                     .index("logs")
                     .document(logData)
             );
-            System.out.println("Indexed document, version: " + response.version());
+            System.out.println("Indexed document, version: " + response.version() + " " + dongId);
         } catch (Exception e) {
             e.printStackTrace();
         }
