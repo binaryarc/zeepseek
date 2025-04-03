@@ -57,6 +57,7 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
 
   const handleDelete = async (commentId) => {
     console.log("🗑 삭제 시도", commentId);
+    
     if (!accessToken) return alert("로그인이 필요합니다!");
     const confirmDelete = window.confirm("댓글을 삭제하시겠습니까?");
     if (!confirmDelete) return;

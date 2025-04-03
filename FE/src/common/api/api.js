@@ -360,23 +360,21 @@ export const postDongComment = async (dongId, nickname, content, token) => {
 export const deleteDongComment = async (dongId, commentId, token) => {
   try {
     const res = await zeepApi.delete(
-      `/dong/${dongId}/comment`, // ✅ commentId는 query string으로 전달
-      null, // ✅ data는 없으므로 null 명시
+      `/dong/${dongId}/comment`, // 🔥 이건 그대로
       {
-        params: {
-          commentId: commentId, // ✅ 쿼리 파라미터
-        },
+        params: { commentId }, // ✅ query string
         headers: {
-          Authorization: `Bearer ${token}`, // ✅ 토큰은 헤더에
+          Authorization: `Bearer ${token}`, // ✅ 토큰
         },
       }
     );
     return res.data;
   } catch (err) {
-    console.error("댓글 삭제 실패:", err);
+    console.error("❌ 댓글 삭제 실패:", err.response?.data || err.message);
     throw err;
   }
 };
+
 
 
 // 찜한 동네 리스트에서 동네 이름 검색하는 api
