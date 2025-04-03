@@ -10,5 +10,4 @@ import lombok.NoArgsConstructor;
 public class RecommendationDto {
     private Long propertyId;
     private double similarity;
-    private String primaryCategory;
 }
