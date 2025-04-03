@@ -17,7 +17,8 @@ public class UserRecommendationRequestDto {
     private Double cafeScore;
     private Double chickenScore;
     private Double leisureScore;
-
+    private Integer age;
+    private Integer gender;
     /**
      * 모든 점수 중 가장 높은 점수를 반환합니다.
      * 만약 모든 점수가 null이면 0.0을 반환합니다.
