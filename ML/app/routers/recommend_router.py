@@ -10,7 +10,7 @@ from app.modules.content_based.services.recommend_service import recommend_prope
 # AI 추천 관련 서비스: 학습용 함수는 그대로 사용
 from app.modules.ai_recommender.recommend_service import train_model
 # 수정: AI 추천시 user 테이블 조회 후 추천하는 래퍼 함수 사용
-from app.modules.property_recommendation_service import get_recommendations_for_user
+from app.modules.ai_recommender.recommend_service import train_model, recommend_for_mainpage
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
