@@ -51,12 +51,17 @@ public class ZzimController {
 
     // 동네 찜
     @PostMapping("/dong/{dongId}/{userId}")
-    public ResponseEntity<?> dongZzim(@PathVariable("userId") int userId, @PathVariable("dongId") int dongId) {
+    @Loggable(action = "zzim", type = "dong")
+    public ResponseEntity<?> dongZzim(
+            @PathVariable("userId") int userId,
+            @PathVariable("dongId") int dongId,
+            @CookieValue(value = "age", defaultValue = "-1", required = false ) int age,
+            @CookieValue(value = "gender", defaultValue = "-1", required = false ) String gender) {
         return zzimService.zzimDong(userId, dongId);
     }
 
     // 매물 찜
-    @Loggable(action = "zzim", type = "dong")
+    @Loggable(action = "zzim", type = "property")
     @PostMapping("/property/{propertyId}/{userId}")
     public ResponseEntity<?> propertyZzim(
             @PathVariable("userId") int userId,
@@ -67,8 +72,13 @@ public class ZzimController {
     }
 
     // 동네 찜 삭제
+    @Loggable(action = "zzim_delete", type = "dong")
     @DeleteMapping("/dong/{dongId}/{userId}")
-    public ResponseEntity<?> deleteDongZzim(@PathVariable("userId") int userId, @PathVariable("dongId") int dongId) {
+    public ResponseEntity<?> deleteDongZzim(
+            @PathVariable("userId") int userId,
+            @PathVariable("dongId") int dongId,
+            @CookieValue(value = "age", defaultValue = "-1", required = false ) int age,
+            @CookieValue(value = "gender", defaultValue = "-1", required = false ) String gender) {
         return zzimService.deleteDongZzim(userId, dongId);
     }
 

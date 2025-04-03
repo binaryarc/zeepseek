@@ -12,11 +12,14 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -77,17 +80,24 @@ public class LogAspect {
                         extraData.put("userId", args[i]);
                     }
                 }
-                if (annotation instanceof RequestParam) {
-                    RequestParam rq = (RequestParam) annotation;
-                    String paramName = rq.value();
-                    // 요청 파라미터가 "name"인 경우 dongName과 동일한 로직 수행
-                    if ("name".equals(paramName)) {
-                        try {
-                            String dongName = (String) args[i];
-                            Integer dongId = dongService.findDongIdByName(dongName);
-                            extraData.put("dongId", dongId);
-                        } catch (Exception e) {
-                            extraData.put("dongId", -1);
+                if (annotation instanceof RequestBody) {
+                    if (args[i] instanceof Map) {
+                        Map<String, Object> bodyMap = (Map<String, Object>) args[i];
+                        // @Loggable의 type 속성에 따라 분기
+                        if ("dong_compare".equals(loggable.type())) {
+                            // dong 관련 데이터 처리
+                            List<Integer> dongLists = new ArrayList<>();
+                            dongLists.add((Integer) bodyMap.get("dong1"));
+                            dongLists.add((Integer) bodyMap.get("dong2"));
+                            extraData.put("dongIds", dongLists);
+                            log.info("동 비교 RequestBody 데이터 추출: {}", dongLists);
+                        } else if ("property_compare".equals(loggable.type())) {
+                            // property 관련 데이터 처리
+                            List<Integer> propertyLists = new ArrayList<>();
+                            propertyLists.add((Integer) bodyMap.get("prop1"));
+                            propertyLists.add((Integer) bodyMap.get("prop2"));
+                            extraData.put("propertyIds", propertyLists);
+                            log.info("매물 비교 RequestBody 데이터 추출: {}", propertyLists);
                         }
                     }
                 }
@@ -95,7 +105,7 @@ public class LogAspect {
         }
 
         // @RequestBody로 전달된 Map에서 dongName 추출 후 dong 테이블과 조인하여 dongId 조회
-        boolean foundDongName = false;
+//        boolean foundDongName = false;
         for (Object arg : args) {
             if (arg instanceof Map) {
                 Map<?, ?> mapArg = (Map<?, ?>) arg;
@@ -104,18 +114,19 @@ public class LogAspect {
                         String dongName = (String) mapArg.get("dongName");
                         Integer dongId = dongService.findDongIdByName(dongName);
                         extraData.put("dongId", dongId);
+                        log.info("동 이름 변환완료: {} to {}", dongName, dongId);
                     } catch (Exception e) {
                         // 예외 발생 시 기본값 (-1) 할당
                         extraData.put("dongId", -1);
                     }
-                    foundDongName = true;
+//                    foundDongName = true;
                     break;
                 }
             }
         }
-        if (!foundDongName) {
-            extraData.put("dongId", -1);
-        }
+//        if (!foundDongName) {
+//            extraData.put("dongId", -1);
+//        }
 
         log.info("extra data: {}", extraData);
         // 로그 이벤트 발행
