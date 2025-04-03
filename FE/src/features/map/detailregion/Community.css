@@ -236,6 +236,7 @@
     width: 1.5rem;
     transform: translate(172%, -34px); 
   }
+  
   .context-menu:hover {
     background-color: #f5f5f5;
   }
