@@ -7,7 +7,7 @@ import ReactDOM from "react-dom/client";
 import DetailRegion from "../detailregion/DetailRegion";
 import { Provider } from "react-redux";
 import store from "../../../store/store";
-import { fetchRoomListByBounds } from "../../../store/slices/roomListSlice";
+import { fetchRoomListByBounds, setMapReady } from "../../../store/slices/roomListSlice";
 import { useSelector } from "react-redux";
 
 const Map = () => {
@@ -91,6 +91,7 @@ const Map = () => {
         const mapInstance = new window.kakao.maps.Map(container, options);
         window.map = mapInstance; // 👈 전역에 저장
         setMap(mapInstance); // 👈 상태에 저장
+        dispatch(setMapReady(true)); // ✅ 지도 준비 완료 처리
 
         // 🌐 지도가 이동할 때마다 보이는 동들만 폴리곤으로 그리기
         window.kakao.maps.event.addListener(mapInstance, "idle", () => {

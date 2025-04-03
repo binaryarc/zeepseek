@@ -28,10 +28,10 @@ function Searchbar() {
   const user = useSelector((state) => state.auth.user);
   const nickname = user?.nickname || "로그인 유저";
   const keywordFromRedux = useSelector((state) => state.roomList.keyword); // ✅ 추가
-  
+  const mapReady = useSelector((state) => state.roomList.mapReady);
 
   useEffect(() => {
-    if (keywordFromRedux) {
+    if (keywordFromRedux ) {
       console.log("🔍 키워드 변경 감지:", keywordFromRedux); // ✅ 이거 꼭 넣어보세요
       setSearchText(keywordFromRedux); // input 채우기
       handleSearch(keywordFromRedux); // 검색 실행
@@ -68,9 +68,9 @@ function Searchbar() {
     if (!keyword.trim()) return;
 
     try {
-      const res = await searchProperties(keyword);
-      const properties = res?.properties || [];
-      if (properties.length === 0) return alert("검색 결과가 없습니다.");
+      const result = await dispatch(fetchRoomList({ keyword, filter: roomType, userId: user?.idx ?? null }));
+      const properties = result.payload;
+      if (!properties || properties.length === 0) return alert("검색 결과가 없습니다.");
 
       const first = properties[0];
       const geocoder = new window.kakao.maps.services.Geocoder();
@@ -112,6 +112,7 @@ function Searchbar() {
           userId: user?.idx ?? null,
         })
       );
+      dispatch(setSearchLock(false)); // ✅ 완료 후 해제
     } catch (err) {
       console.error("검색 실패:", err);
     }
@@ -152,9 +153,7 @@ function Searchbar() {
             {showDropdown && (
               <div className="nav-dropdown">
                 <div onClick={() => handleMenuClick("/mypage")}>마이페이지</div>
-                <div onClick={() => handleMenuClick("/zzim")}>
-                  찜한 매물
-                </div>
+                <div onClick={() => handleMenuClick("/zzim")}>찜한 매물</div>
                 <div onClick={() => handleMenuClick("/profile")}>
                   내 정보 수정
                 </div>

@@ -11,11 +11,12 @@ function MainSearchbar() {
 
   const dispatch = useDispatch();
 
+
   const handleSearch = () => {
     if (!searchText.trim()) return;
 
     dispatch(setKeyword(searchText)); // ✅ 검색어 Redux에 저장
-    navigate("/map"); // ✅ 쿼리 안 붙이고 이동
+    navigate("/map"); 
   };
 
   const handleKeyDown = (e) => {
