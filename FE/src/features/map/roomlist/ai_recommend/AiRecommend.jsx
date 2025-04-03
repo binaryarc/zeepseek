@@ -115,7 +115,7 @@ const AiRecommend = () => {
 
       {isRecoDone && !isLoading && (
         <div className="result-section">
-          <button className="recommend-search-btn" onClick={handleRetry}>매물 추천 다시 받기</button>
+          <button className="recommend-search-btn" onClick={handleRetry}>추천 다시 받기</button>
           <div className="recommend-results">
             <h4 className="result-title">추천 매물 목록 ({recommendedList.length}건)</h4>
             <ul className="result-list">

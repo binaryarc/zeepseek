@@ -5,6 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../store/slices/authSlice";
 import { logoutOAuth } from "../../common/api/authApi";
 import { deleteOAuth } from "../../common/api/authApi";
+import naverlogo from '../../assets/logo/naver.png'
+import kakaologo from '../../assets/logo/kakao.png'
 
 const MyPage = () => {
   const navigate = useNavigate();
@@ -13,7 +15,16 @@ const MyPage = () => {
   const social = user?.provider;
   const nickname = user?.nickname || '로그인 유저';
   const dispatch = useDispatch()
-
+  const getSocialLogo = (provider) => {
+    switch (provider) {
+      case 'naver':
+        return naverlogo;
+      case 'kakao':
+        return kakaologo;
+      default:
+        return null;
+    }
+  };
   const handleLogout = async () => {
     try {
       await logoutOAuth(accessToken);      // 백엔드에 로그아웃 요청
@@ -45,7 +56,16 @@ const MyPage = () => {
         <div className="mypage-card">
           <div className="mypage-profile-img" />
           <div className="mypage-user-info">
-            <p>연결된 소셜계정 : <span className="social-circle">{social}</span></p>
+            <p>연결된 소셜계정 : <span className="social-circle">
+        {/* {social} */}
+        {getSocialLogo(social) && (
+          <img 
+            src={getSocialLogo(social)} 
+            alt={`${social} 로고`} 
+            style={{ width: '30px', marginLeft: '8px', verticalAlign: 'middle' }}
+          />
+        )}
+      </span></p>
             <p>닉네임 : {nickname}</p>
           </div>
         </div>
