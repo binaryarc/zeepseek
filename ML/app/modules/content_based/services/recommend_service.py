@@ -402,6 +402,10 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
     :param normalization_method: 'minmax' 또는 'zscore'
     :return: 추천된 매물 리스트
     """
+
+    # (전희성) 0. 카테고리 이름 리스트 추가
+    category_names = ['transport', 'restaurant', 'health', 'convenience', 'cafe', 'chicken', 'leisure'] 
+
     # 1. 캐시된 매물 벡터 로드
     property_array, property_ids = load_property_vectors()
     if property_array is None:
@@ -541,7 +545,7 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
     
     if apply_mmr_flag:
         selected_candidate_indices = apply_mmr(candidate_similarities, candidate_vectors, top_n, diversity_lambda)
-        # 원래 인덱스로 변이 하나 
+        # 원래 인덱스로 변이 한다
         final_selected_indices = [candidate_order[i] for i in selected_candidate_indices]
         
         # 카테고리 우선순위 적용 (점수가 같은 경우 처리)
@@ -564,12 +568,12 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
                     # 동일한 최대값이 여러 개 있는 경우, 우선순위 적용
                     priorities = [category_priority[idx] for idx in max_indices]
                     max_idx = max_indices[np.argmax(priorities)]
-                    logger.info("동일 점수 카테고리 발견: %s, 우선순위 적용하여 %d번 카테고리 선택", max_indices, max_idx)
+                    logger.info("동일 점수 카테고리 발견: %s, 우선순위 적용하여 %d 카테고리 선택", max_indices, max_idx)
                 
                 top_properties.append({
                     "propertyId": property_ids[i], 
                     "similarity": float(similarities[i]),
-                    "primaryCategory": max_idx
+                    "primaryCategory": category_names[max_idx]
                 })
             
             logger.info("Top %d recommended properties after MMR with priority: %s", 
