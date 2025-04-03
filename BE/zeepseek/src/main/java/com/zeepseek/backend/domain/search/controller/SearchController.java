@@ -39,7 +39,6 @@ public class SearchController {
      * 쿼리 파라미터를 Map으로 받아 해당 조건에 맞는 검색 결과를 반환합니다.
      */
     @PostMapping("/mapper")
-    @Loggable(action = "SearchByGuDong", type = "PropertySearch")
     public ResponseEntity<KeywordResponse> searchPropertiesByGuAndDong(@RequestBody Map<String, Object> request) {
         String guName = (String) request.get("guName");
         String dongName = (String) request.get("dongName");

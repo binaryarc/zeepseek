@@ -3,6 +3,7 @@ package com.zeepseek.backend.domain.dong.controller;
 import com.zeepseek.backend.domain.dong.document.DongInfoDocs;
 import com.zeepseek.backend.domain.dong.dto.request.DongCommentRequestDto;
 import com.zeepseek.backend.domain.dong.service.DongService;
+import com.zeepseek.backend.domain.logevent.annotation.Loggable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ public class DongController {
      * 요청 예: GET /api/dongs/search?name=신당
      */
     @GetMapping("/search")
+    @Loggable(action = "comment", type = "dong")
     public ResponseEntity<List<DongInfoDocs>> searchDongs(@RequestParam("name") String name) {
         List<DongInfoDocs> dongs = dongService.searchByName(name);
         return ResponseEntity.ok(dongs);
@@ -33,6 +35,7 @@ public class DongController {
      * 요청 예: GET /api/dongs/123
      */
     @GetMapping("/{dongId}")
+    @Loggable(action = "view", type = "dong")
     public ResponseEntity<DongInfoDocs> getDongDetail(@PathVariable("dongId") Integer dongId) {
         DongInfoDocs dong = dongService.getDongDetail(dongId);
         log.info(dongId.toString());
@@ -44,6 +47,7 @@ public class DongController {
      * 요청 예: GET /api/v1/dong/123/comment
      */
     @GetMapping("/{dongId}/comment")
+    @Loggable(action = "view", type = "dong")
     public ResponseEntity<List<DongInfoDocs.DongComment>> getDongComments(@PathVariable("dongId") Integer dongId) {
         List<DongInfoDocs.DongComment> comments = dongService.getDongComments(dongId);
         return ResponseEntity.ok(comments);
@@ -55,6 +59,7 @@ public class DongController {
      * Body: { "nickname": "작성자닉네임", "content": "댓글 내용" }
      */
     @PostMapping("/{dongId}/comment")
+    @Loggable(action = "comment", type = "dong")
     public ResponseEntity<DongInfoDocs> addDongComment(
             @PathVariable("dongId") Integer dongId,
             @RequestBody DongCommentRequestDto commentRequest) {

@@ -12,6 +12,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -45,7 +46,7 @@ public class LogAspect {
         extraData.put("method", method.getName());
         extraData.put("args", joinPoint.getArgs());
 
-        // @CookieValue, @PathVariable 처리 (예시)
+        // @CookieValue, @PathVariable, @RequestParam 처리 (예시)
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
         Object[] args = joinPoint.getArgs();
         for (int i = 0; i < parameterAnnotations.length; i++) {
@@ -74,6 +75,20 @@ public class LogAspect {
                     }
                     if ("userId".equals(value)) {
                         extraData.put("userId", args[i]);
+                    }
+                }
+                if (annotation instanceof RequestParam) {
+                    RequestParam rq = (RequestParam) annotation;
+                    String paramName = rq.value();
+                    // 요청 파라미터가 "name"인 경우 dongName과 동일한 로직 수행
+                    if ("name".equals(paramName)) {
+                        try {
+                            String dongName = (String) args[i];
+                            Integer dongId = dongService.findDongIdByName(dongName);
+                            extraData.put("dongId", dongId);
+                        } catch (Exception e) {
+                            extraData.put("dongId", -1);
+                        }
                     }
                 }
             }
