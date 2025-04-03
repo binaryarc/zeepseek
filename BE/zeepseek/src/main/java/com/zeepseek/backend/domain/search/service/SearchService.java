@@ -36,7 +36,7 @@ public class SearchService {
      * @param size    페이지 당 결과 수
      * @return 검색 결과 리스트
      */
-    public KeywordResponse searchProperties(String keyword, int page, int size, String roomTypeFilter, int userId) {
+    public KeywordResponse searchProperties(String keyword, int page, int size, String roomTypeFilter, Integer userId) {
         // 페이지 번호가 1부터 시작한다고 가정하면 from 값은 (page - 1) * size
         int from = (page - 1) * size;
 
@@ -93,22 +93,24 @@ public class SearchService {
                     .map(Hit::source)
                     .collect(Collectors.toList());
 
-            // 2. 사용자 찜 정보 불러오기
-            List<PropertyZzimDoc> propertyZzimDocs = zzimService.userSelectPropertyList(userId);
+            if(userId != null) {
+                // 2. 사용자 찜 정보 불러오기
+                List<PropertyZzimDoc> propertyZzimDocs = zzimService.userSelectPropertyList(userId);
 
-            // 3. 찜한 매물의 ID를 Set으로 변환 (PropertyZzimDoc에는 propertyId 필드가 존재)
-            Set<Integer> likedPropertyIds = propertyZzimDocs.stream()
-                    .map(PropertyZzimDoc::getPropertyId)
-                    .collect(Collectors.toSet());
+                // 3. 찜한 매물의 ID를 Set으로 변환 (PropertyZzimDoc에는 propertyId 필드가 존재)
+                Set<Integer> likedPropertyIds = propertyZzimDocs.stream()
+                        .map(PropertyZzimDoc::getPropertyId)
+                        .collect(Collectors.toSet());
 
-            // 4. 각 검색 결과에 대해 사용자가 찜한 매물인지 isLiked 필드 설정
-            results.forEach(property -> {
-                // SearchProperty 클래스의 propertyId 필드 사용
-                boolean isLiked = likedPropertyIds.contains(property.getPropertyId());
-                property.setLiked(isLiked);
-            });
+                // 4. 각 검색 결과에 대해 사용자가 찜한 매물인지 isLiked 필드 설정
+                results.forEach(property -> {
+                    // SearchProperty 클래스의 propertyId 필드 사용
+                    boolean isLiked = likedPropertyIds.contains(property.getPropertyId());
+                    property.setLiked(isLiked);
+                });
+            }
 
-            int totalHits = (int) searchResponse.hits().total().    value();
+            int totalHits = (int) searchResponse.hits().total().value();
 
             log.info("검색어 '{}'에 대한 결과 수: {} (페이지: {}, 사이즈: {})", keyword, results.size(), page, size);
             log.info("전체 검색 수: {}", searchResponse.hits().total());
@@ -131,7 +133,7 @@ public class SearchService {
      * @param roomTypeFilter   roomType 필터 조건 (예: "원룸/투룸", "빌라/주택" 등)
      * @return 검색 결과 리스트
      */
-    public KeywordResponse searchPropertiesByGuAndDong(String guName, String dongName, int page, int size, String roomTypeFilter, int userId) {
+    public KeywordResponse searchPropertiesByGuAndDong(String guName, String dongName, int page, int size, String roomTypeFilter, Integer userId) {
         int from = (page - 1) * size;
 
         try {
@@ -182,20 +184,22 @@ public class SearchService {
                     .map(Hit::source)
                     .collect(Collectors.toList());
 
-            // 2. 사용자 찜 정보 불러오기
-            List<PropertyZzimDoc> propertyZzimDocs = zzimService.userSelectPropertyList(userId);
+            if(userId != null) {
+                // 2. 사용자 찜 정보 불러오기
+                List<PropertyZzimDoc> propertyZzimDocs = zzimService.userSelectPropertyList(userId);
 
-            // 3. 찜한 매물의 ID를 Set으로 변환 (PropertyZzimDoc에는 propertyId 필드가 존재)
-            Set<Integer> likedPropertyIds = propertyZzimDocs.stream()
-                    .map(PropertyZzimDoc::getPropertyId)
-                    .collect(Collectors.toSet());
+                // 3. 찜한 매물의 ID를 Set으로 변환 (PropertyZzimDoc에는 propertyId 필드가 존재)
+                Set<Integer> likedPropertyIds = propertyZzimDocs.stream()
+                        .map(PropertyZzimDoc::getPropertyId)
+                        .collect(Collectors.toSet());
 
-            // 4. 각 검색 결과에 대해 사용자가 찜한 매물인지 isLiked 필드 설정
-            results.forEach(property -> {
-                // SearchProperty 클래스의 propertyId 필드 사용
-                boolean isLiked = likedPropertyIds.contains(property.getPropertyId());
-                property.setLiked(isLiked);
-            });
+                // 4. 각 검색 결과에 대해 사용자가 찜한 매물인지 isLiked 필드 설정
+                results.forEach(property -> {
+                    // SearchProperty 클래스의 propertyId 필드 사용
+                    boolean isLiked = likedPropertyIds.contains(property.getPropertyId());
+                    property.setLiked(isLiked);
+                });
+            }
 
             int totalHits = (int) searchResponse.hits().total().value();
 
