@@ -64,7 +64,7 @@ function Searchbar() {
   };
 
   const handleSearch = async (externalKeyword) => {
-    const keyword = externalKeyword || searchText;
+    const keyword = String(externalKeyword || searchText);
     if (!keyword.trim()) return;
 
     try {
