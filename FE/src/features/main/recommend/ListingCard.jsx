@@ -1,5 +1,5 @@
 import React from "react";
-import "./ListingCard.css";
+import "./ListingCard.css"
 import defaultImg from "../../../assets/logo/512image.png";
 
 const ListingCard = ({ image, altText, price, subInfo, description }) => {
@@ -11,7 +11,7 @@ const ListingCard = ({ image, altText, price, subInfo, description }) => {
           <div className="listing-img-container">
             {/* 실제로는 image prop이 있으면 그걸 사용, 없으면 defaultImg를 쓰는 식으로 구현 가능 */}
             <img
-              src={image || defaultImg}
+              src={defaultImg}
               alt={altText}
               className="listing-img"
             />
