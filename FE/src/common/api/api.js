@@ -140,26 +140,36 @@ export const fetchDongDetail = async (dongId) => {
 };
 
 
-// 
+// 매물 점수 불러오는 api
+export const fetchProPertyScore = async (propertyId) => {
+  try {
+    const res = await zeepApi.get(`/property/score/${propertyId}`);
+    console.log("매물 점수 호출 성공: ", res);
+    return res.data;
+  } catch (err) {
+    console.error("매물 점수 호출 실패:", err)
+  }
+}
+
 
 // 매물 비교 용 api(아직 안됨, 다시 만들어야 함)
 export const fetchPropertyCompare = async (prop1, prop2) => {
+  console.log("token값: ", store.getState().auth.accessToken)
   try {
     const res = await zeepApi.post("/dong/compare/property",
       {
         "prop1": prop1,
         "prop2": prop2
-      },
-      {
-      headers: {
-          Authorization: `Bearer ${store.getState().auth.accessToken}`,
-        },
       });
-    console.log("token값: ", store.getState().accessToken)
+      // {
+      // headers: {
+      //     Authorization: `Bearer ${store.getState().auth.accessToken}`,
+      //   },
+      // });
     console.log("매물 비교 요청 성공: ", res)
-    return res.data;
+    return res;
   } catch (err) {
-    console.error("매물 비교 실패:", err);
+    console.error("매물 비교 실패b:", err);
     return null;
   }
 };
@@ -234,6 +244,7 @@ export const fetchLikedRegions = async (userId) => {
 
 // 찜한 매물 리스트 불러오기
 export const fetchLikedProperties = async (userId) => {
+  console.log("토큰?", store.getState().auth.accessToken)
   try {
     const res = await zeepApi.get(
       `/zzim/select/property/${userId}`,

@@ -4,6 +4,7 @@ import "./EstateCompare.css";
 import {
   fetchLikedProperties,
   fetchPropertyCompare,
+  fetchProPertyScore
 } from "../../../common/api/api";
 import { useSelector } from "react-redux";
 import {
@@ -21,8 +22,9 @@ const EstateCompare = () => {
   const [likedProperties, setLikedProperties] = useState([]);
   const [selected1, setSelected1] = useState(null);
   const [selected2, setSelected2] = useState(null);
-  const [compareData, setCompareData] = useState(null);
+  const [propertyCompareData, setProPertyCompareData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [estateScores, setEstateScores] = useState({});
   const user = useSelector((state) => state.auth.user);
 
   useEffect(() => {
@@ -38,42 +40,72 @@ const EstateCompare = () => {
     loadLiked();
   }, [user?.idx]);
 
-  useEffect(() => {
-    const fetchComparison = async () => {
-      if (!selected1 || !selected2) return;
-      setLoading(true);
-      try {
-        const result = await fetchPropertyCompare({
-          prop1: selected1.propertyId,
-          prop2: selected2.propertyId,
-        });
-        setCompareData(result);
-      } catch (err) {
-        console.error("매물 비교 실패:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchComparison();
-  }, [selected1, selected2]);
+  // useEffect(() => {
+  //   const fetchPropertyComparison = async () => {
+  //     if (!selected1 || !selected2) return;
+  //     setLoading(true);
+  //     try {
+  //       console.log(selected1.propertyId, selected2.propertyId)
+  //       const result = await fetchPropertyCompare(selected1.propertyId, selected2.propertyId);
+  //       setProPertyCompareData(result);
+  //     } catch (err) {
+  //       console.error("매물 비교 실패:", err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   fetchPropertyComparison();
+  // }, [selected1, selected2]);
+
+
+    useEffect(() => {
+      const fetchPropertyCompareData = async () => {
+        if (!selected1 || !selected2) return;
+        setLoading(true);
+        try {
+          // Promise.all([...]) : 배열 구조 분해 할당이라네요ㅎㅎ
+          // 여러 개 비동기 작업을 동시에 실행하고, 모든 Promise가 완료될 때까지 기다렸다가 각 결과를 하나의 배열로 반환
+          const [data1, data2] = await Promise.all([
+            fetchProPertyScore(selected1.propertyId),
+            fetchProPertyScore(selected2.propertyId),
+          ]);
+          setEstateScores({ [selected1.propertyId]: data1, [selected2.propertyId]: data2 });
+  
+          const summaryResult = await fetchPropertyCompare(selected1.propertyId, selected2.propertyId);
+          setProPertyCompareData(summaryResult?.data?.compareSummary);
+          console.log("estate1", selected1)
+          console.log("estate2", selected2)
+          console.log("summaryResult", summaryResult?.data?.compareSummary)
+        } catch (err) {
+          console.error('비교 데이터 로딩 실패:', err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchPropertyCompareData();
+    }, [selected1, selected2]);
 
   const scoreLabels = [
-    { label: "편의", key: "convenience" },
-    { label: "보건", key: "health" },
-    { label: "여가", key: "leisure" },
-    { label: "안전", key: "safe" },
-    { label: "카페", key: "cafe" },
-    { label: "대중교통", key: "transport" },
-    { label: "식당", key: "restaurant" },
-    { label: "술집", key: "bar" },
+    { label: "편의", key: "convenienceScore" },
+    { label: "보건", key: "healthScore" },
+    { label: "여가", key: "leisureScore" },
+    { label: "카페", key: "cafeScore" },
+    { label: "대중교통", key: "transportScore" },
+    { label: "식당", key: "restaurantScore" },
+    { label: "치킨", key: "chickenScore" },
   ];
 
   const chartData = scoreLabels.map(({ label, key }) => ({
     subject: label,
-    [selected1?.propertyId]: compareData?.properties?.[0]?.[key] || 0,
-    [selected2?.propertyId]: compareData?.properties?.[1]?.[key] || 0,
+    [selected1?.propertyId]: estateScores[selected1?.propertyId]?.[key] || 0,
+    [selected2?.propertyId]: estateScores[selected2?.propertyId]?.[key] || 0,
     fullMark: 100,
   }));
+
+  useEffect(() => {
+    console.log(chartData)
+    console.log("estatescore: ", estateScores)
+  }, [chartData])
 
   return (
     <div className="region-compare-total-container">
@@ -114,7 +146,7 @@ const EstateCompare = () => {
             </div>
           </div>
 
-          {!loading && selected1 && selected2 && compareData && (
+          {!loading && selected1 && selected2 && propertyCompareData && (
             <div className="compare-table">
               <ResponsiveContainer width="100%" height={400}>
                 <RadarChart outerRadius={130} data={chartData}>
@@ -180,13 +212,13 @@ const EstateCompare = () => {
         </div>
       </div>
 
-      {compareData?.compareSummary && (
+      {propertyCompareData && (
         <div className="summary-box">
           <div className="summary-box-header">
             <img src={zeepai} alt="ai_image" className="zeepai_summary_image" />
             <p className="summary-box-title">ZEEPSEEK AI의 매물 비교 요약</p>
           </div>
-          <p>{compareData.compareSummary}</p>
+          <p>{propertyCompareData}</p>
         </div>
       )}
     </div>
