@@ -31,7 +31,7 @@
     height: 300px;
     max-width: 600px;
     /* margin-bottom: 0.2rem; */
-    font-size: 18px;
+    font-size: 20px;
   }
   
   /* 새로 추가 */
@@ -69,9 +69,10 @@
     padding: 1rem;
     width: 80%;
     font-weight: bold;
-    font-size: 1rem;
+    font-size: 1.3rem;
     cursor: pointer;
     height: 160px;
+    font-family: KOROAD_Light;
   }
   
   .mypage-footer {
