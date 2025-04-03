@@ -49,17 +49,17 @@ export const fetchDongPropertyCounts = async (filterKey) => {
 export const searchProperties = async (
   keyword,
   filter,
+  userId,
   page = 1,
   size = 10000,
-  userId = 2
 ) => {
   try {
     const res = await zeepApi.post("/search", {
       keyword,
       filter, // ✅ roomType 필드 추가
+      userId,
       page,
       size,
-      userId,
     });
     console.log(res.data);
     return res.data;
@@ -74,18 +74,18 @@ export const fetchPropertiesByBounds = async (
   guName,
   dongName,
   filter, // ✅ 추가
+  userId,
   page = 1,
   size = 10000,
-  userId
 ) => {
   try {
     const res = await zeepApi.post("/search/mapper", {
       guName,
       dongName,
       filter,
+      userId,
       page,
       size,
-      userId,
     });
     console.log(res.data);
     return res.data;

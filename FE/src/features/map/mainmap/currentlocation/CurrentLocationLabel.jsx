@@ -18,6 +18,7 @@ function CurrentLocationLabel({ map }) {
   // const selectedRoomType = useSelector(
   //   (state) => state.roomList.selectedRoomType
   // );
+  const user = useSelector((state) => state.auth.user)
 
   // ✅ searchLock 최신값 반영
   useEffect(() => {
@@ -67,6 +68,7 @@ function CurrentLocationLabel({ map }) {
                 guName,
                 dongName: level >= 6 ? "" : dongName,
                 filter: selectedRoomType,
+                userId: user?.idx ?? null,
               })
             );
           }

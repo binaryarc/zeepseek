@@ -37,7 +37,7 @@ const MyPage = () => {
       console.error("회원탈퇴 실패", err);
     }
   };
-  
+
   return (
     <div className="mypage-container">
       <Navbar />
@@ -52,7 +52,7 @@ const MyPage = () => {
 
         <div className="mypage-buttons">
           <button onClick={() => navigate('/zzim')}>찜한 매물 & 동네</button>
-          <button>내 정보 수정</button>
+          <button onClick={() => navigate('/survey')}>내 정보 수정</button>
         </div>
       </div>
 

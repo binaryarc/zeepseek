@@ -23,6 +23,7 @@ const Map = () => {
   const { currentGuName, currentDongName, selectedRoomType } = useSelector(
     (state) => state.roomList
   );
+  const user = useSelector((state) => state.auth.user)
   // 컴포넌트 상단
   window.isMapReady = false;
 
@@ -123,13 +124,16 @@ const Map = () => {
 
           // ✅ 지도 레벨이 4 이상으로 올라갔을 때 매물 리스트 다시 불러오기
           if (level > 3) {
+            
             if (currentGuName && currentDongName && selectedRoomType) {
+
               if (level >= 6) {
                 dispatch(
                   fetchRoomListByBounds({
                     guName: currentGuName,
                     dongName: "",
                     filter: selectedRoomType,
+                    userId: user?.idx ?? null,
                   })
                 );
               } else {
@@ -138,6 +142,7 @@ const Map = () => {
                     guName: currentGuName,
                     dongName: currentDongName,
                     filter: selectedRoomType,
+                    userId: user?.idx ?? null,
                   })
                 );
               }

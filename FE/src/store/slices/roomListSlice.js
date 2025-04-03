@@ -7,8 +7,8 @@ import {
 // ✅ keyword 기반 매물 검색 (검색 + 지도 이동 모두 사용)
 export const fetchRoomList = createAsyncThunk(
   "roomList/fetchByKeyword",
-  async ({ keyword, filter }) => {
-    const res = await searchProperties(keyword, filter);
+  async ({ keyword, filter, userId }) => {
+    const res = await searchProperties(keyword, filter, userId);
     return res.properties;
   }
 );
@@ -16,8 +16,8 @@ export const fetchRoomList = createAsyncThunk(
 // ✅ 지도 이동 시 bounds 기반 매물 조회 API
 export const fetchRoomListByBounds = createAsyncThunk(
   "roomList/fetchByBounds",
-  async ({ guName, dongName, filter }) => {
-    const res = await fetchPropertiesByBounds(guName, dongName, filter);
+  async ({ guName, dongName, filter, userId }) => {
+    const res = await fetchPropertiesByBounds(guName, dongName, filter, userId);
     return res.properties;
   }
 );
