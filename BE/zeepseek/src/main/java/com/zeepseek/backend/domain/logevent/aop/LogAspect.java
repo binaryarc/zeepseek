@@ -105,7 +105,7 @@ public class LogAspect {
         }
 
         // @RequestBody로 전달된 Map에서 dongName 추출 후 dong 테이블과 조인하여 dongId 조회
-        boolean foundDongName = false;
+//        boolean foundDongName = false;
         for (Object arg : args) {
             if (arg instanceof Map) {
                 Map<?, ?> mapArg = (Map<?, ?>) arg;
@@ -119,14 +119,14 @@ public class LogAspect {
                         // 예외 발생 시 기본값 (-1) 할당
                         extraData.put("dongId", -1);
                     }
-                    foundDongName = true;
+//                    foundDongName = true;
                     break;
                 }
             }
         }
-        if (!foundDongName) {
-            extraData.put("dongId", -1);
-        }
+//        if (!foundDongName) {
+//            extraData.put("dongId", -1);
+//        }
 
         log.info("extra data: {}", extraData);
         // 로그 이벤트 발행
