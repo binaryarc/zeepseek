@@ -30,5 +30,4 @@ public class DetailedRecommendationDto {
     private Double longitude;
 
     private Double similarity;  // FastAPI 추천 결과에 포함된 유사도
-    private String primaryCategory; // 가장 우선순위 및 유사도가 높은 카테고리
 }

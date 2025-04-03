@@ -18,4 +18,5 @@ public class RecommendationResponseDto {
     private int totalElements;
     private int totalPages;
     private int currentPage;
+    private String maxType;
 }
