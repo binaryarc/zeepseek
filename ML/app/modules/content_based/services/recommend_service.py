@@ -424,6 +424,8 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
     ....
     """
 
+    logger.info("2) [사용자 점수] 입력받은 user_scores: %s", user_scores)
+
     # 2. 카테고리별 가중치 (순서: transport, restaurant, health, convenience, cafe, chicken, leisure)
     category_weights = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
     
@@ -431,14 +433,15 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
     if gender is not None and age is not None:
         # 나이를 연령대로 변환
         age_group = get_age_group(age)
-        logger.info("사용자의 나이: %s 를 나이대로 변환: %s", age, age_group)
+        logger.info("4) [인구통계] 사용자 나이: %s → 연령대: %s, 성별: %s", age, age_group, gender)
         
         # 성별과 연령대에 따른 가중치 조정값 가져오기
         adjustments = get_demographic_weight_adjustments(gender, age_group)
+        logger.info("4) [인구통계] 성별/나이대별 추가 가중치: %s", adjustments)
         
         # 기본 가중치에 조정값 적용
         category_weights = category_weights + adjustments
-        logger.info("기존 가중치에 성별/나이대별 가중치 적용 => %s", category_weights)
+        logger.info("4) [인구통계] 적용 후 category_weights: %s", category_weights)
     else:
         logger.info("에러로 인한 기본 가중치 적용... %s", category_weights)
         
@@ -451,9 +454,12 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
     # 사용자 선호도 가중치 적용 (user_id가 있는 경우)
     if user_id:
         preference_weights = get_user_preference_weights(user_id)
-        category_weights = category_weights + preference_weights
-        logger.info("사용자 선호도 가중치 추가 적용 => %s", category_weights)
+        logger.info("5) [선호도 조회] user_preference 테이블에서 가져온 preference_weights: %s", preference_weights)
 
+        category_weights = category_weights + preference_weights
+        logger.info("5) [선호도] 적용 후 category_weights: %s", category_weights)
+    else:
+        logger.info("5) [선호도] user_id가 없으므로 별도 선호도 가중치 적용 없음.")
     if normalization_method == 'minmax':
         min_max_values = get_category_min_max_values()
         mins = np.array([
@@ -568,7 +574,10 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
                     # 동일한 최대값이 여러 개 있는 경우, 우선순위 적용
                     priorities = [category_priority[idx] for idx in max_indices]
                     max_idx = max_indices[np.argmax(priorities)]
-                    logger.info("동일 점수 카테고리 발견: %s, 우선순위 적용하여 %d 카테고리 선택", max_indices, max_idx)
+                    logger.info(
+                        "동일 점수 카테고리 %s 발생 → 우선순위 적용. 최종 카테고리 인덱스: %d (%s)",
+                        max_indices, max_idx, category_names[max_idx]
+                    )
                 
                 top_properties.append({
                     "propertyId": property_ids[i], 
