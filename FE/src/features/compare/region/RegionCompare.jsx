@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './RegionCompare.css';
-import { fetchDongDetail, fetchRegionSummary, fetchLikedRegions } from '../../../common/api/api';
+import { fetchDongDetail, fetchRegionSummary, fetchLikedRegions, searchDongByName } from '../../../common/api/api';
 import { useSelector } from 'react-redux';
 import {
   RadarChart,
@@ -21,6 +21,7 @@ function RegionCompare() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [likedRegions, setLikedRegions] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
 
   const user = useSelector((state) => state.auth.user)
 
@@ -38,6 +39,23 @@ function RegionCompare() {
     };
     loadLikedRegions();
   }, [user?.idx]);
+
+  useEffect(() => {
+    const search = async () => {
+      if (searchText.trim() === '') {
+        setSearchResults([]);
+        return;
+      }
+      try {
+        const res = await searchDongByName(searchText);
+        setSearchResults(res?.data || []);
+      } catch (err) {
+        console.error('검색 실패:', err);
+        setSearchResults([]);
+      }
+    };
+    search();
+  }, [searchText]);
 
   const filteredRegions = likedRegions.filter((region) =>
     `${region.guName} ${region.name}`.includes(searchText)
@@ -164,6 +182,30 @@ function RegionCompare() {
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
             />
+            {searchResults.length > 0 && (
+              <ul className="search-results scrollable-results">
+                {searchResults.map((region) => (
+                  <li
+                    key={region.dongId}
+                    onClick={() => {
+                      const isSelected =
+                        selectedRegion1?.dongId === region.dongId || selectedRegion2?.dongId === region.dongId;
+                      if (isSelected) return;
+                      if (!selectedRegion1) setSelectedRegion1(region);
+                      else if (!selectedRegion2) setSelectedRegion2(region);
+                      else {
+                        setSelectedRegion1(region);
+                        setSelectedRegion2(null);
+                      }
+                      setSearchText('');
+                      setSearchResults([]);
+                    }}
+                  >
+                    {region.guName} {region.name}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className="liked-list-area">
@@ -202,8 +244,7 @@ function RegionCompare() {
               )}
             </ul>
           </div>
-    </div>
-
+        </div>
       </div>
       <div className="region-ai-summary-container">
         {summary && (
