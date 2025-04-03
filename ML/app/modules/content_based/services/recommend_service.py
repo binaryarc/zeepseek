@@ -308,7 +308,7 @@ def get_user_preference_weights(user_id):
         query = text("""
             SELECT 
                 transport, restaurant, health, 
-                convenience, cafe, chicken, leisure
+                convenience, cafe, leisure,safe
             FROM user_preference
             WHERE user_id = :user_id
         """)
@@ -325,7 +325,7 @@ def get_user_preference_weights(user_id):
             1.0 if result._mapping["health"] == 1 else 0.0,
             1.0 if result._mapping["convenience"] == 1 else 0.0,
             1.0 if result._mapping["cafe"] == 1 else 0.0,
-            1.0 if result._mapping["chicken"] == 1 else 0.0,
+            1.0 if result._mapping["safe"] == 1 else 0.0,
             1.0 if result._mapping["leisure"] == 1 else 0.0
         ])
         
