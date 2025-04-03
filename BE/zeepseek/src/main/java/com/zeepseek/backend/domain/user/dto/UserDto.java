@@ -18,4 +18,6 @@ public class UserDto {
     private String nickname;
     private String provider;
     private String refreshToken;
+
+    private UserProfileDto profileInfo;
 }
