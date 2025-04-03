@@ -107,8 +107,15 @@ function RegionCompare() {
 
   return (
     <div className="region-compare-total-container">
+
       <div className="region-compare-wrapper">
         <div className="region-compare-container">
+          {isLoading && (
+            <div className="loading-overlay">
+              <div className="spinner"></div>
+              비교 데이터를 불러오는 중입니다...
+            </div>
+          )}
           <div className="region-input-row">
             <div className="region-input-wrapper">
               <input
@@ -133,6 +140,8 @@ function RegionCompare() {
               )}
             </div>
           </div>
+
+          
 
           {!isLoading && selectedRegion1 && selectedRegion2 && (
             <div className="compare-table">

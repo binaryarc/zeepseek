@@ -109,8 +109,17 @@ const EstateCompare = () => {
 
   return (
     <div className="region-compare-total-container">
+
+
+
       <div className="region-compare-wrapper">
         <div className="region-compare-container">
+          {loading && (
+          <div className="loading-overlay">
+            <div className="spinner"></div>
+              비교 데이터를 불러오는 중입니다...
+            </div>
+          )}
           <div className="region-input-row">
             <div className="region-input-wrapper">
               <input
@@ -145,6 +154,9 @@ const EstateCompare = () => {
               )}
             </div>
           </div>
+
+
+
 
           {!loading && selected1 && selected2 && propertyCompareData && (
             <div className="compare-table">
