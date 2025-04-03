@@ -103,7 +103,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 dto.setLongitude(property.getLongitude());
 
                 dto.setSimilarity(rec.getSimilarity());  // 추천 유사도 세팅
-
+                dto.setPrimaryCategory(rec.getPrimaryCategory());
                 detailedList.add(dto);
             } catch (PropertyNotFoundException ex) {
                 logger.warn("Property not found for id: {}", rec.getPropertyId());
@@ -117,7 +117,6 @@ public class RecommendationServiceImpl implements RecommendationService {
         detailedResponse.setCurrentPage(0);
         // 위에 계산해서 나온 한 카테고리를 requestDto.getMaxScoreType()을 대체
         detailedResponse.setMaxType(requestDto.getMaxScoreType());
-
         return detailedResponse;
     }
 }
