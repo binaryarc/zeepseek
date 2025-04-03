@@ -25,7 +25,6 @@ const zeepApi = axios.create({
 export const fetchGuPropertyCounts = async (filterKey) => {
   try {
     const res = await zeepApi.get(`/property/count/gu/${filterKey}`);
-    // console.log("구별 매물 개수 조회 결과:", res);
     return res.data;
   } catch (err) {
     console.error("구별 매물 개수 조회 실패:", err);
@@ -37,7 +36,6 @@ export const fetchGuPropertyCounts = async (filterKey) => {
 export const fetchDongPropertyCounts = async (filterKey) => {
   try {
     const res = await zeepApi.get(`/property/count/dong/${filterKey}`);
-    // console.log("동별 매물 개수 조회 결과:", res);
     return res.data;
   } catch (err) {
     console.error("동별 매물 개수 조회 실패:", err);
