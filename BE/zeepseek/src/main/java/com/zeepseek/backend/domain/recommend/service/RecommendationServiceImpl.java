@@ -133,7 +133,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         AiRecommendationFastApiResponseDto originalResponse = recommendationWebClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .replacePath("/ai-recommend")
-                        .queryParam("user_id", userId)
+                        .queryParam("userId", userId)
                         .build())
                 .retrieve()
                 .bodyToMono(AiRecommendationFastApiResponseDto.class)
