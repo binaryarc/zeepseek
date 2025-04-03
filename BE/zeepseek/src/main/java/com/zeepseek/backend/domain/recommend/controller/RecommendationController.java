@@ -43,7 +43,7 @@ public class RecommendationController {
     }
     // AI 기반 추천 (GET /api/ai-recommend?user_id=123)
     @GetMapping("/ai-recommend")
-    public ResponseEntity<AiRecommendationResponseDto> getAiRecommendation(@RequestParam("user_id") Integer userId) {
+    public ResponseEntity<AiRecommendationResponseDto> getAiRecommendation(@RequestParam("userId") Integer userId) {
         AiRecommendationResponseDto responseDto = recommendationService.getAiRecommendation(userId);
         return ResponseEntity.ok(responseDto);
     }
