@@ -128,12 +128,10 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     @Override
     public AiRecommendationResponseDto getAiRecommendation(Integer userId) {
-        // FastAPI GET /ai-recommend?user_id={userId} 호출
-        // replacePath()를 사용해 기본 base URL의 경로를 무시하고 "/ai-recommend"로 설정
         AiRecommendationFastApiResponseDto originalResponse = recommendationWebClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .replacePath("/ai-recommend")
-                        .queryParam("user_id", userId)  // "user_id"로 변경
+                        .queryParam("user_id", userId)
                         .build())
                 .retrieve()
                 .bodyToMono(AiRecommendationFastApiResponseDto.class)
@@ -141,7 +139,8 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         if (originalResponse == null || originalResponse.getPropertyIds() == null ||
                 originalResponse.getPropertyIds().isEmpty()) {
-            throw new RecommendationException("No recommendations received from Python API.");
+            logger.info("추천 결과가 없습니다. 빈 배열을 반환합니다.");
+            return new AiRecommendationResponseDto(); // 빈 배열과 dongId null 반환
         }
 
         List<Long> propertyIdList = originalResponse.getPropertyIds();
@@ -169,7 +168,6 @@ public class RecommendationServiceImpl implements RecommendationService {
         AiRecommendationResponseDto detailedResponse = new AiRecommendationResponseDto();
         detailedResponse.setRecommendedProperties(detailedList);
 
-        // Python API의 dongId는 문자열로 넘어옴. 이를 정수로 변환하여 dongRepository.findById() 호출
         String dongIdentifier = originalResponse.getDongId();
         if (dongIdentifier != null) {
             try {
