@@ -92,7 +92,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserDto>> updateUser(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable("idx") Integer idx,
-            @RequestBody UserDto userDto,
+            @RequestBody UserProfileDto profileDto,
             HttpServletRequest request,
             HttpServletResponse response) {
         // 자신의 정보만 수정 가능하도록 검증
@@ -100,7 +100,7 @@ public class UserController {
             return ResponseEntity.status(403).body(ApiResponse.error("권한이 없습니다."));
         }
 
-        UserDto updatedUser = userService.updateUser(userPrincipal.getId(), userDto);
+        UserDto updatedUser = userService.updateProfile(userPrincipal.getId(), profileDto);
 
         // 리프레시 토큰 가져오기
         Optional<String> refreshToken = CookieUtils.getRefreshTokenFromCookie(request);
