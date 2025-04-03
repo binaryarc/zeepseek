@@ -11,7 +11,7 @@ from app.modules.ai_recommender.svd_model import RecommenderModel  # SVD 기반 
 from app.modules.ai_recommender.action_score import ACTION_SCORE  # 업데이트된 ACTION_SCORE 매핑 (zzim, search, compare, comment 포함)
 from app.config.database import SessionLocal
 
-# 콘텐츠 기반 추천: 수정 - 로컬 함수 대신 외부 모듈에서 recommend_properties를 import 함
+# 콘텐츠 기반 추천: 외부 모듈의 recommend_properties 함수 사용
 from app.modules.content_based.services.recommend_service import recommend_properties
 
 # 로거 설정
