@@ -17,14 +17,14 @@
     z-index: 100;
   }
 
-  .room-list {
+  /* .room-list {
     width: 40%;
     background-color: #f8f8f8;
     border-right: 1px solid #ddd;
     display: flex;
     flex-direction: column;
     position: relative; 
-  }
+  } */
 
   .room-info {
     line-height: 120%;
@@ -139,5 +139,24 @@
     border: none;
     cursor: pointer;
     font-size: 20px;
+    transition: transform 0.3s ease;
   }
   
+  .like-btn.liked {
+    /* color: red; */
+    animation: bounce 0.6s ease-out;
+  }
+
+  @keyframes bounce {
+    0% {
+      transform: scale(1) translateY(0);
+    }
+    
+    50% {
+      transform: scale(1.6) translateY(-24px); /* 살짝 줄어들게 */
+    }
+    
+    100% {
+      transform: scale(1) translateY(0px); /* 원래 크기로 돌아옴 */
+    }
+  }

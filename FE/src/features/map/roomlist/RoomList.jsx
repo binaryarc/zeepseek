@@ -175,8 +175,11 @@ const RoomList = () => {
                 </p>
                 <p className="room-description">{room.description}</p>
                 <p className="room-address">{room.address}</p>
-                <button onClick={() => toggleLike(room)} className="like-btn">
-                  {room.liked ? <FaHeart color="red" /> : <FaRegHeart />}
+                <button
+                  onClick={() => toggleLike(room)}
+                  className={`like-btn ${room.liked ? "liked" : ""}`} // liked 상태에 따라 클래스를 추가
+                >
+                  {room.liked ? "❤️" : "🤍"}
                 </button>
               </div>
             </div>

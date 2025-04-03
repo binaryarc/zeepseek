@@ -89,13 +89,33 @@
     border: none;
     cursor: pointer;
     z-index: 10;
+    transition: transform 0.3s ease;
   }
   
   .detail-zzim-button.liked {
     color: red;
+    animation: bounce 0.7s ease-out;
   }
 
+  @keyframes bounce {
+    0% {
+      transform: scale(1) translateY(0);
+    }
+    30% {
+      transform: scale(1.3) translateY(-10px); /* 하트를 확장 */
+    }
+    50% {
+      transform: scale(1.6) translateY(-14px); /* 살짝 줄어들게 */
+    }
+    70% {
+      transform: scale(1.3) translateY(-10px); /* 다시 커짐 */
+    }
+    100% {
+      transform: scale(1) translateY(0px); /* 원래 크기로 돌아옴 */
+    }
+  }
   
+
   .comment-preview {
     background-color: #f2f7fc;
     height: 75px;

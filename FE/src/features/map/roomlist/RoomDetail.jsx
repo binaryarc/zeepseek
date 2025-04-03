@@ -2,20 +2,20 @@ import { useEffect, useState } from "react";
 import "./RoomDetail.css";
 import { getPropertyDetail } from "../../../common/api/api";
 import defaultImage from "../../../assets/logo/192image.png";
-import { useDispatch } from "react-redux";
-import { setSelectedPropertyId } from "../../../store/slices/roomListSlice";
+// import { useDispatch } from "react-redux";
+// import { setSelectedPropertyId } from "../../../store/slices/roomListSlice";
 import date from "../../../assets/images/detail_png/date.png";
 import floor from "../../../assets/images/detail_png/floor.png";
 import room from "../../../assets/images/detail_png/room.png";
 import size from "../../../assets/images/detail_png/size.png";
 import direction from "../../../assets/images/detail_png/direction.png";
-import close from "../../../assets/images/detail_png/close.png";
+// import close from "../../../assets/images/detail_png/close.png";
 // import phone from "../../../assets/images/detail_png/phone.png";
 // import chat from "../../../assets/images/detail_png/chat.png";
 
 const RoomDetail = ({ propertyId }) => {
   const [detail, setDetail] = useState(null);
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
   useEffect(() => {
     console.log("받은 propertyId:", propertyId);
     const fetchDetail = async () => {
@@ -36,12 +36,12 @@ const RoomDetail = ({ propertyId }) => {
 
   return (
     <div className="room-detail">
-      <img
+      {/* <img
         src={close}
         alt="닫기"
         onClick={() => dispatch(setSelectedPropertyId(null))}
         className="close-btn"
-      />
+      /> */}
       <div className="detail-scrollable">
       <img
         src={detail.imageUrl || defaultImage}
