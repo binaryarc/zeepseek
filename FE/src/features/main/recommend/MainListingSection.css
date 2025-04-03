@@ -1,0 +1,32 @@
+.main-listing-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  font-family: sans-serif;
+  background-color: #f9f9f9; /* 원하는 배경색으로 변경 가능 */
+}
+
+.main-listing-section h1 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.main-listing-section p {
+  font-size: 16px;
+  margin-bottom: 30px;
+  color: #666;
+}
+
+/* ul 기본 스타일 제거 */
+.main-listing-container {
+  list-style-type: none; /* 점 제거 */
+  padding: 0;
+  margin: 0;
+
+  /* 그리드 레이아웃 */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 20px;
+}

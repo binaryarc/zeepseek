@@ -20,6 +20,7 @@
     gap: 1rem;
   }
   .zzim-card {
+    position: relative;
     width: 200px;
     border: 1px solid #ddd;
     border-radius: 8px;
@@ -34,8 +35,8 @@
   .zzim-info {
     padding: 0.5rem;
   }
-  .room-type {
-    font-size: 0.9rem;
+  .zzim-room-type {
+    font-size: 1.2rem;
     font-weight: 600;
   }
   .price {
@@ -46,4 +47,79 @@
     font-size: 0.85rem;
     color: #666;
   }
+  .zzim-delete-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 35px;
+    height: 35px;
+    background-color: #fff;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+  }
   
+  .zzim-delete-btn:hover {
+    background-color: #f0f0f0;
+    transform: scale(1.1);
+  }
+
+  .empty-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* height: calc(100vh - 120px); 필요에 따라 Navbar, 제목 높이 등을 고려하여 조정 */
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #666;
+    background-color: transparent;
+    border: dashed 6px beige;
+    border-radius: 30px;
+    margin: auto;
+    width: 300px;
+    margin: 150px auto 0; /* 상단 여백 100px, 좌우 중앙 정렬, 하단은 0 */
+  }
+
+  @keyframes floatUp {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    10% {
+      transform: translateY(-10px);
+    }
+    20% {
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-text span {
+    display: inline-block;
+    animation: floatUp 1s infinite;
+    animation-timing-function: ease-in-out;
+  }
+  .animate-text span {
+    display: inline-block;
+    animation: floatUp 5s infinite;
+    animation-timing-function: ease-in-out;
+  }
+  
+  /* (선택 사항) 글자마다 약간씩 딜레이를 주어 순차적으로 움직이게 할 수도 있습니다. */
+  .animate-text span:nth-child(1) { animation-delay: 0s; }
+  .animate-text span:nth-child(2) { animation-delay: 0.1s; }
+  .animate-text span:nth-child(3) { animation-delay: 0.2s; }
+  .animate-text span:nth-child(4) { animation-delay: 0.3s; }
+  .animate-text span:nth-child(5) { animation-delay: 0.4s; }
+  .animate-text span:nth-child(6) { animation-delay: 0.5s; }
+  .animate-text span:nth-child(7) { animation-delay: 0.6s; }
+  .animate-text span:nth-child(8) { animation-delay: 0.7s; }
+  .animate-text span:nth-child(9) { animation-delay: 0.8s; }
+  .animate-text span:nth-child(10) { animation-delay: 0.9s; }
+  .animate-text span:nth-child(11) { animation-delay: 1s; }
+  .animate-text span:nth-child(12) { animation-delay: 1.1s; }
+ 

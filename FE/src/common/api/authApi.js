@@ -48,3 +48,12 @@ export const refreshAccessToken = async () => {
   console.log(res);
   return res.data; // ✅ res 자체가 아닌 res.data만 리턴
 };
+
+export const deleteOAuth = async (idx, accessToken) => {
+  return await authApi.delete(`/auth/${idx}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    withCredentials: true,
+  });
+};
