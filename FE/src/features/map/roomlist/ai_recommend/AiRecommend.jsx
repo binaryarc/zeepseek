@@ -82,9 +82,9 @@ const AiRecommend = () => {
       <GuNameMarkers map={window.map} />
       {!isRecoDone && !isLoading && (
         <div className="slider-section">
-          <h3 className="recommend-title">원하는 매물 조건을 설정하세요</h3>
+          <h3 className="recommend-title">나랑 딱 맞는 매물 찾기</h3>
           {filters.map((label) => (
-            <div key={label} className="slider-block">
+           <div key={label} className={`slider-block slider-${label}`}>
               <div className="slider-label-row">
                 <label>{label}</label>
                 <span>{filterValues[label]}</span>
@@ -101,7 +101,7 @@ const AiRecommend = () => {
               />
             </div>
           ))}
-          <button className="recommend-search-btn" onClick={handleRecommendClick}>매물 추천</button>
+          <button className="recommend-search-btn" onClick={handleRecommendClick}>AI 추천 받기</button>
         </div>
       )}
 
