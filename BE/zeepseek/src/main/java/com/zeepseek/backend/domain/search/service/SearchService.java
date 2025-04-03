@@ -47,8 +47,7 @@ public class SearchService {
                     .size(size)
                     .trackTotalHits(t -> t.enabled(true)) // 전체 건수를 추적하도록 설정
                     .query(q -> q.bool(b -> {
-                        // 키워드 검색: dongName, description, guName, roomType 필드에서 검색
-                        b.must(mu -> mu.multiMatch(mm -> mm
+                        b.should(s -> s.multiMatch(mm -> mm
                                 .query(keyword)
                                 .fields("dongName", "description", "guName", "roomType")
                                 .type(TextQueryType.BoolPrefix)
@@ -56,17 +55,24 @@ public class SearchService {
                                 .analyzer("custom_normalizer")
                         ));
 
+                        try {
+                            int propertyIdValue = Integer.parseInt(keyword);
+                            b.should(s -> s.term(t -> t.field("propertyId").value(propertyIdValue)));
+                        } catch (NumberFormatException e) {
+                            // 숫자가 아니면 term 쿼리 추가하지 않음
+                        }
+
+                        b.minimumShouldMatch("1");
+
                         // roomType 필터 조건 추가
                         if (roomTypeFilter != null && !roomTypeFilter.isEmpty()) {
                             if ("원룸/투룸".equals(roomTypeFilter)) {
-                                // computedRoomType 필드가 "원룸" 또는 "투룸"인 경우를 OR 조건으로 추가
                                 b.filter(f -> f.bool(bf -> bf
                                         .should(s -> s.term(t -> t.field("computedRoomType.keyword").value("원룸")))
                                         .should(s -> s.term(t -> t.field("computedRoomType.keyword").value("투룸")))
                                         .minimumShouldMatch("1")
                                 ));
                             } else if ("주택/빌라".equals(roomTypeFilter)) {
-                                // roomType 필드가 "빌라", "상가주택", "단독/다가구" 중 하나인 경우를 OR 조건으로 추가
                                 b.filter(f -> f.bool(bf -> bf
                                         .should(s -> s.term(t -> t.field("roomType.keyword").value("빌라")))
                                         .should(s -> s.term(t -> t.field("roomType.keyword").value("상가주택")))
@@ -74,7 +80,6 @@ public class SearchService {
                                         .minimumShouldMatch("1")
                                 ));
                             } else {
-                                // 그 외의 경우는 roomType 필드에서 단일 값 필터 적용
                                 b.filter(f -> f.term(t -> t.field("roomType.keyword").value(roomTypeFilter)));
                             }
                         }
@@ -103,7 +108,7 @@ public class SearchService {
                 property.setLiked(isLiked);
             });
 
-            int totalHits = (int) searchResponse.hits().total().value();
+            int totalHits = (int) searchResponse.hits().total().    value();
 
             log.info("검색어 '{}'에 대한 결과 수: {} (페이지: {}, 사이즈: {})", keyword, results.size(), page, size);
             log.info("전체 검색 수: {}", searchResponse.hits().total());
