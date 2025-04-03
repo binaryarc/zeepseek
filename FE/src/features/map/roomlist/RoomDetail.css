@@ -1,7 +1,9 @@
+
 .room-detail {
     position: absolute;
-    /* display: flex;
-    align-items: center; */
+    display: flex;
+    flex-direction: column;
+    /* align-items: center; */
     top: 13vh;
     width: 24rem;
     height: auto;
@@ -13,6 +15,9 @@
     border: solid 0.01px black;
     margin-left: 1px;
     /* overflow: hidden; */
+    max-height: calc(100vh - 13vh - 2rem);
+    overflow-y: auto;   
+    
   }
   
   .detail-image {
@@ -30,10 +35,10 @@
     font-family: KOROAD;
   }
   
-  .detail-info {
+  /* .detail-info {
     overflow-y: auto;
   }
-
+ */
 
   .detail-info p {
     font-size: 15px;
@@ -51,6 +56,7 @@
 
   .detail-description {
     font-size: 1rem;
+    margin-top: 3px;
     margin-bottom: 12px;
     font-family: KOROAD;
   }
@@ -58,8 +64,11 @@
 
 .close-btn {
     position: absolute;
-    top: -1px;         
-    right: -35px;
+    top: 2.6rem;   /* 위로 띄우기 */
+    right: 0px;
+    /* left: calc(24rem+8px); */
+    /* top: -1px;          */
+    /* right: -35px; */
     background: rgb(131, 85, 85);
     border:  #ccc;
     font-size: 16px;
@@ -83,7 +92,7 @@
     margin-bottom: 3%;
   }
   .detail-line p{
-    font-size: 1.1rem;
+    font-size: 1rem;
     display: flex;
     align-items: center;
     margin-bottom: 3%;
