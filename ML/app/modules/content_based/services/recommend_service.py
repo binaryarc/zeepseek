@@ -573,11 +573,11 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
                 top_properties.append({
                     "propertyId": property_ids[i], 
                     "similarity": float(similarities[i]),
-                    "primaryCategory": category_names[max_idx]
+                    "maxType": category_names[max_idx]
                 })
             
             logger.info("Top %d recommended properties after MMR with priority: %s", 
-                       top_n, [(p["propertyId"], p["primaryCategory"]) for p in top_properties])
+                       top_n, [(p["propertyId"], p["maxType"]) for p in top_properties])
         else:
             top_properties = [{"propertyId": property_ids[i], "similarity": float(similarities[i])} for i in final_selected_indices]
             logger.info("Top %d recommended properties after MMR: %s", top_n, [property_ids[i] for i in final_selected_indices])
