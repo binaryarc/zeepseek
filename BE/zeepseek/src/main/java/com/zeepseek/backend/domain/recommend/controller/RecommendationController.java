@@ -2,6 +2,7 @@ package com.zeepseek.backend.domain.recommend.controller;
 
 import com.zeepseek.backend.domain.auth.util.CookieUtils;
 import com.zeepseek.backend.domain.recommend.dto.request.UserRecommendationRequestDto;
+import com.zeepseek.backend.domain.recommend.dto.response.AiRecommendationResponseDto;
 import com.zeepseek.backend.domain.recommend.dto.response.DetailedRecommendationResponseDto;
 import com.zeepseek.backend.domain.recommend.service.RecommendationService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,6 +39,12 @@ public class RecommendationController {
         });
 
         DetailedRecommendationResponseDto responseDto = recommendationService.getRecommendations(requestDto,request);
+        return ResponseEntity.ok(responseDto);
+    }
+    // AI 기반 추천 (GET /api/ai-recommend?user_id=123)
+    @GetMapping("/ai-recommend")
+    public ResponseEntity<AiRecommendationResponseDto> getAiRecommendation(@RequestParam("user_id") Integer userId) {
+        AiRecommendationResponseDto responseDto = recommendationService.getAiRecommendation(userId);
         return ResponseEntity.ok(responseDto);
     }
 }
