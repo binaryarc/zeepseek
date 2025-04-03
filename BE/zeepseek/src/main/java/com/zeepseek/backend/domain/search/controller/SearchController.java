@@ -27,7 +27,7 @@ public class SearchController {
         String filter = (String) request.get("filter");
         int page = (int) request.get("page");
         int size = (int) request.get("size");
-        int userId = (int) request.get("userId");
+        Integer userId = (Integer) request.get("userId");
 
         KeywordResponse results = searchService.searchProperties(keyword, page, size, filter,userId);
         return ResponseEntity.ok(results);
@@ -44,7 +44,7 @@ public class SearchController {
         String roomTypeFilter = (String) request.get("filter");
         int page = (int) request.get("page");
         int size = (int) request.get("size");
-        int userId = (int) request.get("userId");
+        Integer userId = (Integer) request.get("userId");
 
         KeywordResponse results = searchService.searchPropertiesByGuAndDong(guName, dongName, page, size, roomTypeFilter, userId);
         return ResponseEntity.ok(results);
