@@ -61,14 +61,14 @@ public class UserServiceImpl implements UserService {
                 .provider(updatedUser.getProvider())
                 .build();
     }
-    
+
     @Override
     @Transactional
     public UserDto updateProfile(Integer userId, UserProfileDto profileDto) {
         // 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException("User not found"));
-        
+
         // 성별과 나이 업데이트 (있을 경우)
         if (profileDto.getGender() != null) {
             user.setGender(profileDto.getGender());
@@ -76,28 +76,46 @@ public class UserServiceImpl implements UserService {
         if (profileDto.getAge() != null) {
             user.setAge(profileDto.getAge());
         }
-        
+
         User updatedUser = userRepository.save(user);
-        
+
         // UserPreferences 객체 생성 또는 조회
         UserPreferences userPreferences = userPreferencesRepository.findById(userId)
                 .orElse(UserPreferences.builder().user(user).build());
-        
+
         // 1. 목적지 정보 처리 (location 값이 있을 경우에만)
         if (profileDto.getLocation() != null && !profileDto.getLocation().isEmpty()) {
             processDestination(userPreferences, profileDto.getLocation());
         }
-        
+
         // 2. 선호도 정보 처리 (preferences 값이 있을 경우에만)
         if (profileDto.getPreferences() != null && !profileDto.getPreferences().isEmpty()) {
             processPreferences(userPreferences, profileDto.getPreferences());
         }
-        
+
         // 사용자 선호도 저장
         userPreferencesRepository.save(userPreferences);
         log.info("사용자 프로필 업데이트 완료: userId={}", userId);
-        
-        // 업데이트된 사용자 정보 반환
+
+        // 업데이트된 프로필 정보 구성
+        UserProfileDto updatedProfileDto = UserProfileDto.builder()
+                .gender(updatedUser.getGender())
+                .age(updatedUser.getAge())
+                .location(userPreferences.getDestination())
+                .build();
+
+        // 선호도 정보 설정
+        List<String> selectedPreferences = new ArrayList<>();
+        if (userPreferences.getSafe() > 0) selectedPreferences.add("safe");
+        if (userPreferences.getLeisure() > 0) selectedPreferences.add("leisure");
+        if (userPreferences.getRestaurant() > 0) selectedPreferences.add("restaurant");
+        if (userPreferences.getHealth() > 0) selectedPreferences.add("health");
+        if (userPreferences.getConvenience() > 0) selectedPreferences.add("convenience");
+        if (userPreferences.getTransport() > 0) selectedPreferences.add("transport");
+        if (userPreferences.getCafe() > 0) selectedPreferences.add("cafe");
+        updatedProfileDto.setPreferences(selectedPreferences);
+
+        // 업데이트된 사용자 정보 반환 (profileInfo 포함)
         return UserDto.builder()
                 .idx(updatedUser.getIdx())
                 .nickname(updatedUser.getNickname())
@@ -106,6 +124,7 @@ public class UserServiceImpl implements UserService {
                 .isFirst(updatedUser.getIsFirst())
                 .isSeller(updatedUser.getIsSeller())
                 .provider(updatedUser.getProvider())
+                .profileInfo(updatedProfileDto)  // 프로필 정보 포함
                 .build();
     }
 
