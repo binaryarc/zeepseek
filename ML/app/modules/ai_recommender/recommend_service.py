@@ -161,7 +161,8 @@ def get_user_preferences_from_db(user_id: int):
         )
         result = session.execute(query, {"user_id": user_id}).fetchone()
         if result:
-            prefs = dict(result)
+            # 수정: result._mapping을 사용하여 딕셔너리로 변환
+            prefs = dict(result._mapping)
             processed = {k: 1 if float(v) == 1 else 0 for k, v in prefs.items()}
             processed["chicken"] = 0
             return processed
