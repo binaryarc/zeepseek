@@ -94,10 +94,10 @@
   
   .detail-zzim-button.liked {
     color: red;
-    animation: bounce 0.7s ease-out;
+    animation: zzim-bounce 0.7s ease-out;
   }
 
-  @keyframes bounce {
+  @keyframes zzim-bounce {
     0% {
       transform: scale(1) translateY(0);
     }

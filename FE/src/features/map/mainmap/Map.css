@@ -10,13 +10,13 @@
   height: 60px;
   background: url("/images/bounce-pin.png") no-repeat center center;
   background-size: contain;
-  animation: bounce 0.6s infinite ease-in-out;
+  animation: pin-bounce 0.6s infinite ease-in-out;
   pointer-events: none; /* 마커 위에 마우스 안 올라가게 */
   transform-origin: bottom center;
 }
 
 /* 또잉또잉 애니메이션 */
-@keyframes bounce {
+@keyframes pin-bounce {
   0% {
     transform: scale(1);
   }

@@ -73,8 +73,6 @@ const EstateCompare = () => {
   
           const summaryResult = await fetchPropertyCompare(selected1.propertyId, selected2.propertyId);
           setProPertyCompareData(summaryResult?.data?.compareSummary);
-          console.log("estate1", selected1)
-          console.log("estate2", selected2)
           console.log("summaryResult", summaryResult?.data?.compareSummary)
         } catch (err) {
           console.error('비교 데이터 로딩 실패:', err);
