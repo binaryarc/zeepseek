@@ -110,7 +110,7 @@ def get_category_min_max_values():
 def load_property_vectors():
     global PROPERTY_VECTORS_CACHE, PROPERTY_IDS_CACHE, PROPERTY_CACHE_TIMESTAMP
     현재_시간 = time.time()
-    if PROPERTY_VECTORS_CACHE is not None and (현재_시간 - PROPERTY_CACHE_TIMESTAMP < PROPERTY_CACHE_TTL):
+    if PROPERTY_VECTORS_CACHE is not None and (현재_시간 - PROPERTY_CACHE_TIMESTAMP < 300):
         logger.info("[load_property_vectors] 캐시된 매물 벡터 정보를 재사용합니다.")
         return PROPERTY_VECTORS_CACHE, PROPERTY_IDS_CACHE
 
@@ -159,8 +159,12 @@ def apply_mmr(similarities, property_vectors, top_n, diversity_lambda=0.5):
     while len(selected) < top_n and candidate_indices:
         mmr_scores = []
         for i in candidate_indices:
-            sim_selected = max(cosine_similarity(property_vectors[i].reshape(1, -1),
-                                                 property_vectors[selected]).flatten())
+            sim_selected = max(
+                cosine_similarity(
+                    property_vectors[i].reshape(1, -1),
+                    property_vectors[selected]
+                ).flatten()
+            )
             score = diversity_lambda * similarities[i] - (1 - diversity_lambda) * sim_selected
             mmr_scores.append((i, score))
         best_candidate, _ = max(mmr_scores, key=lambda x: x[1])
@@ -309,8 +313,16 @@ def get_category_priority(gender, age_group):
         logger.warning("[get_category_priority] 정의되지 않은 (성별, 연령대) → 기본 우선순위 사용: (%s, %s)", gender, age_group)
         return 기본_우선순위
 
-def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, diversity_lambda=0.5, 
-                         normalization_method='minmax', gender=None, age=None):
+
+def recommend_properties(
+    user_scores: dict,
+    top_n=5,
+    apply_mmr_flag=True,
+    diversity_lambda=0.5, 
+    normalization_method='minmax',
+    gender=None,
+    age=None
+):
     logger.info("[recommend_properties] 함수 호출. 파라미터 user_scores=%s, top_n=%d, gender=%s, age=%s",
                 user_scores, top_n, gender, age)
     
@@ -323,7 +335,10 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
     property_array, property_ids = load_property_vectors()
     if property_array is None or property_array.shape[0] == 0:
         logger.warning("[recommend_properties] 매물 정보가 없으므로 빈 리스트([]) 반환합니다.")
-        return []
+        return {
+            "recommendedProperties": [],
+            "maxType": None
+        }
     
     logger.info("[DEBUG] property_array shape: %s", property_array.shape)
     logger.info("[DEBUG] property_array[0]: %s", property_array[0] if property_array.shape[0] > 0 else "No data")
@@ -359,7 +374,10 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
         min_max_values = get_category_min_max_values()
         if not min_max_values:
             logger.warning("[recommend_properties] min-max 값을 가져오지 못했으므로 빈 리스트 반환.")
-            return []
+            return {
+                "recommendedProperties": [],
+                "maxType": None
+            }
         
         mins = np.array([
             min_max_values["transport_score"][0],
@@ -401,7 +419,10 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
         mean_std_values = get_category_mean_std_values()
         if not mean_std_values:
             logger.warning("[recommend_properties] 평균/표준편차 값을 가져오지 못했으므로 빈 리스트 반환.")
-            return []
+            return {
+                "recommendedProperties": [],
+                "maxType": None
+            }
         
         means = np.array([
             mean_std_values["transport_score"][0],
@@ -439,7 +460,10 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
         user_vector = ((user_vals - means) / stds).reshape(1, -1)
     else:
         logger.error("[recommend_properties] 알 수 없는 정규화 방식: %s", normalization_method)
-        return []
+        return {
+            "recommendedProperties": [],
+            "maxType": None
+        }
 
     logger.info("[DEBUG] user_vector before weighting: %s", user_vector)
 
@@ -462,46 +486,24 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
     candidate_similarities = np.array([similarities[i] for i in candidate_order])
     candidate_vectors = norm_array[candidate_order]
 
+    # ---------------------------
+    # MMR 적용 로직 (매물별 maxType 제거)
+    # ---------------------------
     if apply_mmr_flag:
         selected_candidate_indices = apply_mmr(candidate_similarities, candidate_vectors, top_n, diversity_lambda)
         final_selected_indices = [candidate_order[i] for i in selected_candidate_indices]
-        
-        if gender is not None and age is not None:
-            age_group = get_age_group(age)
-            category_priority = get_category_priority(gender, age_group)
-            
-            top_properties = []
-            for i in final_selected_indices:
-                property_vector = norm_array[i]
-                max_idx = np.argmax(property_vector)
-                
-                # 동일한 최대값이 여러 개면 우선순위 고려
-                max_val = property_vector[max_idx]
-                max_indices = np.where(property_vector == max_val)[0]
-                
-                if len(max_indices) > 1:
-                    priorities = [category_priority[idx] for idx in max_indices]
-                    max_idx = max_indices[np.argmax(priorities)]
-                    logger.info("[recommend_properties] 동일 최고값 카테고리=%s → 우선순위 고려. 최종 카테고리 인덱스=%d (%s)",
-                                max_indices, max_idx, category_names[max_idx])
-                
-                top_properties.append({
-                    "propertyId": property_ids[i],
-                    "similarity": float(similarities[i])
-                    # "maxType": category_names[max_idx]
-                })
-            
-            logger.info("[recommend_properties] MMR+우선순위 적용 후 추천 결과 (상위 %d개)", top_n)
-            if top_properties:
-                logger.info("예: 첫번째 = %s", top_properties[0])
-        else:
-            top_properties = [{
+
+        # 매물 정보만 넣고, maxType은 일단 넣지 않음
+        top_properties = []
+        for i in final_selected_indices:
+            top_properties.append({
                 "propertyId": property_ids[i],
                 "similarity": float(similarities[i])
-            } for i in final_selected_indices]
-            logger.info("[recommend_properties] MMR 적용 후 추천 결과 (상위 %d개)", top_n)
-            if top_properties:
-                logger.info("예: 첫번째 = %s", top_properties[0])
+            })
+
+        logger.info("[recommend_properties] MMR 적용 후 추천 결과 (상위 %d개)", top_n)
+        if top_properties:
+            logger.info("예: 첫번째 = %s", top_properties[0])
     else:
         # MMR 미적용
         properties_rec = [
@@ -513,10 +515,32 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
         if top_properties:
             logger.info("예: 첫번째 = %s", top_properties[0])
 
-    # 최종 결과
+    # ---------------------------
+    # 여기서 "한 번만" maxType 계산
+    # ---------------------------
+    global_max_type = None
+    if top_properties:
+        # 예: 가장 유사도가 높은 첫 번째 매물의 벡터를 이용해 maxType 계산
+        best_pid = top_properties[0]["propertyId"]
+        best_index = property_ids.index(best_pid)  # property_ids에서 해당 pid의 인덱스
+        best_vec = norm_array[best_index]
+
+        max_idx = np.argmax(best_vec)
+        global_max_type = category_names[max_idx]
+        logger.info("[recommend_properties] 전체 결과 중 가장 유사도 높은 매물의 maxType=%s", global_max_type)
+
+    # 최종 결과가 비었는지 체크
     if not top_properties:
         logger.warning("[recommend_properties] 최종 추천 결과가 비어 있습니다.")
     else:
-        logger.info("[recommend_properties] 최종 추천 개수: %d, 첫번째 similarity=%.4f", len(top_properties), top_properties[0]["similarity"])
-    
-    return top_properties
+        logger.info("[recommend_properties] 최종 추천 개수: %d, 첫번째 similarity=%.4f",
+                    len(top_properties),
+                    top_properties[0]["similarity"])
+
+    # ---------------------------
+    # 최종 반환 시, 매물 리스트 + 하나의 maxType
+    # ---------------------------
+    return {
+        "recommendedProperties": top_properties,
+        "maxType": global_max_type
+    }
