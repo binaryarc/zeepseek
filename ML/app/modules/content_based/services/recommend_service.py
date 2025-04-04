@@ -386,13 +386,13 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
         logger.info("[recommend_properties] min-max 정규화 수행 완료.")
         
         user_vals = np.array([
-            user_scores.get("transport_score", 0),
-            user_scores.get("restaurant_score", 0),
-            user_scores.get("health_score", 0),
-            user_scores.get("convenience_score", 0),
-            user_scores.get("cafe_score", 0),
-            user_scores.get("chicken_score", 0),
-            user_scores.get("leisure_score", 0),
+            user_scores.get("transportScore", 0),
+            user_scores.get("restaurantScore", 0),
+            user_scores.get("healthScore", 0),
+            user_scores.get("convenienceScore", 0),
+            user_scores.get("cafeScore", 0),
+            user_scores.get("chickenScore", 0),
+            user_scores.get("leisureScore", 0),
         ])
         logger.info("[DEBUG] user_vals (minmax before reshape): %s", user_vals)
         user_vector = user_vals.reshape(1, -1)
