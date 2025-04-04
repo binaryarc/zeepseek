@@ -518,13 +518,13 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
         stds[stds == 0] = 1
         norm_array = (property_array - means) / stds
         user_vals = np.array([
-            user_scores.get("transport_score", 0),
-            user_scores.get("restaurant_score", 0),
-            user_scores.get("health_score", 0),
-            user_scores.get("convenience_score", 0),
-            user_scores.get("cafe_score", 0),
-            user_scores.get("chicken_score", 0),
-            user_scores.get("leisure_score", 0),
+            user_scores.get("transportScore", 0),
+            user_scores.get("restaurantScore", 0),
+            user_scores.get("healthScore", 0),
+            user_scores.get("convenienceScore", 0),
+            user_scores.get("cafeScore", 0),
+            user_scores.get("chickenScore", 0),
+            user_scores.get("leisureScore", 0),
         ])
         user_vector = ((user_vals - means) / stds).reshape(1, -1)
         logger.info("Using z-score normalization.")
