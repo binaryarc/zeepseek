@@ -29,33 +29,44 @@ PROPERTY_VECTORS_CACHE = None
 PROPERTY_IDS_CACHE = None
 PROPERTY_CACHE_TIMESTAMP = 0
 
-def fetch_logs_from_es(days=30, size=10000):
+def fetch_logs_from_es(days: int = 30, size: int = 10000):
     """
-    ES에서 최근 'days' 일간의 로그 데이터를 조회하여,
-    [userId, propertyId, action, dongId, score] 컬럼을 갖는 DataFrame 반환.
-    (단순 검색으로 10,000개까지만 가져옴, 더 많으면 scroll 사용 필요)
+    Elasticsearch에서 최근 'days' 일치 로그를 가져와
+    userId, propertyId, action, dongId, score 컬럼을 갖는 DataFrame을 반환합니다.
     """
-    logger.info("Fetching logs from ES (last %d days)...", days)
+
+    # 1) Body에서는 size, scroll을 제거
     query = {
         "query": {
             "range": {
                 "time": {"gte": f"now-{days}d/d"}
             }
         },
-        "_source": ["userId", "propertyId", "action", "dongId"],
-        "size": size,
-        "scroll": "2m"
+        "_source": ["userId", "propertyId", "action", "dongId"]
+        # "size": size,    <-- 삭제
+        # "scroll": "2m"   <-- 삭제
     }
-    result = es.search(index="logs", body=query, size=size, scroll="2m")
+
+    # 2) ES search 호출 시 파라미터로만 size, scroll 전달
+    result = es.search(
+        index="logs",
+        body=query,
+        size=size,        # 여기서만 size 전달
+        scroll="2m"       # 여기서만 scroll 지정
+    )
+
+    # 결과 처리
     docs = [doc["_source"] for doc in result["hits"]["hits"]]
     df = pd.DataFrame(docs)
     if df.empty:
-        logger.info("No logs found in ES query.")
-        return pd.DataFrame(columns=["userId", "propertyId", "score", "dongId"])
+        logger.info("No logs found from ES.")
+        # 필요하면 빈 DF 반환
+        return pd.DataFrame(columns=["userId", "propertyId", "action", "dongId"])
 
-    # action_score를 매핑하여 score 컬럼 추가
-    df['score'] = df['action'].map(ACTION_SCORE).fillna(0)
-    return df[['userId', 'propertyId', 'score', 'dongId']]
+    # 이 예시에서는 action_score 매핑 등 추가 로직이 있을 수 있음
+    df["score"] = df["action"].map(ACTION_SCORE).fillna(0)
+    return df[["userId", "propertyId", "score", "dongId"]]
+
 
 def train_model():
     """
