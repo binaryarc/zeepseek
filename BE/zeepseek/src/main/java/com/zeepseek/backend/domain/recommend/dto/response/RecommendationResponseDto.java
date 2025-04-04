@@ -14,9 +14,5 @@ public class RecommendationResponseDto {
 
 //    @JsonProperty("recommended_properties")
     private List<RecommendationDto> recommendedProperties;
-
-    private int totalElements;
-    private int totalPages;
-    private int currentPage;
     private String maxType;
 }
