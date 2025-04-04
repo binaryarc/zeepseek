@@ -73,4 +73,8 @@ public class UserPreferences {
 
     @Column(columnDefinition = "DECIMAL(11,7)")
     private Double longitude; // 경도
+    
+    // 동 ID 정보
+    @Column(name = "dong_id")
+    private Integer dongId; // 동 ID (법정동 코드 뒤 2자리를 제외한 앞 8자리)
 }
