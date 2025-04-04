@@ -217,31 +217,76 @@ def get_user_preferences_from_db(userId: int):
         session.close()
 
 
-def recommend_for_mainpage(userId: int, top_k=10, gender=None, age=None, user_preferences=None):
+def recommend_for_mainpage(userId: int, top_k=10):
     """
     메인페이지 추천:
-    1) dong 기반 추천 시도
-    2) dong 로그가 충분치 않거나, dong-based rec이 빈 리스트면 fallback => 기본 SVD
+      1) dong 기반 추천 시도
+      2) dong 로그가 충분치 않거나 dong-based 추천 결과가 없으면 fallback → 하이브리드 추천 방식 사용
+      3) 최종 반환: {"dongId": <dong_id>, "propertyIds": [매물ID, ...]}
     """
     logger.info("Starting mainpage recommendation for user %d...", userId)
 
+    # 0) 우선, user_preference 테이블에서 fallbackDong (사용자가 설정한 dong_id) 조회
+    session = SessionLocal()
+    try:
+        row = session.execute(
+            text("SELECT dong_id FROM user_preference WHERE user_id=:uid"),
+            {"uid": userId}
+        ).fetchone()
+        fallbackDong = row._mapping["dong_id"] if row else None
+    finally:
+        session.close()
+
+    # 1) 로그 기반 dong 추천 시도
     targetDong = get_most_frequent_dong_for_user(userId, duration="2h")
-    if targetDong is None:
-        logger.info("Fallback to default SVD recommendation for user %d.", userId)
-        recs = recommend(userId, top_k=top_k)
-        return {"dongId": None, "propertyIds": recs}
+    if not targetDong:
+        logger.info("No dong logs => fallback hybrid recommendation using user_preference dong_id=%s", fallbackDong)
+        recs = hybrid_recommend(userId, top_k)
+        return {"dongId": fallbackDong, "propertyIds": recs}
 
-    # dong 기반 추천
-    recs = recommend_by_dong(userId, top_k=top_k)
+    # 2) dong 기반 추천
+    recs = recommend_by_dong(userId, top_k)
     if not recs:
-        logger.info("Dong-based rec is empty for user %d (dong=%s). Fallback to SVD.", userId, targetDong)
-        fallback_recs = recommend(userId, top_k=top_k)
-        return {
-            "dongId": None,
-            "propertyIds": fallback_recs
-        }
+        logger.info("dong-based recommendation empty => fallback hybrid recommendation using user_preference dong_id=%s", fallbackDong)
+        recs = hybrid_recommend(userId, top_k)
+        return {"dongId": fallbackDong, "propertyIds": recs}
 
+    # 3) dong 기반 추천 결과가 있다면 dongId는 그대로 사용
     return {"dongId": targetDong, "propertyIds": recs}
+
+
+def hybrid_recommend(user_id: int, top_k=5) -> list:
+    """
+    하이브리드 추천:
+      1) SVD 협업 필터링 기반 추천 (rec_svd)
+      2) 콘텐츠 기반 추천(회사/학교 위치 가중치 포함) → content_based_with_office_location 사용 (rec_cb)
+      3) 두 결과를 병합(중복 제거)한 후 상위 top_k 반환.
+      
+    반환 예시: [propertyId1, propertyId2, ...]
+    """
+    logger.info("Starting hybrid recommendation for user %d...", user_id)
+    
+    # 1) SVD 협업 추천
+    rec_svd = recommend(user_id, top_k)  # 예: [pid1, pid2, ...]
+
+    # 2) 콘텐츠 기반 추천 (회사/학교 위치 고려)
+    try:
+        from app.modules.content_based.services.content_based_with_office import content_based_with_office_location
+    except ImportError:
+        logger.error("content_based_with_office_location 모듈을 찾을 수 없습니다.")
+        rec_cb = []
+    else:
+        cb_res = content_based_with_office_location(user_id, top_k)
+        # 반환형: {"dongId": <dong_id>, "propertyIds": [pid, ...]}
+        rec_cb = cb_res.get("propertyIds", [])
+
+    # 3) 두 추천 결과를 병합 (중복 제거, 순서 유지)
+    combined = rec_svd + rec_cb
+    merged = list(dict.fromkeys(combined))
+    merged = merged[:top_k]
+    logger.info("Hybrid recommendation for user %d: %s", user_id, merged)
+    return merged
+
 
 
 def load_property_vectors():
