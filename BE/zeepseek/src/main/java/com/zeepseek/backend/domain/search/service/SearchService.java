@@ -7,6 +7,9 @@ import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.zeepseek.backend.domain.search.dto.SearchProperty;
 import com.zeepseek.backend.domain.search.dto.response.KeywordResponse;
+import com.zeepseek.backend.domain.zzim.document.DongZzimDoc;
+import com.zeepseek.backend.domain.zzim.document.PropertyZzimDoc;
+import com.zeepseek.backend.domain.zzim.service.ZzimService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,7 +28,7 @@ import java.util.stream.Collectors;
 public class SearchService {
 
     private final ElasticsearchClient elasticsearchClient;
-
+    private final ZzimService zzimService;
     /**
      * 키워드와 페이지네이션 정보를 받아 Elasticsearch에서 검색을 수행합니다.
      * @param keyword 검색어
@@ -32,7 +36,7 @@ public class SearchService {
      * @param size    페이지 당 결과 수
      * @return 검색 결과 리스트
      */
-    public KeywordResponse searchProperties(String keyword, int page, int size, String roomTypeFilter) {
+    public KeywordResponse searchProperties(String keyword, int page, int size, String roomTypeFilter, Integer userId) {
         // 페이지 번호가 1부터 시작한다고 가정하면 from 값은 (page - 1) * size
         int from = (page - 1) * size;
 
@@ -43,8 +47,7 @@ public class SearchService {
                     .size(size)
                     .trackTotalHits(t -> t.enabled(true)) // 전체 건수를 추적하도록 설정
                     .query(q -> q.bool(b -> {
-                        // 키워드 검색: dongName, description, guName, roomType 필드에서 검색
-                        b.must(mu -> mu.multiMatch(mm -> mm
+                        b.should(s -> s.multiMatch(mm -> mm
                                 .query(keyword)
                                 .fields("dongName", "description", "guName", "roomType")
                                 .type(TextQueryType.BoolPrefix)
@@ -52,17 +55,24 @@ public class SearchService {
                                 .analyzer("custom_normalizer")
                         ));
 
+                        try {
+                            int propertyIdValue = Integer.parseInt(keyword);
+                            b.should(s -> s.term(t -> t.field("propertyId").value(propertyIdValue)));
+                        } catch (NumberFormatException e) {
+                            // 숫자가 아니면 term 쿼리 추가하지 않음
+                        }
+
+                        b.minimumShouldMatch("1");
+
                         // roomType 필터 조건 추가
                         if (roomTypeFilter != null && !roomTypeFilter.isEmpty()) {
                             if ("원룸/투룸".equals(roomTypeFilter)) {
-                                // computedRoomType 필드가 "원룸" 또는 "투룸"인 경우를 OR 조건으로 추가
                                 b.filter(f -> f.bool(bf -> bf
                                         .should(s -> s.term(t -> t.field("computedRoomType.keyword").value("원룸")))
                                         .should(s -> s.term(t -> t.field("computedRoomType.keyword").value("투룸")))
                                         .minimumShouldMatch("1")
                                 ));
                             } else if ("주택/빌라".equals(roomTypeFilter)) {
-                                // roomType 필드가 "빌라" 또는 "상가주택"인 경우를 OR 조건으로 추가
                                 b.filter(f -> f.bool(bf -> bf
                                         .should(s -> s.term(t -> t.field("roomType.keyword").value("빌라")))
                                         .should(s -> s.term(t -> t.field("roomType.keyword").value("상가주택")))
@@ -70,7 +80,6 @@ public class SearchService {
                                         .minimumShouldMatch("1")
                                 ));
                             } else {
-                                // 그 외의 경우는 roomType 필드에서 필터
                                 b.filter(f -> f.term(t -> t.field("roomType.keyword").value(roomTypeFilter)));
                             }
                         }
@@ -78,11 +87,28 @@ public class SearchService {
                     }))
             );
 
+            // 1. Elasticsearch 검색 결과 가져오기
             SearchResponse<SearchProperty> searchResponse = elasticsearchClient.search(searchRequest, SearchProperty.class);
-
             List<SearchProperty> results = searchResponse.hits().hits().stream()
                     .map(Hit::source)
                     .collect(Collectors.toList());
+
+            if(userId != null) {
+                // 2. 사용자 찜 정보 불러오기
+                List<PropertyZzimDoc> propertyZzimDocs = zzimService.userSelectPropertyList(userId);
+
+                // 3. 찜한 매물의 ID를 Set으로 변환 (PropertyZzimDoc에는 propertyId 필드가 존재)
+                Set<Integer> likedPropertyIds = propertyZzimDocs.stream()
+                        .map(PropertyZzimDoc::getPropertyId)
+                        .collect(Collectors.toSet());
+
+                // 4. 각 검색 결과에 대해 사용자가 찜한 매물인지 isLiked 필드 설정
+                results.forEach(property -> {
+                    // SearchProperty 클래스의 propertyId 필드 사용
+                    boolean isLiked = likedPropertyIds.contains(property.getPropertyId());
+                    property.setLiked(isLiked);
+                });
+            }
 
             int totalHits = (int) searchResponse.hits().total().value();
 
@@ -97,6 +123,7 @@ public class SearchService {
     }
 
 
+
     /**
      * guName과 dongName이 정확하게 일치하는 경우의 데이터만 조회하는 메서드
      * @param guName           검색할 guName 값
@@ -106,7 +133,7 @@ public class SearchService {
      * @param roomTypeFilter   roomType 필터 조건 (예: "원룸/투룸", "빌라/주택" 등)
      * @return 검색 결과 리스트
      */
-    public KeywordResponse searchPropertiesByGuAndDong(String guName, String dongName, int page, int size, String roomTypeFilter) {
+    public KeywordResponse searchPropertiesByGuAndDong(String guName, String dongName, int page, int size, String roomTypeFilter, Integer userId) {
         int from = (page - 1) * size;
 
         try {
@@ -151,10 +178,29 @@ public class SearchService {
                     }))
             );
 
+            // 1. Elasticsearch 검색 결과 가져오기
             SearchResponse<SearchProperty> searchResponse = elasticsearchClient.search(searchRequest, SearchProperty.class);
             List<SearchProperty> results = searchResponse.hits().hits().stream()
                     .map(Hit::source)
                     .collect(Collectors.toList());
+
+            if(userId != null) {
+                // 2. 사용자 찜 정보 불러오기
+                List<PropertyZzimDoc> propertyZzimDocs = zzimService.userSelectPropertyList(userId);
+
+                // 3. 찜한 매물의 ID를 Set으로 변환 (PropertyZzimDoc에는 propertyId 필드가 존재)
+                Set<Integer> likedPropertyIds = propertyZzimDocs.stream()
+                        .map(PropertyZzimDoc::getPropertyId)
+                        .collect(Collectors.toSet());
+
+                // 4. 각 검색 결과에 대해 사용자가 찜한 매물인지 isLiked 필드 설정
+                results.forEach(property -> {
+                    // SearchProperty 클래스의 propertyId 필드 사용
+                    boolean isLiked = likedPropertyIds.contains(property.getPropertyId());
+                    property.setLiked(isLiked);
+                });
+            }
+
             int totalHits = (int) searchResponse.hits().total().value();
 
             log.info("guName '{}'와 dongName '{}'에 대한 결과 수: {} (페이지: {}, 사이즈: {})", guName, dongName, results.size(), page, size);

@@ -7,6 +7,7 @@ import com.zeepseek.backend.domain.property.model.Property;
 import com.zeepseek.backend.domain.property.service.PropertyService;
 import com.zeepseek.backend.domain.zzim.document.DongZzimDoc;
 import com.zeepseek.backend.domain.zzim.document.PropertyZzimDoc;
+import com.zeepseek.backend.domain.zzim.dto.DongZzim;
 import com.zeepseek.backend.domain.zzim.repository.DongZzimRepository;
 import com.zeepseek.backend.domain.zzim.repository.PropertyZzimRepository;
 import lombok.RequiredArgsConstructor;
@@ -92,13 +93,14 @@ public class ZzimService {
 
         List<DongInfoDocs> dongInfoDocs = new ArrayList<>();
         for(DongZzimDoc dongZzimDoc : dongZzimDocs) {
-            DongInfoDocs docs = null;
             try {
-                docs = dongService.getDongDetail(dongZzimDoc.getDongId());
-            }catch (Exception e) {
+                DongInfoDocs docs = dongService.getDongDetail(dongZzimDoc.getDongId());
+                if(docs != null) {
+                    dongInfoDocs.add(docs);
+                }
+            } catch (Exception e) {
                 log.warn("찜: 해당 동네을 찾을 수 없습니다. {}", e);
             }
-            dongInfoDocs.add(docs);
         }
 
         return dongInfoDocs;
@@ -111,15 +113,34 @@ public class ZzimService {
 
         List<Property> properties = new ArrayList<>();
         for(PropertyZzimDoc propertyZzimDoc : propertyZzimDocs) {
-            Property property = null;
             try {
-                property = propertyService.getPropertyDetail((long) propertyZzimDoc.getPropertyId());
+                Property property = propertyService.getPropertyDetail((long) propertyZzimDoc.getPropertyId());
+                if(property != null) {
+                    properties.add(property);
+                }
             } catch (Exception e) {
                 log.warn("찜: 해당 매물을 찾을 수 없습니다. {}", e);
             }
-            properties.add(property);
         }
 
         return properties;
+    }
+
+    public List<DongZzim> findAllDongLiked(int userId) {
+        // 모든 동 정보를 가져옴
+        List<DongInfoDocs> dongInfoDocs = dongService.findAllDongsforZzim();
+
+        // 사용자가 좋아요한 동 리스트를 가져옴
+        List<DongZzimDoc> dongZzimDocs = userSelectDongList(userId);
+
+        List<DongZzim> result = new ArrayList<>();
+        for (DongInfoDocs doc : dongInfoDocs) {
+            int dongId = doc.getDongId();
+            // dongZzimDocs에서 dongId가 매치되는 것이 있으면 true, 없으면 false
+            boolean isLiked = dongZzimDocs.stream()
+                    .anyMatch(dongZzimDoc -> dongZzimDoc.getDongId() == dongId);
+            result.add(new DongZzim(dongId, isLiked));
+        }
+        return result;
     }
 }

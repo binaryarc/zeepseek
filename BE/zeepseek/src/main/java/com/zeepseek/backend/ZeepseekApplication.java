@@ -3,8 +3,10 @@ package com.zeepseek.backend;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
+@EnableAsync
 public class ZeepseekApplication {
 
 	public static void main(String[] args) {
@@ -16,17 +18,19 @@ public class ZeepseekApplication {
 
 		dotenv.entries().forEach(entry -> System.out.println(entry.getKey() + "=" + entry.getValue()));
 
-		// 예: OPENAI_API_KEY 값을 시스템 프로퍼티로 등록
+//		// 예: OPENAI_API_KEY 값을 시스템 프로퍼티로 등록
 		String openaiApiKey = dotenv.get("OPENAI_API_KEY");
 		String mongoDBUri = dotenv.get("MONGODB_URI");
 		String esUserName = dotenv.get("ES_USERNAME");
 		String esPassWord = dotenv.get("ES_PASSWORD");
+		String kakaoRestApiKey = dotenv.get("KAKAO_REST_API_KEY");
 
 		if (openaiApiKey != null) {
 			System.setProperty("OPENAI_API_KEY", openaiApiKey);
 			System.setProperty("MONGODB_URI", mongoDBUri);
 			System.setProperty("ES_USERNAME", esUserName);
 			System.setProperty("ES_PASSWORD", esPassWord);
+			System.setProperty("KAKAO_REST_API_KEY", kakaoRestApiKey);
 		}
 
 		SpringApplication.run(ZeepseekApplication.class, args);

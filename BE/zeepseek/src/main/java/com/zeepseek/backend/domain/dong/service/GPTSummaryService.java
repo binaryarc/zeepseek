@@ -2,6 +2,7 @@ package com.zeepseek.backend.domain.dong.service;
 
 import com.zeepseek.backend.domain.dong.document.DongInfoDocs;
 import com.zeepseek.backend.domain.dong.entity.DongInfo;
+import com.zeepseek.backend.domain.property.model.PropertyScore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -72,6 +73,48 @@ public class GPTSummaryService {
                 dong2.getName(), dong2.getGuName(),
                 dong2.getSafe(), dong2.getLeisure(), dong2.getRestaurant(),
                 dong2.getHealth(), dong2.getMart(), dong2.getConvenience(), dong2.getTransport()
+        );
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", "gpt-3.5-turbo");
+        requestBody.put("messages", List.of(
+                Map.of("role", "user", "content", prompt)
+        ));
+        requestBody.put("max_tokens", 500);
+        requestBody.put("temperature", 0.7);
+
+        try {
+            OpenAiResponse response = webClient.post()
+                    .uri("/chat/completions")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + openAiApiKey)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToMono(OpenAiResponse.class)
+                    .block();
+
+            if (response != null && response.getChoices() != null && !response.getChoices().isEmpty()) {
+                return response.getChoices().get(0).getMessage().getContent().trim();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "비교 실패. 다시 호출해 주세요.";
+    }
+
+    public String getSummaryForPropertyCompare(PropertyScore score1, PropertyScore score2) {
+        String prompt = String.format(
+                "다음은 두 매물의 평가 점수 정보입니다.\n" +
+                        "매물1 (ID: %d): 교통: %.1f, 음식점: %.1f, 건강: %.1f, 편의: %.1f, 카페: %.1f, 치킨: %.1f, 여가: %.1f.\n" +
+                        "매물2 (ID: %d): 교통: %.1f, 음식점: %.1f, 건강: %.1f, 편의: %.1f, 카페: %.1f, 치킨: %.1f, 여가: %.1f.\n" +
+                        "위 점수들을 바탕으로, 각 매물의 강점과 개선이 필요한 점 등 특징을 비교하여 5줄로 요약해 주세요. " +
+                        "각 항목의 점수가 높으면 강점으로, 낮으면 약점으로 설명하고, 마지막 줄에 결론을 명확히 내려 주세요.",
+                score1.getPropertyId(),
+                score1.getTransportScore(), score1.getRestaurantScore(), score1.getHealthScore(),
+                score1.getConvenienceScore(), score1.getCafeScore(), score1.getChickenScore(), score1.getLeisureScore(),
+                score2.getPropertyId(),
+                score2.getTransportScore(), score2.getRestaurantScore(), score2.getHealthScore(),
+                score2.getConvenienceScore(), score2.getCafeScore(), score2.getChickenScore(), score2.getLeisureScore()
         );
 
         Map<String, Object> requestBody = new HashMap<>();
