@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./RoomList.css";
 import AiRecommend from "./ai_recommend/AiRecommend";
+import ZzimList from "./zzim_list/ZzimList";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setSelectedPropertyId,
@@ -123,7 +124,7 @@ const RoomList = () => {
   return (
     <div className="room-list">
       <nav className="room-type">
-        {["원룸/투룸", "오피스텔", "주택/빌라", "AI 추천"].map((tab) => (
+        {["원룸/투룸", "오피스텔", "주택/빌라", "AI 추천", "찜"].map((tab) => (
           <span
             key={tab}
             className={selectedTab === tab ? "active-tab" : ""}
@@ -136,6 +137,8 @@ const RoomList = () => {
 
       {selectedTab === "AI 추천" ? (
         <AiRecommend />
+      ) : selectedTab === "찜" ? (
+        <ZzimList />
       ) : loading ? (
         <div className="loading-message">🔄 매물 불러오는 중...</div>
       ) : currentRooms.length === 0 ? (
