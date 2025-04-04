@@ -16,6 +16,7 @@
     flex-shrink: 0; /* nav는 고정 */
     z-index: 100;
   }
+  
 
   /* .room-list {
     width: 40%;
