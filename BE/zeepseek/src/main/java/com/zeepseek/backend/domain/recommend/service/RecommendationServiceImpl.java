@@ -1,6 +1,8 @@
 package com.zeepseek.backend.domain.recommend.service;
 
 import com.zeepseek.backend.domain.dong.entity.DongInfo;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.zeepseek.backend.domain.dong.repository.MySQLDongRepository;
 import com.zeepseek.backend.domain.property.exception.PropertyNotFoundException;
 import com.zeepseek.backend.domain.property.model.Property;
@@ -19,6 +21,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class RecommendationServiceImpl implements RecommendationService {
@@ -38,7 +41,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     @Override
     public DetailedRecommendationResponseDto getRecommendations(UserRecommendationRequestDto requestDto, HttpServletRequest request) {
-        // 쿠키에서 age와 gender 정보 추출
+        // 1) 쿠키에서 age와 gender 정보 추출
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("age".equals(cookie.getName())) {
@@ -60,14 +63,41 @@ public class RecommendationServiceImpl implements RecommendationService {
         } else {
             logger.warn("쿠키가 없습니다. 기본 인구통계 정보를 사용합니다.");
         }
-        RecommendationResponseDto originalResponse = recommendationWebClient.post()
+
+        // 2) 먼저 raw JSON(String)으로 받아봄
+        String rawJson = recommendationWebClient.post()
                 .body(Mono.just(requestDto), UserRecommendationRequestDto.class)
                 .retrieve()
-                .bodyToMono(RecommendationResponseDto.class)
+                .bodyToMono(String.class) // String으로 받음
                 .block();
 
-        if (originalResponse == null || originalResponse.getRecommendedProperties() == null ||
-                originalResponse.getRecommendedProperties().isEmpty()) {
+        logger.info("=== [FastAPI Raw JSON] ===\n{}", rawJson);
+
+        // 3) rawJson을 Map으로 한번 파싱 (디버깅용)
+        //    어떤 구조와 키(key)가 넘어오는지 직접 확인 가능
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> responseMap = mapper.readValue(rawJson, new TypeReference<Map<String, Object>>(){});
+            logger.info("=== [Parsed as Map] ===\n{}", responseMap);
+        } catch (Exception e) {
+            logger.warn("rawJson -> Map 변환 실패", e);
+        }
+
+        // 4) rawJson을 다시 RecommendationResponseDto로 파싱
+        RecommendationResponseDto originalResponse;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            originalResponse = mapper.readValue(rawJson, RecommendationResponseDto.class);
+        } catch (Exception e) {
+            logger.error("rawJson -> RecommendationResponseDto 변환 실패", e);
+            throw new RecommendationException("Parsing error: " + e.getMessage());
+        }
+
+        // 5) 이제 originalResponse를 기존 로직처럼 처리
+        if (originalResponse == null
+                || originalResponse.getRecommendedProperties() == null
+                || originalResponse.getRecommendedProperties().isEmpty()) {
             throw new RecommendationException("No recommendations received from Python API.");
         }
 
@@ -105,7 +135,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 dto.setLatitude(property.getLatitude());
                 dto.setLongitude(property.getLongitude());
                 dto.setSimilarity(rec.getSimilarity());
-                // 추천 유사도는 일반 추천에서만 사용하므로 AI 추천에는 별도로 전달하지 않음
+
                 detailedList.add(dto);
             } catch (PropertyNotFoundException ex) {
                 logger.warn("Property not found for id: {}", rec.getPropertyId());
