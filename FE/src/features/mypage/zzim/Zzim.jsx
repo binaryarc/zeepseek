@@ -1,20 +1,20 @@
 // 찜 목록
 import React, { useEffect, useState } from "react";
 // import { useSelector } from "react-redux";
-import { fetchLikedProperties, likeProperty, unlikeProperty } from "../../../common/api/api";
+import { fetchLikedProperties, unlikeProperty } from "../../../common/api/api";
 import "./Zzim.css";
 import Navbar from "../../../common/navbar/Navbar";
 import { useDispatch, useSelector } from "react-redux";
 import blankImg from "../../../assets/logo/512image.png"
 import { FaHeart } from "react-icons/fa";
-import { setKeyword, setSelectedPropertyId } from "../../../store/slices/roomListSlice";
+import { setSelectedPropertyId } from "../../../store/slices/roomListSlice";
 import { useNavigate } from "react-router-dom";
 
 const Zzim = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [groupedZzims, setGroupedZzims] = useState({});
-  const user = useSelector((state) => state.auth.user)
+  const user = useSelector((state) => state.auth?.user)
   const [flag, setFlag] = useState(false)
 
   useEffect(() => {
@@ -31,7 +31,18 @@ const Zzim = () => {
       setGroupedZzims(grouped);
       console.log(groupedZzims)
     });
-  }, [user.idx, flag]);
+  }, [user?.idx, flag]);
+
+  if (user === null) {
+    return (
+      <div className="zzim-page">
+        <Navbar />
+        <p style={{ textAlign: "center", marginTop: "100px" }}>
+          사용자 정보를 불러오는 중...
+        </p>
+      </div>
+    );
+  }
 
   const getRoomType = (roomBathCount) => {
     // 숫자에 해당하는 매핑 객체
@@ -66,10 +77,15 @@ const toggleLike = async (room, e) => {
   // 카드 클릭 시: Redux에 선택된 매물 정보 및 검색 키워드(주소) 업데이트 후 map 페이지로 이동
   const handleCardClick = (room) => {
     dispatch(setSelectedPropertyId(room.propertyId));
-    dispatch(setKeyword(room.propertyId)); // 해당 매물의 주소로 검색되도록
-    navigate("/map");
+  
+    navigate("/map", {
+      state: {
+        lat: room.latitude,
+        lng: room.longitude,
+        property: room, // ✅ 클릭한 매물도 함께 넘기기
+      },
+    });
   };
-
   return (
     <div className="zzim-page">
       <Navbar />

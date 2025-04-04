@@ -7,7 +7,7 @@ import { FiSearch } from "react-icons/fi"; // 검색 아이콘
 import { useDispatch, useSelector } from "react-redux";
 import {
   setCurrentDongId,
-  setSearchLock,
+  // setSearchLock,
   fetchRoomList,
   setCurrentGuAndDongName,
   setKeyword,
@@ -28,15 +28,16 @@ function Searchbar() {
   const user = useSelector((state) => state.auth.user);
   const nickname = user?.nickname || "로그인 유저";
   const keywordFromRedux = useSelector((state) => state.roomList.keyword); // ✅ 추가
-  // const mapReady = useSelector((state) => state.roomList.mapReady);
+  const mapReady = useSelector((state) => state.roomList.mapReady);
 
   useEffect(() => {
     if (keywordFromRedux ) {
+      if (!mapReady) return;
       console.log("🔍 키워드 변경 감지:", keywordFromRedux); // ✅ 이거 꼭 넣어보세요
       setSearchText(keywordFromRedux); // input 채우기
       handleSearch(keywordFromRedux); // 검색 실행
     }
-  }, [keywordFromRedux]);
+  }, [keywordFromRedux, mapReady]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -96,8 +97,8 @@ function Searchbar() {
             dongName: isGuOnlySearch ? "" : first.dongName,
           })
         );
-        dispatch(setCurrentDongId(null)); // 강제 갱신 유도
-        dispatch(setSearchLock(true));
+        dispatch(setCurrentDongId(first.dongId)); // 강제 갱신 유도
+        // dispatch(setSearchLock(true));
 
         // 지도 이동
         map.setLevel(level);
@@ -112,7 +113,7 @@ function Searchbar() {
           userId: user?.idx ?? null,
         })
       );
-      dispatch(setSearchLock(false)); // ✅ 완료 후 해제
+      // dispatch(setSearchLock(false)); // ✅ 완료 후 해제
     } catch (err) {
       console.error("검색 실패:", err);
     }
