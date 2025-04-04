@@ -35,36 +35,39 @@ class UserCategoryScore(BaseModel):
         allow_population_by_field_name = True
 
 
-@router.post("/recommend", summary="Recommend top 10 properties based on user's category scores")
+@router.post("/recommend")
 def recommend_properties_endpoint(user_scores: UserCategoryScore):
-    """
-    사용자 점수를 받아 코사인 유사도 기반으로 상위 10개 매물을 추천합니다.
-    """
-    try:
-        user_data = user_scores.model_dump()
-    except AttributeError:
-        user_data = user_scores.dict()
+    # 1) Pydantic 모델 → dict 변환
+    user_data = user_scores.dict()
 
+    # 2) 함수 호출
     recommendations = recommend_properties(
         user_scores=user_data,
         top_n=10,
         gender=user_scores.gender,
         age=user_scores.age
     )
+    # recommendations 예:
+    # {
+    #   "recommendedProperties": [...],
+    #   "maxType": "transport" or None
+    # }
 
-    if not recommendations:
-        raise HTTPException(status_code=404, detail="No properties found")
+    # 3) 각 매물 순회
+    recommended_list = recommendations["recommendedProperties"]
+    global_max_type = recommendations["maxType"]
 
-    global_max_type = None
-    for rec in recommendations:
-        if rec.get("maxType") is not None:
-            global_max_type = rec["maxType"]
-            break
+    # (기존처럼 매물에 "maxType"을 붙이고 싶다면 로직 추가)
+    # 예: if global_max_type is not None: ...
+    #     for rec in recommended_list:
+    #         rec["maxType"] = global_max_type
 
+    # 4) 최종 응답
     return {
-        "recommendedProperties": recommendations,
+        "recommendedProperties": recommended_list,
         "maxType": global_max_type
     }
+
 
 
 # ==========================
