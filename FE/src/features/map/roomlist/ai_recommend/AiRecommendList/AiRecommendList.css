@@ -29,6 +29,10 @@
   gap: 2rem;
 }
 
+.recommend-modal-left-section {
+  width: 50%;
+}
+
 .modal-image-section {
   flex: 1;
   display: flex;
@@ -37,9 +41,8 @@
 }
 
 .modal-image {
-  width: 100%;
-  height: auto;
-  max-height: 100%;
+  width: auto;
+  height: 35vh;
   border-radius: 0.5rem;
   object-fit: cover;
 }
@@ -52,14 +55,14 @@
 }
 
 .modal-title {
-  font-size: 1.8rem;
-  margin-bottom: 1rem;
+  /* font-size: 1.8rem; */
+  /* margin-bottom: 1rem; */
 }
 
 .modal-info-section p {
   margin: 0.6rem 0;
   font-size: 1rem;
-  line-height: 1.5;
+  /* line-height: 1.5; */
 }
 
 .recommend-modal-close-btn {
