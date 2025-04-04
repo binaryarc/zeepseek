@@ -109,7 +109,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 dto.setLeisureCount(score.getLeisureCount());
                 dto.setLatitude(property.getLatitude());
                 dto.setLongitude(property.getLongitude());
-
+                dto.setSimilarity(rec.getSimilarity());
                 // 추천 유사도는 일반 추천에서만 사용하므로 AI 추천에는 별도로 전달하지 않음
                 detailedList.add(dto);
             } catch (PropertyNotFoundException ex) {
