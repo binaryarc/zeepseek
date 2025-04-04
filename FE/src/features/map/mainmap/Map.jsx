@@ -9,6 +9,8 @@ import { Provider } from "react-redux";
 import store from "../../../store/store";
 import { fetchRoomListByBounds, setMapReady } from "../../../store/slices/roomListSlice";
 import { useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
+
 
 const Map = () => {
   const [map, setMap] = useState(null); // 👈 map 객체 저장용 상태
@@ -83,9 +85,22 @@ const Map = () => {
     kakaoMapScript.onload = () => {
       window.kakao.maps.load(() => {
         const container = document.getElementById("map");
+        // ✅ 기본 좌표: 서울 시청
+        let centerLatLng = new window.kakao.maps.LatLng(37.5665, 126.978);
+        let level = 5;
+
+        // ✅ 찜 매물 등에서 이동 시: 초기 center를 해당 좌표로 세팅
+        if (location.state?.lat && location.state?.lng) {
+          centerLatLng = new window.kakao.maps.LatLng(
+            location.state.lat,
+            location.state.lng
+          );
+          level = 3; // ✅ 찜 이동이면 바로 level 3으로 시작
+        }
+
         const options = {
-          center: new window.kakao.maps.LatLng(37.5665, 126.978),
-          level: 5,
+          center: centerLatLng,
+          level: level,
         };
 
         const mapInstance = new window.kakao.maps.Map(container, options);
@@ -301,6 +316,20 @@ const Map = () => {
       });
     };
   }, []);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!map || !location.state) return;
+
+    const { lat, lng } = location.state;
+    if (lat && lng) {
+      const moveLatLng = new window.kakao.maps.LatLng(lat, lng);
+      map.setLevel(3); // ✅ 줌 레벨 3으로 설정
+      map.setCenter(moveLatLng);
+      // window.isMovingBySearch = true; // ✅ 이동 플래그 (CurrentLocationLabel에서 중복 fetch 방지용)
+    }
+  }, [map, location.state]);
 
   return (
     <div className="map-container" style={{ position: "relative" }}>
