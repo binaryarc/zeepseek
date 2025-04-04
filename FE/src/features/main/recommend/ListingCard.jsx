@@ -1,31 +1,41 @@
 import React from "react";
-import "./ListingCard.css"
+import "./ListingCard.css";
+import "../../mypage/zzim/Zzim.css";
 import defaultImg from "../../../assets/logo/512image.png";
 
-const ListingCard = ({ image, altText, price, subInfo, description }) => {
-  return (
-    <li className="main-listing-li">
-      <div className="main-listing-item">
-        {/* 상단 이미지 영역 */}
-        <div className="listing-upside">
-          <div className="listing-img-container">
-            {/* 실제로는 image prop이 있으면 그걸 사용, 없으면 defaultImg를 쓰는 식으로 구현 가능 */}
-            <img
-              src={defaultImg}
-              alt={altText}
-              className="listing-img"
-            />
-          </div>
-        </div>
+const ListingCard = ({ image, address, contractType, price, roomType, description, roomBathCount }) => {
+  const getRoomType = (roomBathCount) => {
+    const roomTypeMapping = {
+      "1": "원룸",
+      "2": "투룸",
+      "3": "쓰리룸",
+      "4": "포룸"
+    };
 
-        {/* 하단 정보 영역 */}
-        <div className="listing-info">
-          <h3 className="listing-price">{price}</h3>
-          <p className="listing-subinfo">{subInfo}</p>
-          <p className="listing-desc">{description}</p>
+    if (roomBathCount) {
+      const count = roomBathCount.split('/')[0];
+      return roomTypeMapping[count] || "";
+    }
+    return "";
+  };
+
+  return (
+    <div className="zzim-list">
+      <div className="zzim-card">
+        <img
+          src={image || defaultImg}
+          alt="매물 이미지"
+          className="zzim-img"
+        />
+        <div className="zzim-info">
+          <span className="zzim-room-type">{getRoomType(roomBathCount)}</span>
+          <p className="price">{price}</p>
+          <p className="desc">{description}</p>
+          <p className="addr">{address}</p>
         </div>
       </div>
-    </li>
+    </div>
   );
 };
+
 export default ListingCard;
