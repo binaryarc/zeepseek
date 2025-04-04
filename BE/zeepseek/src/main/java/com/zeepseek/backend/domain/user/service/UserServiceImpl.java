@@ -1,6 +1,7 @@
 package com.zeepseek.backend.domain.user.service;
 
 import com.zeepseek.backend.domain.auth.exception.AuthException;
+import com.zeepseek.backend.domain.dong.service.DongService;
 import com.zeepseek.backend.domain.user.dto.UserDto;
 import com.zeepseek.backend.domain.user.dto.UserProfileDto;
 import com.zeepseek.backend.domain.user.entity.User;
@@ -25,7 +26,8 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserPreferencesRepository userPreferencesRepository;
-    
+    private final DongService dongService; // 추가된 의존성
+
     @Value("${VITE_APP_KAKAO_MAP_API_KEY:카카오 맵 API 키}")
     private String kakaoMapApiKey;
 
@@ -236,48 +238,48 @@ public class UserServiceImpl implements UserService {
 
         log.info("목적지 정보 설정: {}", location);
     }
-    
+
     /**
      * 카카오 맵 API를 이용하여 주소로부터 좌표(위도, 경도), 우편번호, 동ID를 가져옴
      */
     private void fetchCoordinatesAndZipCodeFromKakao(UserPreferences userPreferences, String address) {
         String kakaoApiUrl = "https://dapi.kakao.com/v2/local/search/address.json";
-        
+
         try {
             // 주소 인코딩
             String encodedAddress = URLEncoder.encode(address, StandardCharsets.UTF_8);
-            
+
             // WebClient를 사용하여 카카오 API 호출
             WebClient webClient = WebClient.builder().build();
-            
+
             log.info("카카오 맵 API 호출 시작 - 주소: {}", address);
-            
+
             Map<String, Object> response = webClient.get()
-                .uri(kakaoApiUrl + "?query=" + encodedAddress)
-                .header("Authorization", "KakaoAK " + kakaoMapApiKey)
-                .retrieve()
-                .bodyToMono(Map.class)
-                .block();
-            
+                    .uri(kakaoApiUrl + "?query=" + encodedAddress)
+                    .header("Authorization", "KakaoAK " + kakaoMapApiKey)
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block();
+
             log.info("카카오 맵 API 응답 수신 - 응답: {}", response);
-            
+
             // 응답 데이터에서 위도, 경도, 우편번호, 법정동 코드 추출
             if (response != null) {
                 List<Map<String, Object>> documents = (List<Map<String, Object>>) response.get("documents");
                 if (documents != null && !documents.isEmpty()) {
                     Map<String, Object> firstResult = documents.get(0);
-                    
+
                     // 주소 정보 (우편번호, 법정동 코드 포함)
                     Map<String, Object> addressInfo = (Map<String, Object>) firstResult.get("address");
                     String zipCode = "";
                     Integer dongId = null;
-                    
+
                     if (addressInfo != null) {
                         // 우편번호 추출
                         if (addressInfo.get("zip_code") != null) {
                             zipCode = (String) addressInfo.get("zip_code");
                         }
-                        
+
                         // 법정동 코드 추출 (b_code)
                         if (addressInfo.get("b_code") != null) {
                             String bCode = (String) addressInfo.get("b_code");
@@ -299,46 +301,114 @@ public class UserServiceImpl implements UserService {
                             zipCode = (String) roadAddressInfo.get("zone_no");
                         }
                     }
-                    
+
                     // 좌표 정보 (x: 경도, y: 위도)
                     Double longitude = Double.parseDouble((String) firstResult.get("x"));
                     Double latitude = Double.parseDouble((String) firstResult.get("y"));
-                    
+
                     // UserPreferences에 정보 설정
                     if (zipCode != null && !zipCode.isEmpty()) {
                         userPreferences.setZipCode(zipCode);
                     } else {
                         userPreferences.setZipCode("00000"); // 우편번호가 없는 경우 기본값
                     }
-                    
+
                     userPreferences.setLatitude(latitude);
                     userPreferences.setLongitude(longitude);
-                    
-                    // 동ID 설정
+
+                    // 동ID 설정 (기존 코드)
                     if (dongId != null) {
                         userPreferences.setDongId(dongId);
-                        log.info("동ID 설정 완료: {}", dongId);
+                        log.info("법정동 코드 기반 동ID 설정 완료: {}", dongId);
                     }
-                    
-                    log.info("카카오 API로부터 가져온 정보 - 위도: {}, 경도: {}, 우편번호: {}, 동ID: {}", 
-                            latitude, longitude, zipCode, dongId);
+
+                    // 추가: 좌표 기반 행정동 정보 조회 (역방향 지오코딩)
+                    fetchAdministrativeDongFromCoordinates(userPreferences, longitude, latitude);
+
+                    log.info("카카오 API로부터 가져온 정보 - 위도: {}, 경도: {}, 우편번호: {}, 동ID: {}",
+                            latitude, longitude, zipCode, userPreferences.getDongId());
                     return;
                 } else {
                     log.warn("카카오 API 응답에 주소 정보가 없음 - 응답: {}", response);
                 }
             }
-            
+
             // API 응답에서 데이터를 추출하지 못한 경우 지역에 따른 기본값 설정
             log.warn("카카오 API에서 주소 정보를 찾을 수 없어 기본값 사용");
             setDefaultCoordinates(userPreferences, address);
-            
+
         } catch (Exception e) {
             log.error("카카오 맵 API 호출 중 오류 발생: {}", e.getMessage(), e);
             // 에러가 발생하면 기본값 설정
             setDefaultCoordinates(userPreferences, address);
         }
     }
-    
+
+    /**
+     * 좌표로부터 행정동 정보를 가져와 dong_id를 설정하는 메소드
+     */
+    private void fetchAdministrativeDongFromCoordinates(UserPreferences userPreferences, Double longitude, Double latitude) {
+        String kakaoReverseGeoUrl = "https://dapi.kakao.com/v2/local/geo/coord2address.json";
+
+        try {
+            // 이미 좌표가 있는지 확인
+            if (longitude == null || latitude == null) {
+                log.warn("좌표 정보가 없어 행정동 조회를 건너뜁니다.");
+                return;
+            }
+
+            // WebClient를 사용하여 카카오 API 호출
+            WebClient webClient = WebClient.builder().build();
+
+            log.info("카카오 역방향 지오코딩 API 호출 - 경도: {}, 위도: {}", longitude, latitude);
+
+            Map<String, Object> response = webClient.get()
+                    .uri(kakaoReverseGeoUrl + "?x=" + longitude + "&y=" + latitude)
+                    .header("Authorization", "KakaoAK " + kakaoMapApiKey)
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block();
+
+            log.info("카카오 역방향 지오코딩 API 응답 수신 - 응답: {}", response);
+
+            // 응답 데이터에서 행정동 정보 추출
+            if (response != null) {
+                List<Map<String, Object>> documents = (List<Map<String, Object>>) response.get("documents");
+                if (documents != null && !documents.isEmpty()) {
+                    Map<String, Object> firstResult = documents.get(0);
+
+                    // 지번 주소 정보
+                    Map<String, Object> address = (Map<String, Object>) firstResult.get("address");
+
+                    if (address != null) {
+                        // 행정동명 추출 (region_3depth_name은 행정동명을 포함)
+                        String dongName = (String) address.get("region_3depth_name");
+
+                        if (dongName != null && !dongName.isEmpty()) {
+                            log.info("카카오 API에서 행정동명 추출: {}", dongName);
+
+                            // DongService를 통해 동 이름으로 dong_id 조회
+                            Integer dongId = dongService.findDongIdByName(dongName);
+
+                            if (dongId != null && dongId > 0) {
+                                userPreferences.setDongId(dongId);
+                                log.info("행정동 코드 설정 완료 - 동명: {}, 동ID: {}", dongName, dongId);
+                                return;
+                            } else {
+                                log.warn("동 이름({})에 해당하는 dong_id를 찾을 수 없습니다.", dongName);
+                            }
+                        }
+                    }
+                }
+            }
+
+            log.warn("카카오 API에서 행정동 정보를 찾을 수 없어 기존 값 유지");
+
+        } catch (Exception e) {
+            log.error("카카오 역방향 지오코딩 API 호출 중 오류 발생: {}", e.getMessage(), e);
+        }
+    }
+
     /**
      * API 호출 실패 시 주소 키워드에 따른 기본 좌표 및 동ID 설정
      */
@@ -346,7 +416,7 @@ public class UserServiceImpl implements UserService {
         // 주소 키워드에 따른 기본값 설정
         if (address.contains("부산") && address.contains("강서구") && address.contains("명지")) {
             // 부산 명지동 명지국제2로 41 특정 좌표
-            userPreferences.setZipCode("46769");  
+            userPreferences.setZipCode("46769");
             userPreferences.setLatitude(35.0947817266961);
             userPreferences.setLongitude(128.906874174632);
             userPreferences.setDongId(26350106); // 명지동 동ID
@@ -379,9 +449,9 @@ public class UserServiceImpl implements UserService {
             userPreferences.setLongitude(127.8);
             // 동ID는 설정하지 않음 (null)
         }
-        
-        log.info("기본 정보 설정 - 위도: {}, 경도: {}, 우편번호: {}, 동ID: {}", 
-                userPreferences.getLatitude(), userPreferences.getLongitude(), 
+
+        log.info("기본 정보 설정 - 위도: {}, 경도: {}, 우편번호: {}, 동ID: {}",
+                userPreferences.getLatitude(), userPreferences.getLongitude(),
                 userPreferences.getZipCode(), userPreferences.getDongId());
     }
 
@@ -502,5 +572,4 @@ public class UserServiceImpl implements UserService {
         Optional<User> userOptional = userRepository.findById(userId);
         return userOptional.map(user -> user.getIsFirst() == 0).orElse(false);
     }
-
 }
