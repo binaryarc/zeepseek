@@ -6,12 +6,11 @@ from sqlalchemy import text
 import logging
 from sklearn.metrics.pairwise import cosine_similarity
 
-from app.config.elasticsearch import get_es_client  # ES 클라이언트를 생성하는 함수
-from app.modules.ai_recommender.svd_model import RecommenderModel  # 위에서 수정한 SVD 모델 클래스
-from app.modules.ai_recommender.action_score import ACTION_SCORE  # 업데이트된 ACTION_SCORE 매핑 (zzim, search, compare, comment 포함)
+from app.config.elasticsearch import get_es_client
+from app.modules.ai_recommender.svd_model import RecommenderModel
+from app.modules.ai_recommender.action_score import ACTION_SCORE
 from app.config.database import SessionLocal
-
-from app.modules.content_based.services.recommend_service import recommend_properties  # 콘텐츠 기반 추천 (사용 시)
+from app.modules.content_based.services.recommend_service import recommend_properties
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -21,7 +20,7 @@ if not logger.handlers:
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-# 전역 Elasticsearch 클라이언트와 SVD 모델 인스턴스
+# 전역 ES 클라이언트와 SVD 모델
 es = get_es_client()
 model = RecommenderModel()
 
@@ -31,11 +30,9 @@ PROPERTY_CACHE_TIMESTAMP = 0
 
 def fetch_logs_from_es(days: int = 30, size: int = 10000):
     """
-    Elasticsearch에서 최근 'days' 일치 로그를 가져와
-    userId, propertyId, action, dongId, score 컬럼을 갖는 DataFrame을 반환합니다.
+    Elasticsearch에서 최근 'days' 일간 로그를 가져와
+    [userId, propertyId, action, dongId] -> score 매핑 -> DataFrame
     """
-
-    # 1) Body에서는 size, scroll을 제거
     query = {
         "query": {
             "range": {
@@ -43,40 +40,45 @@ def fetch_logs_from_es(days: int = 30, size: int = 10000):
             }
         },
         "_source": ["userId", "propertyId", "action", "dongId"]
-        # "size": size,    <-- 삭제
-        # "scroll": "2m"   <-- 삭제
     }
 
-    # 2) ES search 호출 시 파라미터로만 size, scroll 전달
+    # ES 호출 시 body=query, 파라미터로 size, scroll
     result = es.search(
         index="logs",
         body=query,
-        size=size,        # 여기서만 size 전달
-        scroll="2m"       # 여기서만 scroll 지정
+        size=size,
+        scroll="2m"
     )
 
-    # 결과 처리
     docs = [doc["_source"] for doc in result["hits"]["hits"]]
     df = pd.DataFrame(docs)
     if df.empty:
         logger.info("No logs found from ES.")
-        # 필요하면 빈 DF 반환
         return pd.DataFrame(columns=["userId", "propertyId", "action", "dongId"])
 
-    # 이 예시에서는 action_score 매핑 등 추가 로직이 있을 수 있음
+    # action_score 매핑
     df["score"] = df["action"].map(ACTION_SCORE).fillna(0)
+    logger.info("[fetch_logs_from_es] Retrieved %d logs", len(df))
     return df[["userId", "propertyId", "score", "dongId"]]
 
 
 def train_model():
     """
-    ES에서 로그 데이터를 가져와 추천 모델(SVD)을 학습.
-    에러 없이 학습되면 model.is_trained() = True 상태가 됨.
+    ES에서 로그를 가져와 SVD 모델 학습
+    - userId, propertyId가 -1인 경우는 유효 데이터가 아니므로 제거
     """
     logger.info("Starting model training...")
     df = fetch_logs_from_es(days=30)
     if df.empty:
         logger.warning("No training data found. Skipping SVD model training.")
+        return
+
+    # -1 필터링 (userId나 propertyId가 -1이면 학습에서 제외)
+    df = df[(df["userId"] != -1) & (df["propertyId"] != -1)]
+    logger.info("Data after filtering -1 => %d logs remain", len(df))
+
+    if df.empty:
+        logger.warning("After filtering -1, no data left. Skipping training.")
         return
 
     try:
@@ -85,11 +87,12 @@ def train_model():
     except ValueError as e:
         logger.error("Error in model training: %s", e)
 
+
 def get_most_frequent_dong_for_user(userId: int, duration="2h"):
     """
-    최근 duration(기본 2시간) 이내의 로그 중에서
-    action이 [search, view, comment, zzim, compare]인 dongId를 집계해서
-    가장 자주 등장한 dongId 반환. 로그가 5건 미만이면 None.
+    최근 duration(기본 2시간) 내 userId가 남긴 로그 중에서
+    action in [search, view, comment, zzim, compare] 조건
+    dongId 빈도수 최댓값
     """
     logger.info("Fetching recent dong logs for user %d in the last %s...", userId, duration)
     query = {
@@ -113,7 +116,8 @@ def get_most_frequent_dong_for_user(userId: int, duration="2h"):
         "_source": ["dongId"]
     }
     res = es.search(index="logs", body=query, scroll="2m")
-    docs = [doc["_source"] for doc in res["hits"]["hits"] if doc["_source"].get("dongId")]
+    docs = [doc["_source"] for doc in res["hits"]["hits"] if doc["_source"].get("dongId") not in (None, -1)]
+
     if len(docs) < 5:
         logger.info("Insufficient dong logs for user %d. Found only %d logs.", userId, len(docs))
         return None
@@ -123,11 +127,11 @@ def get_most_frequent_dong_for_user(userId: int, duration="2h"):
     logger.info("User %d most frequent dong: %s", userId, most_common)
     return most_common
 
+
 def recommend_by_dong(userId: int, top_k=10):
     """
-    dong 기반 추천:
-      1) 사용자의 최근 2시간 로그에서 가장 많이 등장한 dongId 찾기
-      2) 해당 dong에 있는 매물 중, 사용자가 아직 안 본 매물에 대한 SVD 예측 → 상위 top_k 반환
+    1) userId의 최근 2시간 'dong 로그' (action in [search, view, ...]) >= 5건 => dongId
+    2) dongId 로그 기반 매물 => SVD 예측 => 상위 top_k
     """
     logger.info("Starting dong-based recommendation for user %d...", userId)
     targetDong = get_most_frequent_dong_for_user(userId, duration="2h")
@@ -135,9 +139,10 @@ def recommend_by_dong(userId: int, top_k=10):
         logger.info("No sufficient dong logs for user %d. Return empty list.", userId)
         return []
 
-    # dongId == targetDong인 로그만 추출 → 후보 매물
+    # dongId == targetDong인 로그만 추출
     df = fetch_logs_from_es(days=30)
     candidates_df = df[df['dongId'] == targetDong]
+
     if candidates_df.empty:
         logger.info("No candidate properties found in dong %s.", targetDong)
         return []
@@ -147,12 +152,11 @@ def recommend_by_dong(userId: int, top_k=10):
     candidate_items = candidates_df['propertyId'].unique()
     unseen = [pid for pid in candidate_items if pid not in seen]
     if not unseen:
-        # 모두 본 매물이라면, 그냥 전체 candidate_items 쓰거나 빈 리스트
         unseen = candidate_items
 
     logger.info("Found %d candidate properties in dong %s for user %d.", len(unseen), targetDong, userId)
 
-    # **SVD 예측** (이때 model이 학습되었는지 반드시 확인 필요)
+    # SVD 예측 (학습 검사)
     if not model.is_trained():
         raise ValueError("모델이 아직 초기화되지 않았습니다. 먼저 train()을 호출하세요.")
 
@@ -163,13 +167,14 @@ def recommend_by_dong(userId: int, top_k=10):
     logger.info("Dong-based recommendations for user %d: %s", userId, recommended)
     return recommended
 
+
 def recommend(userId: int, top_k=10):
     """
     기본 SVD 협업 필터링:
-    userId가 이미 본 매물(seen)은 제외, 나머지 unseen 매물에 대해 SVD로 예측 후 상위 top_k 반환
+    - userId가 이미 본 매물(seen) 제외
+    - 남은 unseen 매물에 대해 SVD 예측 => 상위 top_k
     """
     logger.info("Starting default SVD recommendation for user %d...", userId)
-    # logs df
     df = fetch_logs_from_es(days=30)
     seen = df[df['userId'] == userId]['propertyId'].unique()
     all_items = df['propertyId'].unique()
@@ -187,10 +192,11 @@ def recommend(userId: int, top_k=10):
     logger.info("Default recommendations for user %d: %s", userId, recommended)
     return recommended
 
+
 def get_user_preferences_from_db(userId: int):
     """
-    user_preference 테이블에서 userId 선호도 조회 (transport, restaurant, health, ...)
-    (현재 예제에서 사용되지 않지만, 추후 콘텐츠 기반 가중치 등에 활용 가능)
+    user_preference 테이블에서 userId 선호도 조회 (transport, restaurant, ...)
+    (현재 예제에서 사용X, 필요 시 콘텐츠 기반 등 다른 로직에 활용)
     """
     session = SessionLocal()
     try:
@@ -210,24 +216,33 @@ def get_user_preferences_from_db(userId: int):
     finally:
         session.close()
 
+
 def recommend_for_mainpage(userId: int, top_k=10, gender=None, age=None, user_preferences=None):
     """
     메인페이지 추천:
-      1) dong 기반 추천 시도
-      2) dong 로그가 충분치 않다면 fallback (ex. default SVD 등)
+    1) dong 기반 추천 시도
+    2) dong 로그가 충분치 않거나, dong-based rec이 빈 리스트면 fallback => 기본 SVD
     """
     logger.info("Starting mainpage recommendation for user %d...", userId)
 
-    # dong 로그가 충분한지 확인
     targetDong = get_most_frequent_dong_for_user(userId, duration="2h")
     if targetDong is None:
         logger.info("Fallback to default SVD recommendation for user %d.", userId)
         recs = recommend(userId, top_k=top_k)
         return {"dongId": None, "propertyIds": recs}
 
-    # dong 기반 추천 수행
+    # dong 기반 추천
     recs = recommend_by_dong(userId, top_k=top_k)
+    if not recs:
+        logger.info("Dong-based rec is empty for user %d (dong=%s). Fallback to SVD.", userId, targetDong)
+        fallback_recs = recommend(userId, top_k=top_k)
+        return {
+            "dongId": None,
+            "propertyIds": fallback_recs
+        }
+
     return {"dongId": targetDong, "propertyIds": recs}
+
 
 def load_property_vectors():
     """
@@ -272,6 +287,7 @@ def load_property_vectors():
         return None, None
     finally:
         session.close()
+
 
 def get_recommendations_for_user(userId: int):
     """
