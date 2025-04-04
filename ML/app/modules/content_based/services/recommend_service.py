@@ -29,12 +29,7 @@ USER_PREFERENCE_CACHE = {}
 USER_PREFERENCE_CACHE_TIMESTAMP = 0
 USER_PREFERENCE_CACHE_TTL = 600  # 10분
 
-
 def get_category_mean_std_values():
-    """
-    property_score 테이블에서 각 카테고리별 평균과 표준편차를 조회하여 캐싱합니다.
-    (z-score 정규화를 사용할 경우에 참고)
-    """
     global CATEGORY_MEAN_STD_CACHE, CATEGORY_MEAN_STD_CACHE_TIMESTAMP, CACHE_TTL
     현재_시간 = time.time()
     if CATEGORY_MEAN_STD_CACHE and (현재_시간 - CATEGORY_MEAN_STD_CACHE_TIMESTAMP < CACHE_TTL):
@@ -81,12 +76,7 @@ def get_category_mean_std_values():
     finally:
         session.close()
 
-
 def get_category_min_max_values():
-    """
-    property_score 테이블에서 각 카테고리별 최소/최대값을 조회합니다.
-    min-max 정규화에 사용됩니다.
-    """
     session = SessionLocal()
     try:
         query = text("""
@@ -117,12 +107,7 @@ def get_category_min_max_values():
     finally:
         session.close()
 
-
 def load_property_vectors():
-    """
-    매물 벡터와 property_id를 DB에서 읽어 글로벌 캐시에 저장합니다.
-    캐시 TTL 내라면 기존 캐시를 반환합니다.
-    """
     global PROPERTY_VECTORS_CACHE, PROPERTY_IDS_CACHE, PROPERTY_CACHE_TIMESTAMP
     현재_시간 = time.time()
     if PROPERTY_VECTORS_CACHE is not None and (현재_시간 - PROPERTY_CACHE_TIMESTAMP < PROPERTY_CACHE_TTL):
@@ -150,6 +135,7 @@ def load_property_vectors():
             property_ids.append(row_data[0])
             data.append(row_data[1:])
         property_array = np.array(data, dtype=float)
+
         PROPERTY_VECTORS_CACHE = property_array
         PROPERTY_IDS_CACHE = property_ids
         PROPERTY_CACHE_TIMESTAMP = 현재_시간
@@ -161,11 +147,7 @@ def load_property_vectors():
     finally:
         session.close()
 
-
 def apply_mmr(similarities, property_vectors, top_n, diversity_lambda=0.5):
-    """
-    MMR을 적용하여 추천 결과의 다양성을 높입니다.
-    """
     selected = []
     candidate_indices = list(range(len(similarities)))
     
@@ -187,11 +169,7 @@ def apply_mmr(similarities, property_vectors, top_n, diversity_lambda=0.5):
     
     return selected
 
-
 def get_age_group(age):
-    """
-    나이를 연령대로 변환합니다.
-    """
     try:
         age = int(age)
         if 20 <= age < 30:
@@ -203,17 +181,13 @@ def get_age_group(age):
         elif age >= 50:
             return '50s_plus'
         else:
-            logger.warning("[get_age_group] 나이 %d는 20 미만이므로 20대(20s)로 처리합니다.", age)
+            logger.warning("[get_age_group] 나이 %d는 20 미만이므로 20s로 처리합니다.", age)
             return '20s'
     except (ValueError, TypeError):
-        logger.warning("[get_age_group] 나이 값 %s가 유효하지 않아 30대(30s)로 기본 처리합니다.", age)
+        logger.warning("[get_age_group] 나이 값 %s가 유효하지 않아 30s로 기본 처리합니다.", age)
         return '30s'
 
-
 def convert_gender_code(gender_code):
-    """
-    쿠키에는 성별 데이터가 0/1로 넘어오므로, 이를 문자열로 변환합니다.
-    """
     if gender_code == 1:
         return 'male'
     elif gender_code == 0:
@@ -222,11 +196,7 @@ def convert_gender_code(gender_code):
         logger.warning("[convert_gender_code] 알 수 없는 성별 코드: %d → 'male'로 처리.", gender_code)
         return 'male'
 
-
 def get_demographic_weight_adjustments(gender, age_group):
-    """
-    성별과 연령대에 따른 카테고리별 가중치 조정값을 반환합니다.
-    """
     if isinstance(gender, int):
         gender = convert_gender_code(gender)
     elif not isinstance(gender, str):
@@ -258,11 +228,7 @@ def get_demographic_weight_adjustments(gender, age_group):
         logger.warning("[get_demographic_weight_adjustments] 정의되지 않은 (성별, 연령대)이므로 기본값 사용: (%s, %s)", gender, age_group)
         return 기본값
 
-
 def get_user_preference_weights(user_id):
-    """
-    user_preference 테이블에서 사용자가 중요하게 생각하는 항목(1)에 추가 가중치를 줍니다.
-    """
     global USER_PREFERENCE_CACHE, USER_PREFERENCE_CACHE_TIMESTAMP, USER_PREFERENCE_CACHE_TTL
     현재_시간 = time.time()
     
@@ -306,18 +272,13 @@ def get_user_preference_weights(user_id):
         
         logger.info("[get_user_preference_weights] user_id=%s → 선호도 가중치: %s", user_id, preference_adjustments)
         return preference_adjustments
-    
     except Exception as e:
         logger.error("[get_user_preference_weights] 사용자 선호도 조회 중 오류 발생: %s", e)
         return 기본_선호도
     finally:
         session.close()
 
-
 def get_category_priority(gender, age_group):
-    """
-    성별과 연령대에 따른 카테고리 우선순위를 반환합니다.
-    """
     if isinstance(gender, int):
         gender = convert_gender_code(gender)
     elif not isinstance(gender, str):
@@ -348,34 +309,29 @@ def get_category_priority(gender, age_group):
         logger.warning("[get_category_priority] 정의되지 않은 (성별, 연령대) → 기본 우선순위 사용: (%s, %s)", gender, age_group)
         return 기본_우선순위
 
-
 def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, diversity_lambda=0.5, 
                          normalization_method='minmax', gender=None, age=None):
-    """
-    1) 매물 벡터를 캐시에서 로드
-    2) 정규화 (minmax 또는 zscore)
-    3) 가중치 적용
-    4) 코사인 유사도 계산 후 후보군 필터링
-    5) MMR로 후처리 (옵션)
-    6) 카테고리 우선순위 적용 (옵션) → 최종 추천 결과 반환
-    """
     logger.info("[recommend_properties] 함수 호출. 파라미터 user_scores=%s, top_n=%d, gender=%s, age=%s",
                 user_scores, top_n, gender, age)
     
+    # 1) raw user_scores 확인
+    logger.info("[DEBUG] user_scores raw: %s", user_scores)
+
     category_names = ['transport', 'restaurant', 'health', 'convenience', 'cafe', 'chicken', 'leisure'] 
 
-    # 1) 매물 벡터 로드
+    # 2) 매물 벡터 로드
     property_array, property_ids = load_property_vectors()
     if property_array is None or property_array.shape[0] == 0:
         logger.warning("[recommend_properties] 매물 정보가 없으므로 빈 리스트([]) 반환합니다.")
         return []
     
-    logger.info("[recommend_properties] 캐시에서 %d개 매물을 로드했습니다.", property_array.shape[0])
+    logger.info("[DEBUG] property_array shape: %s", property_array.shape)
+    logger.info("[DEBUG] property_array[0]: %s", property_array[0] if property_array.shape[0] > 0 else "No data")
 
-    # 2) 카테고리별 기본 가중치
+    # 3) 카테고리별 기본 가중치
     category_weights = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
 
-    # 성별/연령대별 가중치 추가 적용
+    # 성별/연령대별 가중치
     if gender is not None and age is not None:
         age_group = get_age_group(age)
         logger.info("[recommend_properties] 나이 → 연령대 변환: %s → %s, 성별=%s", age, age_group, gender)
@@ -385,7 +341,7 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
     else:
         logger.info("[recommend_properties] 성별 또는 나이가 입력되지 않아 추가 가중치 적용 안 함.")
     
-    # 사용자 ID 추출 (선호도 적용)
+    # 사용자 ID 추출 (선호도)
     user_id = None
     if user_scores and isinstance(user_scores, dict):
         user_id = user_scores.get("user_id") or user_scores.get("userId")
@@ -397,8 +353,8 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
         logger.info("[recommend_properties] 선호도 적용 후 category_weights: %s", category_weights)
     else:
         logger.info("[recommend_properties] user_id가 없어, 사용자 선호도 가중치 적용 안 함.")
-    
-    # 3) 정규화 (minmax / zscore)
+
+    # 4) 정규화
     if normalization_method == 'minmax':
         min_max_values = get_category_min_max_values()
         if not min_max_values:
@@ -424,9 +380,9 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
             min_max_values["leisure_score"][1],
         ])
         denom = maxs - mins
-        denom[denom == 0] = 1  # 분모가 0이 되지 않도록 처리
-        
+        denom[denom == 0] = 1  # 분모가 0이 되지 않도록
         norm_array = (property_array - mins) / denom
+        
         logger.info("[recommend_properties] min-max 정규화 수행 완료.")
         
         user_vals = np.array([
@@ -438,6 +394,7 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
             user_scores.get("chicken_score", 0),
             user_scores.get("leisure_score", 0),
         ])
+        logger.info("[DEBUG] user_vals (minmax before reshape): %s", user_vals)
         user_vector = user_vals.reshape(1, -1)
 
     elif normalization_method == 'zscore':
@@ -465,8 +422,8 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
             mean_std_values["leisure_score"][1],
         ])
         stds[stds == 0] = 1
-        
         norm_array = (property_array - means) / stds
+        
         logger.info("[recommend_properties] z-score 정규화 수행 완료.")
         
         user_vals = np.array([
@@ -478,21 +435,25 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
             user_scores.get("chicken_score", 0),
             user_scores.get("leisure_score", 0),
         ])
+        logger.info("[DEBUG] user_vals (zscore before reshape): %s", user_vals)
         user_vector = ((user_vals - means) / stds).reshape(1, -1)
-
     else:
         logger.error("[recommend_properties] 알 수 없는 정규화 방식: %s", normalization_method)
         return []
 
-    # 4) 가중치 적용
+    logger.info("[DEBUG] user_vector before weighting: %s", user_vector)
+
+    # 5) 가중치 적용
     norm_array = norm_array * category_weights
     user_vector = user_vector * category_weights
     
-    logger.info("[recommend_properties] 첫 번째 매물 벡터(정규화+가중치): %s", norm_array[0] if len(norm_array) > 0 else "None")
-    logger.info("[recommend_properties] 사용자 벡터(정규화+가중치): %s", user_vector)
+    logger.info("[DEBUG] user_vector after weighting: %s", user_vector)
+    if len(norm_array) > 0:
+        logger.info("[DEBUG] 첫 번째 매물 벡터(정규화+가중치): %s", norm_array[0])
 
-    # 5) 코사인 유사도 계산
+    # 6) 코사인 유사도 계산
     similarities = cosine_similarity(norm_array, user_vector).flatten()
+    logger.info("[DEBUG] similarities[:10]: %s", similarities[:10] if len(similarities) > 10 else similarities)
     logger.info("[recommend_properties] 총 %d개 매물에 대한 유사도를 계산했습니다.", len(similarities))
 
     # 상위 후보군 필터링
@@ -501,12 +462,10 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
     candidate_similarities = np.array([similarities[i] for i in candidate_order])
     candidate_vectors = norm_array[candidate_order]
 
-    # 6) MMR 적용 여부
     if apply_mmr_flag:
         selected_candidate_indices = apply_mmr(candidate_similarities, candidate_vectors, top_n, diversity_lambda)
         final_selected_indices = [candidate_order[i] for i in selected_candidate_indices]
         
-        # 카테고리 우선순위 적용 (동점 처리)
         if gender is not None and age is not None:
             age_group = get_age_group(age)
             category_priority = get_category_priority(gender, age_group)
@@ -516,7 +475,7 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
                 property_vector = norm_array[i]
                 max_idx = np.argmax(property_vector)
                 
-                # 동일한 최대값이 여러 개라면 우선순위로 결정
+                # 동일한 최대값이 여러 개면 우선순위 고려
                 max_val = property_vector[max_idx]
                 max_indices = np.where(property_vector == max_val)[0]
                 
@@ -532,29 +491,32 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
                     "maxType": category_names[max_idx]
                 })
             
-            logger.info("[recommend_properties] MMR+우선순위 적용 후 추천 결과 (상위 %d개): %s",
-                        top_n, [(p["propertyId"], p["maxType"]) for p in top_properties])
+            logger.info("[recommend_properties] MMR+우선순위 적용 후 추천 결과 (상위 %d개)", top_n)
+            if top_properties:
+                logger.info("예: 첫번째 = %s", top_properties[0])
         else:
             top_properties = [{
                 "propertyId": property_ids[i],
                 "similarity": float(similarities[i])
             } for i in final_selected_indices]
-            logger.info("[recommend_properties] MMR 적용 후 추천 결과 (상위 %d개): %s",
-                        top_n, [property_ids[i] for i in final_selected_indices])
+            logger.info("[recommend_properties] MMR 적용 후 추천 결과 (상위 %d개)", top_n)
+            if top_properties:
+                logger.info("예: 첫번째 = %s", top_properties[0])
     else:
-        # MMR 미적용 → 단순 유사도 정렬
+        # MMR 미적용
         properties_rec = [
             {"propertyId": property_ids[i], "similarity": float(similarities[i])}
             for i in range(len(similarities))
         ]
         top_properties = sorted(properties_rec, key=lambda x: x["similarity"], reverse=True)[:top_n]
-        logger.info("[recommend_properties] MMR 미적용. 상위 %d개 추천: %s",
-                    top_n, [p["propertyId"] for p in top_properties])
-    
-    # 최종 결과가 비었는지 체크
+        logger.info("[recommend_properties] MMR 미적용. 상위 %d개 추천", top_n)
+        if top_properties:
+            logger.info("예: 첫번째 = %s", top_properties[0])
+
+    # 최종 결과
     if not top_properties:
-        logger.warning("[recommend_properties] 추천 결과가 비어 있습니다.")
+        logger.warning("[recommend_properties] 최종 추천 결과가 비어 있습니다.")
     else:
-        logger.info("[recommend_properties] 최종 추천 개수: %d", len(top_properties))
+        logger.info("[recommend_properties] 최종 추천 개수: %d, 첫번째 similarity=%.4f", len(top_properties), top_properties[0]["similarity"])
     
     return top_properties
