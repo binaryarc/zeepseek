@@ -115,9 +115,13 @@ def get_most_frequent_dong_for_user(userId: int, duration="2h"):
         "size": 10000,
         "_source": ["dongId"]
     }
-    res = es.search(index="logs", body=query, scroll="2m")
-    docs = [doc["_source"] for doc in res["hits"]["hits"] if doc["_source"].get("dongId") not in (None, -1)]
+    try:
+        res = es.search(index="logs", body=query, scroll="2m")
+    except Exception as e:
+        logger.warning("Elasticsearch error: %s. Treating as no logs.", e)
+        return None
 
+    docs = [doc["_source"] for doc in res["hits"]["hits"] if doc["_source"].get("dongId") not in (None, -1)]
     if len(docs) < 5:
         logger.info("Insufficient dong logs for user %d. Found only %d logs.", userId, len(docs))
         return None
@@ -126,6 +130,7 @@ def get_most_frequent_dong_for_user(userId: int, duration="2h"):
     most_common = df['dongId'].value_counts().idxmax()
     logger.info("User %d most frequent dong: %s", userId, most_common)
     return most_common
+
 
 
 def recommend_by_dong(userId: int, top_k=10):
