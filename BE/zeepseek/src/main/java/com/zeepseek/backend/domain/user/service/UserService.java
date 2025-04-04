@@ -10,6 +10,11 @@ public interface UserService {
      * 회원 정보 업데이트
      */
     UserDto updateUser(Integer userId, UserDto userDto);
+    
+    /**
+     * 마이페이지에서 사용자 프로필 업데이트 (기준 위치, 선호도)
+     */
+    UserDto updateProfile(Integer userId, UserProfileDto profileDto);
 
     /**
      * 회원 탈퇴

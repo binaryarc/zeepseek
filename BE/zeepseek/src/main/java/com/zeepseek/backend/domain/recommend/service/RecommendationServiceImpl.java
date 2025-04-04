@@ -1,11 +1,14 @@
 package com.zeepseek.backend.domain.recommend.service;
 
+import com.zeepseek.backend.domain.dong.entity.DongInfo;
+import com.zeepseek.backend.domain.dong.repository.MySQLDongRepository;
 import com.zeepseek.backend.domain.property.exception.PropertyNotFoundException;
 import com.zeepseek.backend.domain.property.model.Property;
 import com.zeepseek.backend.domain.property.model.PropertyScore;
-import com.zeepseek.backend.domain.property.service.PropertyServiceImpl;
 import com.zeepseek.backend.domain.property.service.PropertyService;
 import com.zeepseek.backend.domain.recommend.dto.request.UserRecommendationRequestDto;
+import com.zeepseek.backend.domain.recommend.dto.response.AiRecommendationFastApiResponseDto;
+import com.zeepseek.backend.domain.recommend.dto.response.AiRecommendationResponseDto;
 import com.zeepseek.backend.domain.recommend.dto.response.DetailedRecommendationDto;
 import com.zeepseek.backend.domain.recommend.dto.response.DetailedRecommendationResponseDto;
 import com.zeepseek.backend.domain.recommend.dto.response.RecommendationDto;
@@ -28,10 +31,14 @@ public class RecommendationServiceImpl implements RecommendationService {
     private static final Logger logger = LoggerFactory.getLogger(RecommendationServiceImpl.class);
     private final WebClient recommendationWebClient;
     private final PropertyService propertyService;
+    private final MySQLDongRepository dongRepository;
 
-    public RecommendationServiceImpl(WebClient recommendationWebClient, PropertyService propertyService) {
+    public RecommendationServiceImpl(WebClient recommendationWebClient,
+                                     PropertyService propertyService,
+                                     MySQLDongRepository dongRepository) {
         this.recommendationWebClient = recommendationWebClient;
         this.propertyService = propertyService;
+        this.dongRepository = dongRepository;
     }
 
     @Override
@@ -64,7 +71,8 @@ public class RecommendationServiceImpl implements RecommendationService {
                 .bodyToMono(RecommendationResponseDto.class)
                 .block();
 
-        if (originalResponse == null || originalResponse.getRecommendedProperties() == null || originalResponse.getRecommendedProperties().isEmpty()) {
+        if (originalResponse == null || originalResponse.getRecommendedProperties() == null ||
+                originalResponse.getRecommendedProperties().isEmpty()) {
             throw new RecommendationException("No recommendations received from Python API.");
         }
 
@@ -102,7 +110,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 dto.setLatitude(property.getLatitude());
                 dto.setLongitude(property.getLongitude());
 
-                dto.setSimilarity(rec.getSimilarity());  // 추천 유사도 세팅
+                // 추천 유사도는 일반 추천에서만 사용하므로 AI 추천에는 별도로 전달하지 않음
                 detailedList.add(dto);
             } catch (PropertyNotFoundException ex) {
                 logger.warn("Property not found for id: {}", rec.getPropertyId());
@@ -114,8 +122,62 @@ public class RecommendationServiceImpl implements RecommendationService {
         detailedResponse.setTotalElements(detailedList.size());
         detailedResponse.setTotalPages(1);
         detailedResponse.setCurrentPage(0);
-        // 위에 계산해서 나온 한 카테고리를 requestDto.getMaxScoreType()을 대체
         detailedResponse.setMaxType(originalResponse.getMaxType());
+        return detailedResponse;
+    }
+
+    @Override
+    public AiRecommendationResponseDto getAiRecommendation(Integer userId) {
+        AiRecommendationFastApiResponseDto originalResponse = recommendationWebClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .replacePath("/ai-recommend")
+                        .queryParam("user_id", userId)
+                        .build())
+                .retrieve()
+                .bodyToMono(AiRecommendationFastApiResponseDto.class)
+                .block();
+
+        if (originalResponse == null || originalResponse.getPropertyIds() == null ||
+                originalResponse.getPropertyIds().isEmpty()) {
+            logger.info("추천 결과가 없습니다. 빈 배열을 반환합니다.");
+            return new AiRecommendationResponseDto(); // 빈 배열과 dongId null 반환
+        }
+
+        List<Long> propertyIdList = originalResponse.getPropertyIds();
+        List<DetailedRecommendationDto> detailedList = new ArrayList<>();
+
+        for (Long propId : propertyIdList) {
+            try {
+                Property property = propertyService.getPropertyDetail(propId);
+                DetailedRecommendationDto dto = new DetailedRecommendationDto();
+                dto.setPropertyId(property.getPropertyId());
+                dto.setAddress(property.getAddress());
+                dto.setRoomType(property.getRoomType());
+                dto.setContractType(property.getContractType());
+                dto.setDeposit(property.getDeposit());
+                dto.setMonthlyRent(property.getMonthlyRent());
+                dto.setImageUrl(property.getImageUrl());
+                dto.setLatitude(property.getLatitude());
+                dto.setLongitude(property.getLongitude());
+                detailedList.add(dto);
+            } catch (PropertyNotFoundException ex) {
+                logger.warn("Property not found for id: {}", propId);
+            }
+        }
+
+        AiRecommendationResponseDto detailedResponse = new AiRecommendationResponseDto();
+        detailedResponse.setRecommendedProperties(detailedList);
+
+        String dongIdentifier = originalResponse.getDongId();
+        if (dongIdentifier != null) {
+            try {
+                Integer dongId = Integer.parseInt(dongIdentifier);
+                dongRepository.findById(dongId)
+                        .ifPresent(dongInfo -> detailedResponse.setDongName(dongInfo.getName()));
+            } catch (NumberFormatException e) {
+                logger.warn("dongId 파싱 실패: {}", dongIdentifier);
+            }
+        }
         return detailedResponse;
     }
 }
