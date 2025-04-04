@@ -7,9 +7,19 @@ import {
 // ✅ keyword 기반 매물 검색 (검색 + 지도 이동 모두 사용)
 export const fetchRoomList = createAsyncThunk(
   "roomList/fetchByKeyword",
-  async ({ keyword, filter, userId }) => {
-    const res = await searchProperties(keyword, filter, userId);
-    return res.properties;
+  async ({ keyword, filter, userId }, { dispatch }) => {
+    try {
+      dispatch(setSearchLock(true)); // ✅ 요청 시작 시 락
+
+      const res = await searchProperties(keyword, filter, userId);
+
+      return res.properties;
+    } catch (err) {
+      console.error("fetchRoomList error:", err);
+      throw err;
+    } finally {
+      dispatch(setSearchLock(false)); // ✅ 요청 끝나면 락 해제
+    }
   }
 );
 

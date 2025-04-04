@@ -391,6 +391,16 @@ export const searchDongByName = async (dongName) => {
   }
 }
 
-
+// ai 추천 api
+export const aiRecommendByUserId = async (userId) => {
+  try {
+    const res = await zeepApi.get(`/recommend/ai-recommend?userId=${userId}`)
+    console.log(res)
+    return res;
+  } catch (err) {
+    console.error("사용자 추천 실패: ", err);
+    throw err;
+}
+}
 
 export default zeepApi;
