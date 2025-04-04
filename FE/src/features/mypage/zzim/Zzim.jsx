@@ -50,7 +50,8 @@ const Zzim = () => {
     return "";
   };
 
-const toggleLike = async (room) => {
+const toggleLike = async (room, e) => {
+    e.stopPropagation();
     const { propertyId } = room;
     if (user === null) return alert("로그인이 필요합니다.");
 
@@ -106,7 +107,7 @@ const toggleLike = async (room) => {
                     alt="매물 이미지"
                     className="zzim-img"
                   />
-                  <button onClick={() => toggleLike(room)} className="zzim-delete-btn">
+                  <button onClick={(e) => toggleLike(room , e)} className="zzim-delete-btn">
                     <FaHeart color="red" size={24} />
                   </button>
                   <div className="zzim-info">
