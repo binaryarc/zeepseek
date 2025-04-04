@@ -139,22 +139,12 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
 
         List<Long> propertyIdList = originalResponse.getPropertyIds();
-        List<DetailedAiRecommendationDto> detailedList = new ArrayList<>();
+        List<Property> detailedList = new ArrayList<>();
 
         for (Long propId : propertyIdList) {
             try {
                 Property property = propertyService.getPropertyDetail(propId);
-                DetailedAiRecommendationDto dto = new DetailedAiRecommendationDto();
-                dto.setPropertyId(property.getPropertyId());
-                dto.setAddress(property.getAddress());
-                dto.setRoomType(property.getRoomType());
-                dto.setContractType(property.getContractType());
-                dto.setDeposit(property.getDeposit());
-                dto.setMonthlyRent(property.getMonthlyRent());
-                dto.setImageUrl(property.getImageUrl());
-                dto.setLatitude(property.getLatitude());
-                dto.setLongitude(property.getLongitude());
-                detailedList.add(dto);
+                detailedList.add(property);
             } catch (PropertyNotFoundException ex) {
                 logger.warn("Property not found for id: {}", propId);
             }
