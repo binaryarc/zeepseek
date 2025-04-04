@@ -74,7 +74,7 @@ function RegionCompare() {
         ]);
         setRegionScores({ [selectedRegion1.dongId]: data1, [selectedRegion2.dongId]: data2 });
 
-        const summaryResult = await fetchRegionSummary(selectedRegion1.dongId, selectedRegion2.dongId);
+        const summaryResult = await fetchRegionSummary(user.idx, selectedRegion1.dongId, selectedRegion2.dongId);
         setSummary(summaryResult?.data?.compareSummary);
         console.log("region1", selectedRegion1)
         console.log("region2", selectedRegion2)
@@ -153,7 +153,7 @@ function RegionCompare() {
                     tickSize={20}
                     tick={{ fontweight: "KOROAD_Bold", fontSize: '1.2rem', fill: '#555', dy: 8 }}
                   />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                  <PolarRadiusAxis angle={70} domain={[0, 100]} />
                   <Radar
                     name={`${selectedRegion1.guName} ${selectedRegion1.name}`}
                     dataKey={selectedRegion1.dongId}

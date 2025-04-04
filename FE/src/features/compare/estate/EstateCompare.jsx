@@ -71,7 +71,7 @@ const EstateCompare = () => {
           ]);
           setEstateScores({ [selected1.propertyId]: data1, [selected2.propertyId]: data2 });
   
-          const summaryResult = await fetchPropertyCompare(selected1.propertyId, selected2.propertyId);
+          const summaryResult = await fetchPropertyCompare(user.idx, selected1.propertyId, selected2.propertyId);
           setProPertyCompareData(summaryResult?.data?.compareSummary);
           console.log("estate1", selected1)
           console.log("estate2", selected2)
@@ -164,7 +164,7 @@ const EstateCompare = () => {
                 <RadarChart outerRadius={130} data={chartData}>
                   <PolarGrid />
                   <PolarAngleAxis dataKey="subject" />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                  <PolarRadiusAxis angle={70} domain={[0, 100]} />
                   <Radar
                     name={selected1.address}
                     dataKey={selected1.propertyId}
@@ -179,7 +179,12 @@ const EstateCompare = () => {
                     fill="#673AB7"
                     fillOpacity={0.3}
                   />
-                  <Legend />
+                  <Legend
+                    verticalAlign="top"
+                    align="center"
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: '14px', marginTop: '-10px' }}
+                  />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
