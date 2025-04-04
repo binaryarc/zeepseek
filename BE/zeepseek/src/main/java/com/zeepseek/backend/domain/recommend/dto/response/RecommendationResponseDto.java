@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 public class RecommendationResponseDto {
 
-//    @JsonProperty("recommended_properties")
+    @JsonProperty("recommended_properties")
     private List<RecommendationDto> recommendedProperties;
 
     private int totalElements;
