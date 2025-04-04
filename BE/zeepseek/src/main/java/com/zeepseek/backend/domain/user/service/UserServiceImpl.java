@@ -373,34 +373,77 @@ public class UserServiceImpl implements UserService {
                 List<Map<String, Object>> documents = (List<Map<String, Object>>) response.get("documents");
                 if (!documents.isEmpty()) {
                     // 행정동 정보 찾기 (region_type: "H")
-                    Map<String, Object> adminDong = documents.stream()
+                    Optional<Map<String, Object>> adminDongOpt = documents.stream()
                             .filter(doc -> "H".equals(doc.get("region_type")))
-                            .findFirst()
-                            .orElse(null);
+                            .findFirst();
 
-                    if (adminDong != null && adminDong.get("code") != null) {
-                        String hCode = (String) adminDong.get("code");
-                        if (hCode != null && hCode.length() >= 8) {
-                            // 10자리 행정동 코드에서 앞 8자리만 추출
-                            String dongIdStr = hCode.substring(0, 8);
-                            try {
-                                Integer dongId = Integer.parseInt(dongIdStr);
+                    if (adminDongOpt.isPresent()) {
+                        Map<String, Object> adminDong = adminDongOpt.get();
+
+                        // 행정동명 추출 (예: "역삼2동")
+                        String adminDongName = (String) adminDong.get("address_name");
+                        String region3depthName = (String) adminDong.get("region_3depth_name");
+
+                        log.info("카카오 API에서 행정동명 추출 - 전체명: {}, 3depth명: {}", adminDongName, region3depthName);
+
+                        // 행정동명으로 dong 테이블에서 dong_id 조회 시도
+                        if (region3depthName != null && !region3depthName.isEmpty()) {
+                            // 행정동 이름을 여러 형태로 시도
+                            Integer dongId = findDongIdWithVariousNamePatterns(region3depthName);
+
+                            if (dongId != null && dongId > 0) {
                                 userPreferences.setDongId(dongId);
-                                log.info("행정동 코드 추출 성공 - 전체 코드: {}, 동ID: {}, 행정동명: {}",
-                                        hCode, dongId, adminDong.get("address_name"));
+                                log.info("행정동명으로 dong_id 찾기 성공 - 행정동명: {}, dong_id: {}", region3depthName, dongId);
                                 return;
-                            } catch (NumberFormatException e) {
-                                log.warn("행정동 코드 파싱 오류: {}", e.getMessage());
+                            } else {
+                                log.warn("행정동명({})으로 dong_id를 찾을 수 없습니다.", region3depthName);
+                            }
+                        }
+
+                        // 행정동명 기반 검색 실패 시, 행정동 코드 사용
+                        if (adminDong.get("code") != null) {
+                            String hCode = (String) adminDong.get("code");
+                            if (hCode != null && hCode.length() >= 8) {
+                                // 10자리 행정동 코드에서 앞 8자리만 추출
+                                String dongIdStr = hCode.substring(0, 8);
+                                try {
+                                    Integer dongId = Integer.parseInt(dongIdStr);
+                                    userPreferences.setDongId(dongId);
+                                    log.info("행정동 코드 추출 성공 - 전체 코드: {}, 동ID: {}, 행정동명: {}",
+                                            hCode, dongId, adminDong.get("address_name"));
+                                    return;
+                                } catch (NumberFormatException e) {
+                                    log.warn("행정동 코드 파싱 오류: {}", e.getMessage());
+                                }
                             }
                         }
                     } else {
-                        // 행정동 정보가 없으면 법정동 정보 사용 (region_type: "B")
-                        Map<String, Object> legalDong = documents.stream()
-                                .filter(doc -> "B".equals(doc.get("region_type")))
-                                .findFirst()
-                                .orElse(null);
+                        log.warn("좌표에 해당하는 행정동 정보를 찾을 수 없습니다.");
+                    }
 
-                        if (legalDong != null && legalDong.get("code") != null) {
+                    // 행정동 처리 실패 시 법정동 정보로 시도
+                    Optional<Map<String, Object>> legalDongOpt = documents.stream()
+                            .filter(doc -> "B".equals(doc.get("region_type")))
+                            .findFirst();
+
+                    if (legalDongOpt.isPresent()) {
+                        Map<String, Object> legalDong = legalDongOpt.get();
+                        String legalDongName = (String) legalDong.get("region_3depth_name");
+
+                        log.info("법정동명 추출: {}", legalDongName);
+
+                        if (legalDongName != null && !legalDongName.isEmpty()) {
+                            Integer dongId = findDongIdWithVariousNamePatterns(legalDongName);
+
+                            if (dongId != null && dongId > 0) {
+                                userPreferences.setDongId(dongId);
+                                log.info("법정동명으로 dong_id 찾기 성공 - 법정동명: {}, dong_id: {}", legalDongName, dongId);
+                                return;
+                            }
+                        }
+
+                        // 법정동명 기반 검색 실패 시, 법정동 코드 사용
+                        if (legalDong.get("code") != null) {
                             String bCode = (String) legalDong.get("code");
                             if (bCode != null && bCode.length() >= 8) {
                                 String dongIdStr = bCode.substring(0, 8);
@@ -424,6 +467,66 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             log.error("카카오 좌표->지역코드 API 호출 중 오류 발생: {}", e.getMessage(), e);
         }
+    }
+
+    /**
+     * 행정동 이름을 다양한 패턴으로 변형하여 dong_id 찾기 시도
+     */
+    private Integer findDongIdWithVariousNamePatterns(String dongName) {
+        if (dongName == null || dongName.isEmpty()) {
+            return null;
+        }
+
+        // 1. 원본 이름 그대로 시도
+        Integer dongId = dongService.findDongIdByName(dongName);
+        log.info("원본 동 이름으로 검색: {} -> 결과: {}", dongName, dongId);
+        if (dongId != null && dongId > 0) {
+            return dongId;
+        }
+
+        // 2. "동" 접미사 제거 시도
+        if (dongName.endsWith("동")) {
+            String nameWithoutDong = dongName.substring(0, dongName.length() - 1);
+            dongId = dongService.findDongIdByName(nameWithoutDong);
+            log.info("'동' 제거 후 검색: {} -> 결과: {}", nameWithoutDong, dongId);
+            if (dongId != null && dongId > 0) {
+                return dongId;
+            }
+        }
+
+        // 3. 숫자를 한글로 변환 시도 (예: 역삼2동 -> 역삼이동)
+        if (dongName.matches(".*\\d+동$")) {
+            String numericPart = dongName.replaceAll(".*?(\\d+)동$", "$1");
+            String prefix = dongName.replaceAll("(.*?)\\d+동$", "$1");
+
+            try {
+                int num = Integer.parseInt(numericPart);
+                String[] koreanNumbers = {"일", "이", "삼", "사", "오", "육", "칠", "팔", "구"};
+                if (num > 0 && num <= 9) {
+                    String koreanName = prefix + koreanNumbers[num-1] + "동";
+                    dongId = dongService.findDongIdByName(koreanName);
+                    log.info("숫자를 한글로 변환 후 검색: {} -> 결과: {}", koreanName, dongId);
+                    if (dongId != null && dongId > 0) {
+                        return dongId;
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("숫자 변환 중 오류: {}", e.getMessage());
+            }
+        }
+
+        // 4. 부분 검색 시도 (시군구 이름이 dong 테이블에 포함된 경우 제거)
+        String[] parts = dongName.split("\\s+");
+        if (parts.length > 1) {
+            String lastPart = parts[parts.length - 1];
+            dongId = dongService.findDongIdByName(lastPart);
+            log.info("마지막 부분만 검색: {} -> 결과: {}", lastPart, dongId);
+            if (dongId != null && dongId > 0) {
+                return dongId;
+            }
+        }
+
+        return null;
     }
 
     /**
