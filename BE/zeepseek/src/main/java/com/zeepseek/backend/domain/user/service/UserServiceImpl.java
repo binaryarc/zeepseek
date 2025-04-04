@@ -408,44 +408,78 @@ public class UserServiceImpl implements UserService {
                 return;
             }
 
-            // 먼저 행정동 코드(region_type="H") 확인
+            // 행정동 정보 처리 (region_type="H")
+            boolean foundAdminDong = false;
             for (Map<String, Object> doc : documents) {
                 String regionType = (String) doc.get("region_type");
                 String code = (String) doc.get("code");
                 String addressName = (String) doc.get("address_name");
+                String region3DepthName = (String) doc.get("region_3depth_name"); // 행정동 이름 가져오기
 
                 if ("H".equals(regionType) && code != null && code.length() >= 8) {
-                    String dongIdStr = code.substring(0, 8);
                     try {
+                        // 코드의 앞 8자리만 추출하여 사용
+                        String dongIdStr = code.substring(0, 8);
                         Integer dongId = Integer.parseInt(dongIdStr);
-                        log.info("!!행정동 코드 발견!! - 코드: {}, 추출된 ID: {}, 행정동명: {}",
-                                code, dongId, addressName);
+                        log.info("!!행정동 코드 발견!! - 전체 코드: {}, 추출된 ID: {}, 행정동명: {}",
+                                code, dongId, region3DepthName);
 
+                        // 행정동 코드 설정
                         userPreferences.setDongId(dongId);
-                        return;
+                        foundAdminDong = true;
+
+                        // 동 이름으로 DB에서 dong_id 조회 시도 (선택적)
+                        try {
+                            // dongService를 통해 행정동 이름으로 dong_id 조회
+                            Integer dongIdFromDb = dongService.findDongIdByName(region3DepthName);
+                            if (dongIdFromDb != null) {
+                                log.info("동 이름 기반 dong_id 설정: 이름={}, ID={}", region3DepthName, dongIdFromDb);
+                                userPreferences.setDongId(dongIdFromDb);
+                            }
+                        } catch (Exception e) {
+                            log.warn("동 이름으로 dong_id 조회 실패: {}", e.getMessage());
+                            // 실패 시 이미 설정된 행정동 코드 유지
+                        }
+
+                        return; // 행정동 정보 찾았으므로 종료
                     } catch (NumberFormatException e) {
                         log.error("행정동 코드 변환 오류: {}", e.getMessage());
                     }
                 }
             }
 
-            // 행정동이 없으면 법정동(region_type="B") 확인
-            for (Map<String, Object> doc : documents) {
-                String regionType = (String) doc.get("region_type");
-                String code = (String) doc.get("code");
-                String addressName = (String) doc.get("address_name");
+            // 행정동을 찾지 못한 경우 법정동 정보 사용
+            if (!foundAdminDong) {
+                for (Map<String, Object> doc : documents) {
+                    String regionType = (String) doc.get("region_type");
+                    String code = (String) doc.get("code");
+                    String region3DepthName = (String) doc.get("region_3depth_name");
 
-                if ("B".equals(regionType) && code != null && code.length() >= 8) {
-                    String dongIdStr = code.substring(0, 8);
-                    try {
-                        Integer dongId = Integer.parseInt(dongIdStr);
-                        log.info("법정동 코드 발견 - 코드: {}, 추출된 ID: {}, 법정동명: {}",
-                                code, dongId, addressName);
+                    if ("B".equals(regionType) && code != null && code.length() >= 8) {
+                        try {
+                            // 코드의 앞 8자리만 추출하여 사용
+                            String dongIdStr = code.substring(0, 8);
+                            Integer dongId = Integer.parseInt(dongIdStr);
+                            log.info("법정동 코드 사용 - 전체 코드: {}, 추출된 ID: {}, 법정동명: {}",
+                                    code, dongId, region3DepthName);
 
-                        userPreferences.setDongId(dongId);
-                        return;
-                    } catch (NumberFormatException e) {
-                        log.error("법정동 코드 변환 오류: {}", e.getMessage());
+                            userPreferences.setDongId(dongId);
+
+                            // 동 이름으로 DB에서 dong_id 조회 시도 (선택적)
+                            try {
+                                Integer dongIdFromDb = dongService.findDongIdByName(region3DepthName);
+                                if (dongIdFromDb != null) {
+                                    log.info("동 이름 기반 dong_id 설정: 이름={}, ID={}", region3DepthName, dongIdFromDb);
+                                    userPreferences.setDongId(dongIdFromDb);
+                                }
+                            } catch (Exception e) {
+                                log.warn("동 이름으로 dong_id 조회 실패: {}", e.getMessage());
+                            }
+
+                            return;
+                        } catch (NumberFormatException e) {
+                            log.error("법정동 코드 변환 오류: {}", e.getMessage());
+                        }
                     }
                 }
             }
@@ -461,36 +495,27 @@ public class UserServiceImpl implements UserService {
     // API 실패 시 기본 좌표/동ID 설정 (테스트용/예시용)
     // -------------------------------
     private void setDefaultCoordinates(UserPreferences userPreferences, String address) {
-        if (address.contains("부산") && address.contains("강서구") && address.contains("명지")) {
-            userPreferences.setZipCode("46769");
-            userPreferences.setLatitude(35.0947817266961);
-            userPreferences.setLongitude(128.906874174632);
-            userPreferences.setDongId(26350106);
-        } else if (address.contains("부산") && address.contains("강서구")) {
-            userPreferences.setZipCode("46702");
-            userPreferences.setLatitude(35.2121);
-            userPreferences.setLongitude(128.9812);
-            userPreferences.setDongId(26350000);
-        } else if (address.contains("부산")) {
-            userPreferences.setZipCode("47545");
-            userPreferences.setLatitude(35.1798);
-            userPreferences.setLongitude(129.0750);
-            userPreferences.setDongId(26000000);
-        } else if (address.contains("강남")) {
+        if (address.contains("강남")) {
             userPreferences.setZipCode("06235");
             userPreferences.setLatitude(37.5012);
             userPreferences.setLongitude(127.0396);
-            userPreferences.setDongId(11680000); // 강남구 대표값 예시
+            userPreferences.setDongId(11680000); // 강남구 대표값
+        } else if (address.contains("서울") && address.contains("중구") && address.contains("명동")) {
+            userPreferences.setZipCode("04536");
+            userPreferences.setLatitude(37.5640);
+            userPreferences.setLongitude(126.9830);
+            userPreferences.setDongId(11140550); // 명동 대표값
         } else if (address.contains("서울")) {
             userPreferences.setZipCode("04524");
             userPreferences.setLatitude(37.5665);
             userPreferences.setLongitude(126.9780);
-            userPreferences.setDongId(11000000);
+            userPreferences.setDongId(11000000); // 서울 대표값
         } else {
-            // 기본값 (한국 대략적인 중부)
-            userPreferences.setZipCode("00000");
-            userPreferences.setLatitude(36.5);
-            userPreferences.setLongitude(127.8);
+            // 기본값 (서울 명동)
+            userPreferences.setZipCode("04536");
+            userPreferences.setLatitude(37.5640);
+            userPreferences.setLongitude(126.9830);
+            userPreferences.setDongId(11140550); // 명동
         }
 
         log.info("기본 정보 설정 - 위도: {}, 경도: {}, 우편번호: {}, 동ID: {}",
