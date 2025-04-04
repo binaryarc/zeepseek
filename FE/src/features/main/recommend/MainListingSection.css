@@ -21,12 +21,16 @@
 
 /* ul 기본 스타일 제거 */
 .main-listing-container {
-  list-style-type: none; /* 점 제거 */
-  padding: 0;
+  display: flex;
+  overflow-x: auto;
+  gap: 16px;           /* 카드 간 간격 */
+  padding: 16px;
+  scroll-snap-type: x mandatory;  /* 스크롤 스냅 효과 (선택 사항) */
+  list-style: none;    /* 기본 ul 스타일 제거 */
   margin: 0;
+}
 
-  /* 그리드 레이아웃 */
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-  gap: 20px;
+.main-listing-container li {
+  flex: 0 0 auto;      /* 항목들이 자동으로 크기가 조정되지 않고 고정됨 */
+  scroll-snap-align: start; /* 스크롤 스냅 위치 지정 (선택 사항) */
 }
