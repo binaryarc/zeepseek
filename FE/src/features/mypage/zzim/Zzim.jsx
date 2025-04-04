@@ -14,7 +14,7 @@ const Zzim = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [groupedZzims, setGroupedZzims] = useState({});
-  const user = useSelector((state) => state.auth.user)
+  const user = useSelector((state) => state.auth?.user)
   const [flag, setFlag] = useState(false)
 
   useEffect(() => {
@@ -31,7 +31,18 @@ const Zzim = () => {
       setGroupedZzims(grouped);
       console.log(groupedZzims)
     });
-  }, [user.idx, flag]);
+  }, [user?.idx, flag]);
+
+  if (user === null) {
+    return (
+      <div className="zzim-page">
+        <Navbar />
+        <p style={{ textAlign: "center", marginTop: "100px" }}>
+          사용자 정보를 불러오는 중...
+        </p>
+      </div>
+    );
+  }
 
   const getRoomType = (roomBathCount) => {
     // 숫자에 해당하는 매핑 객체
