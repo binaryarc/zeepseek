@@ -32,7 +32,8 @@ def content_based_with_office_location(user_id: int, top_k=5):
       1) user_preference에서 사용자 dong_id, 7개 카테고리, office_lat/office_lon 얻기
       2) property_score와 property 테이블을 조인해서 각 매물의 7개 카테고리와 위치(lat, lon) 로드
       3) distance = haversine(office_lat, office_lon, prop_lat, prop_lon)
-         → 거리 점수 = max(0, 1 - distance/10)
+         → 원래 거리 점수 = max(0, 1 - distance/10)
+         → **거리 점수 가중치를 높이기 위해, 원래 점수에 1.5배 곱하고 1.0으로 클리핑**
          → 최종 매물 벡터 = [7개 카테고리, dist_score] (8차원)
       4) 사용자 벡터 = [7개 카테고리, 0.0] (8차원)
       5) 코사인 유사도 계산 후 상위 top_k 매물 선택
@@ -124,8 +125,10 @@ def content_based_with_office_location(user_id: int, top_k=5):
         plon = float(r._mapping["longitude"] or 0)
         # 3) 회사/학교와 매물 간 거리 계산 (단위: km)
         dist_km = haversine(office_lat, office_lon, plat, plon)
-        dist_score = max(0.0, 1.0 - dist_km / 10.0)
-        logger.debug("매물ID=%s: 거리=%.2fkm, 거리점수=%.4f", pid, dist_km, dist_score)
+        raw_score = max(0.0, 1.0 - dist_km / 10.0)
+        # 거리 점수 가중치 1.5배 적용 후 1.0으로 클리핑
+        dist_score = min(1.0, raw_score * 1.5)
+        logger.debug("매물ID=%s: 거리=%.2fkm, 원래 점수=%.4f, 가중치 적용 점수=%.4f", pid, dist_km, raw_score, dist_score)
         # 최종 매물 벡터: 7개 카테고리 + 거리 점수 (8차원)
         prop_vec = cat_vals + [dist_score]
         property_ids.append(pid)
