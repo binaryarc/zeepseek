@@ -153,10 +153,10 @@
     }
     
     50% {
-      transform: scale(1.6) translateY(-24px); /* 살짝 줄어들게 */
+      transform: scale(1.5) translateY(-10px);
     }
     
     100% {
-      transform: scale(1) translateY(0px); /* 원래 크기로 돌아옴 */
+      transform: scale(1) translateY(0);
     }
   }
