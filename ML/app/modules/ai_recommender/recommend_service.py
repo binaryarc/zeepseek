@@ -266,26 +266,30 @@ def hybrid_recommend(user_id: int, top_k=5) -> list:
     """
     logger.info("Starting hybrid recommendation for user %d...", user_id)
     
-    # 1) SVD 협업 추천
-    rec_svd = recommend(user_id, top_k)  # 예: [pid1, pid2, ...]
-
+    # 1) SVD 협업 추천 (예외 발생 시 빈 리스트로 처리)
+    try:
+        rec_svd = recommend(user_id, top_k)  # 예: [pid1, pid2, ...]
+    except ValueError as e:
+        logger.warning("SVD model not trained: %s. Skipping SVD recommendation.", e)
+        rec_svd = []
+    
     # 2) 콘텐츠 기반 추천 (회사/학교 위치 고려)
     try:
         from app.modules.content_based.services.content_based_with_office import content_based_with_office_location
-    except ImportError:
-        logger.error("content_based_with_office_location 모듈을 찾을 수 없습니다.")
-        rec_cb = []
-    else:
         cb_res = content_based_with_office_location(user_id, top_k)
         # 반환형: {"dongId": <dong_id>, "propertyIds": [pid, ...]}
         rec_cb = cb_res.get("propertyIds", [])
-
+    except Exception as e:
+        logger.error("Content based recommendation failed: %s", e)
+        rec_cb = []
+    
     # 3) 두 추천 결과를 병합 (중복 제거, 순서 유지)
     combined = rec_svd + rec_cb
     merged = list(dict.fromkeys(combined))
     merged = merged[:top_k]
     logger.info("Hybrid recommendation for user %d: %s", user_id, merged)
     return merged
+
 
 
 
