@@ -144,9 +144,6 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         DetailedRecommendationResponseDto detailedResponse = new DetailedRecommendationResponseDto();
         detailedResponse.setRecommendedProperties(detailedList);
-        detailedResponse.setTotalElements(detailedList.size());
-        detailedResponse.setTotalPages(1);
-        detailedResponse.setCurrentPage(0);
         detailedResponse.setMaxType(originalResponse.getMaxType());
         return detailedResponse;
     }
