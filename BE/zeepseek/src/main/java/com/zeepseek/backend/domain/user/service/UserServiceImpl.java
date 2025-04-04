@@ -348,54 +348,71 @@ public class UserServiceImpl implements UserService {
      * 좌표로부터 행정동 정보를 가져와 dong_id를 설정하는 메소드
      */
     private void fetchAdministrativeDongFromCoordinates(UserPreferences userPreferences, Double longitude, Double latitude) {
-        String kakaoReverseGeoUrl = "https://dapi.kakao.com/v2/local/geo/coord2address.json";
+        String kakaoRegionCodeUrl = "https://dapi.kakao.com/v2/local/geo/coord2regioncode.json";
 
         try {
-            // 이미 좌표가 있는지 확인
             if (longitude == null || latitude == null) {
                 log.warn("좌표 정보가 없어 행정동 조회를 건너뜁니다.");
                 return;
             }
 
-            // WebClient를 사용하여 카카오 API 호출
             WebClient webClient = WebClient.builder().build();
 
-            log.info("카카오 역방향 지오코딩 API 호출 - 경도: {}, 위도: {}", longitude, latitude);
+            log.info("카카오 좌표->지역코드 API 호출 - 경도: {}, 위도: {}", longitude, latitude);
 
             Map<String, Object> response = webClient.get()
-                    .uri(kakaoReverseGeoUrl + "?x=" + longitude + "&y=" + latitude)
+                    .uri(kakaoRegionCodeUrl + "?x=" + longitude + "&y=" + latitude)
                     .header("Authorization", "KakaoAK " + kakaoMapApiKey)
                     .retrieve()
                     .bodyToMono(Map.class)
                     .block();
 
-            log.info("카카오 역방향 지오코딩 API 응답 수신 - 응답: {}", response);
+            log.info("카카오 좌표->지역코드 API 응답 수신 - 응답: {}", response);
 
-            // 응답 데이터에서 행정동 정보 추출
-            if (response != null) {
+            if (response != null && response.get("documents") != null) {
                 List<Map<String, Object>> documents = (List<Map<String, Object>>) response.get("documents");
-                if (documents != null && !documents.isEmpty()) {
-                    Map<String, Object> firstResult = documents.get(0);
+                if (!documents.isEmpty()) {
+                    // 행정동 정보 찾기 (region_type: "H")
+                    Map<String, Object> adminDong = documents.stream()
+                            .filter(doc -> "H".equals(doc.get("region_type")))
+                            .findFirst()
+                            .orElse(null);
 
-                    // 지번 주소 정보
-                    Map<String, Object> address = (Map<String, Object>) firstResult.get("address");
-
-                    if (address != null) {
-                        // 행정동명 추출 (region_3depth_name은 행정동명을 포함)
-                        String dongName = (String) address.get("region_3depth_name");
-
-                        if (dongName != null && !dongName.isEmpty()) {
-                            log.info("카카오 API에서 행정동명 추출: {}", dongName);
-
-                            // DongService를 통해 동 이름으로 dong_id 조회
-                            Integer dongId = dongService.findDongIdByName(dongName);
-
-                            if (dongId != null && dongId > 0) {
+                    if (adminDong != null && adminDong.get("code") != null) {
+                        String hCode = (String) adminDong.get("code");
+                        if (hCode != null && hCode.length() >= 8) {
+                            // 10자리 행정동 코드에서 앞 8자리만 추출
+                            String dongIdStr = hCode.substring(0, 8);
+                            try {
+                                Integer dongId = Integer.parseInt(dongIdStr);
                                 userPreferences.setDongId(dongId);
-                                log.info("행정동 코드 설정 완료 - 동명: {}, 동ID: {}", dongName, dongId);
+                                log.info("행정동 코드 추출 성공 - 전체 코드: {}, 동ID: {}, 행정동명: {}",
+                                        hCode, dongId, adminDong.get("address_name"));
                                 return;
-                            } else {
-                                log.warn("동 이름({})에 해당하는 dong_id를 찾을 수 없습니다.", dongName);
+                            } catch (NumberFormatException e) {
+                                log.warn("행정동 코드 파싱 오류: {}", e.getMessage());
+                            }
+                        }
+                    } else {
+                        // 행정동 정보가 없으면 법정동 정보 사용 (region_type: "B")
+                        Map<String, Object> legalDong = documents.stream()
+                                .filter(doc -> "B".equals(doc.get("region_type")))
+                                .findFirst()
+                                .orElse(null);
+
+                        if (legalDong != null && legalDong.get("code") != null) {
+                            String bCode = (String) legalDong.get("code");
+                            if (bCode != null && bCode.length() >= 8) {
+                                String dongIdStr = bCode.substring(0, 8);
+                                try {
+                                    Integer dongId = Integer.parseInt(dongIdStr);
+                                    userPreferences.setDongId(dongId);
+                                    log.info("법정동 코드 추출 성공 - 전체 코드: {}, 동ID: {}, 법정동명: {}",
+                                            bCode, dongId, legalDong.get("address_name"));
+                                    return;
+                                } catch (NumberFormatException e) {
+                                    log.warn("법정동 코드 파싱 오류: {}", e.getMessage());
+                                }
                             }
                         }
                     }
@@ -405,7 +422,7 @@ public class UserServiceImpl implements UserService {
             log.warn("카카오 API에서 행정동 정보를 찾을 수 없어 기존 값 유지");
 
         } catch (Exception e) {
-            log.error("카카오 역방향 지오코딩 API 호출 중 오류 발생: {}", e.getMessage(), e);
+            log.error("카카오 좌표->지역코드 API 호출 중 오류 발생: {}", e.getMessage(), e);
         }
     }
 
