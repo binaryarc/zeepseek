@@ -35,7 +35,11 @@ public class DongController {
      */
     @GetMapping("/{dongId}")
     @Loggable(action = "view", type = "dong")
-    public ResponseEntity<DongInfoDocs> getDongDetail(@PathVariable("dongId") Integer dongId) {
+    public ResponseEntity<DongInfoDocs> getDongDetail(
+            @PathVariable("dongId") Integer dongId,
+            @CookieValue(value = "userId", defaultValue = "-1", required = false ) int userId,
+            @CookieValue(value = "age", defaultValue = "-1", required = false ) int age,
+            @CookieValue(value = "gender", defaultValue = "-1", required = false ) String gender) {
         DongInfoDocs dong = dongService.getDongDetail(dongId);
         log.info(dongId.toString());
         return dong != null ? ResponseEntity.ok(dong) : ResponseEntity.notFound().build();
@@ -47,7 +51,11 @@ public class DongController {
      */
     @GetMapping("/{dongId}/comment")
     @Loggable(action = "view", type = "dong")
-    public ResponseEntity<List<DongInfoDocs.DongComment>> getDongComments(@PathVariable("dongId") Integer dongId) {
+    public ResponseEntity<List<DongInfoDocs.DongComment>> getDongComments(
+            @PathVariable("dongId") Integer dongId,
+            @CookieValue(value = "userId", defaultValue = "-1", required = false ) int userId,
+            @CookieValue(value = "age", defaultValue = "-1", required = false ) int age,
+            @CookieValue(value = "gender", defaultValue = "-1", required = false ) String gender) {
         List<DongInfoDocs.DongComment> comments = dongService.getDongComments(dongId);
         return ResponseEntity.ok(comments);
     }
@@ -61,7 +69,10 @@ public class DongController {
     @Loggable(action = "comment", type = "dong")
     public ResponseEntity<DongInfoDocs> addDongComment(
             @PathVariable("dongId") Integer dongId,
-            @RequestBody DongCommentRequestDto commentRequest) {
+            @RequestBody DongCommentRequestDto commentRequest,
+            @CookieValue(value = "userId", defaultValue = "-1", required = false ) int userId,
+            @CookieValue(value = "age", defaultValue = "-1", required = false ) int age,
+            @CookieValue(value = "gender", defaultValue = "-1", required = false ) String gender) {
         DongInfoDocs updatedDong = dongService.addDongComment(dongId, commentRequest);
         return ResponseEntity.ok(updatedDong);
     }
