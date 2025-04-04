@@ -71,7 +71,7 @@ const MyPage = () => {
         </div>
 
         <div className="mypage-buttons">
-          <button onClick={() => navigate('/zzim')}>찜한 매물 & 동네</button>
+          <button onClick={() => navigate('/zzim')}>찜한 매물 </button>
           <button onClick={() => navigate('/survey')}>내 정보 수정</button>
         </div>
       </div>
