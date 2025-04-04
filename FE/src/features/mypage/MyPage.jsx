@@ -75,8 +75,6 @@ const MyPage = () => {
           <button onClick={() => navigate('/survey')}>내 정보 수정</button>
         </div>
       </div>
-
-
       <div className="mypage-footer">
         <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
         <button className="withdraw-btn" onClick={handleUserDelete}>회원 탈퇴</button>

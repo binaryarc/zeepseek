@@ -147,6 +147,7 @@ function Searchbar() {
             <span onClick={() => "/map"}>지도</span>
             {/* <span onClick={() => navigate("/post-room")}>방 내놓기</span> */}
             <span onClick={() => navigate("/zzim")}>찜</span>
+            <span onClick={() => navigate("/compare")}>동네비교</span>
           </div>
           <div className="nav-user-area" onClick={handleToggleDropdown}>
             <FaRegUserCircle size={22} style={{ marginRight: "6px" }} />

@@ -77,14 +77,18 @@
   
   .mypage-footer {
     display: flex;
-    justify-content: space-between;
-    width: 90%;
+    /* justify-content: space-between; */
+    width: 40%;
     max-width: 600px;
     margin-top: 1rem;
+    
   }
   
   .logout-btn,
   .withdraw-btn {
+    /* padding: 0; */
+    font-size: 16px;
+    font-family: KOROAD;
     padding: 1rem 1.5rem;
     border-radius: 10px;
     border: none;

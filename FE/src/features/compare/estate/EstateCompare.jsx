@@ -71,10 +71,8 @@ const EstateCompare = () => {
           ]);
           setEstateScores({ [selected1.propertyId]: data1, [selected2.propertyId]: data2 });
   
-          const summaryResult = await fetchPropertyCompare(selected1.propertyId, selected2.propertyId);
+          const summaryResult = await fetchPropertyCompare(user.idx, selected1.propertyId, selected2.propertyId);
           setProPertyCompareData(summaryResult?.data?.compareSummary);
-          console.log("estate1", selected1)
-          console.log("estate2", selected2)
           console.log("summaryResult", summaryResult?.data?.compareSummary)
         } catch (err) {
           console.error('비교 데이터 로딩 실패:', err);
@@ -109,8 +107,17 @@ const EstateCompare = () => {
 
   return (
     <div className="region-compare-total-container">
+
+
+
       <div className="region-compare-wrapper">
         <div className="region-compare-container">
+          {loading && (
+          <div className="loading-overlay">
+            <div className="spinner"></div>
+              비교 데이터를 불러오는 중입니다...
+            </div>
+          )}
           <div className="region-input-row">
             <div className="region-input-wrapper">
               <input
@@ -146,13 +153,16 @@ const EstateCompare = () => {
             </div>
           </div>
 
+
+
+
           {!loading && selected1 && selected2 && propertyCompareData && (
             <div className="compare-table">
               <ResponsiveContainer width="100%" height={400}>
                 <RadarChart outerRadius={130} data={chartData}>
                   <PolarGrid />
                   <PolarAngleAxis dataKey="subject" />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                  <PolarRadiusAxis angle={70} domain={[0, 100]} />
                   <Radar
                     name={selected1.address}
                     dataKey={selected1.propertyId}
@@ -167,7 +177,12 @@ const EstateCompare = () => {
                     fill="#673AB7"
                     fillOpacity={0.3}
                   />
-                  <Legend />
+                  <Legend
+                    verticalAlign="top"
+                    align="center"
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: '14px', marginTop: '-10px' }}
+                  />
                 </RadarChart>
               </ResponsiveContainer>
             </div>

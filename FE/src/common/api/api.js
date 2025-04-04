@@ -151,11 +151,12 @@ export const fetchProPertyScore = async (propertyId) => {
 
 
 // 매물 비교 용 api(아직 안됨, 다시 만들어야 함)
-export const fetchPropertyCompare = async (prop1, prop2) => {
+export const fetchPropertyCompare = async (userId, prop1, prop2) => {
   console.log("token값: ", store.getState().auth.accessToken)
   try {
     const res = await zeepApi.post("/dong/compare/property",
       {
+        "userId": userId,
         "prop1": prop1,
         "prop2": prop2
       });
@@ -181,9 +182,10 @@ export const fetchRegionScore = async (regionName) => {
 };
 
 // 동네 비교 api => AI 비교 요약 내용만 존재()
-export const fetchRegionSummary = async (region1, region2) => {
+export const fetchRegionSummary = async (userId, region1, region2) => {
   try {
     const response = await zeepApi.post("/dong/compare/dong", {
+      userId: userId,
       dong1: region1,
       dong2: region2,
     });
@@ -360,23 +362,21 @@ export const postDongComment = async (dongId, nickname, content, token) => {
 export const deleteDongComment = async (dongId, commentId, token) => {
   try {
     const res = await zeepApi.delete(
-      `/dong/${dongId}/comment`, // ✅ commentId는 query string으로 전달
-      null, // ✅ data는 없으므로 null 명시
+      `/dong/${dongId}/comment`, // 🔥 이건 그대로
       {
-        params: {
-          commentId: commentId, // ✅ 쿼리 파라미터
-        },
+        params: { commentId }, // ✅ query string
         headers: {
-          Authorization: `Bearer ${token}`, // ✅ 토큰은 헤더에
+          Authorization: `Bearer ${token}`, // ✅ 토큰
         },
       }
     );
     return res.data;
   } catch (err) {
-    console.error("댓글 삭제 실패:", err);
+    console.error("❌ 댓글 삭제 실패:", err.response?.data || err.message);
     throw err;
   }
 };
+
 
 
 // 찜한 동네 리스트에서 동네 이름 검색하는 api

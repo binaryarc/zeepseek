@@ -50,7 +50,7 @@
     height: 1rem;
     background: rgb(163, 231, 170);
     border-radius: 50%;
-    margin-top: -0.55rem;
+    margin-top: -0.65rem;
     cursor: pointer;
     position: relative;
     z-index: 2;
@@ -177,8 +177,8 @@
   background-repeat: no-repeat;
   background-size: contain;
   border: none;
-  width: 2rem;
-  height: 2rem;
+  width: 2.4rem;
+  height: 2.4rem;
   cursor: pointer;
 }
 
@@ -190,8 +190,8 @@
   background-repeat: no-repeat;
   background-size: contain;
   border: none;
-  width: 2rem;
-  height: 2rem;
+  width: 2.4rem;
+  height: 2.4rem;
   cursor: pointer;
 }
 
@@ -203,8 +203,8 @@
   background-repeat: no-repeat;
   background-size: contain;
   border: none;
-  width: 2rem;
-  height: 2rem;
+  width: 2.4rem;
+  height: 2.4rem;
   cursor: pointer;
 }
 
@@ -216,8 +216,8 @@
   background-repeat: no-repeat;
   background-size: contain;
   border: none;
-  width: 2rem;
-  height: 2rem;
+  width: 2.4rem;
+  height: 2.4rem;
   cursor: pointer;
 }
 
@@ -229,8 +229,8 @@
   background-repeat: no-repeat;
   background-size: contain;
   border: none;
-  width: 2rem;
-  height: 2rem;
+  width: 2.4rem;
+  height: 2.4rem;
   cursor: pointer;
 }
 
@@ -242,8 +242,8 @@
   background-repeat: no-repeat;
   background-size: contain;
   border: none;
-  width: 2rem;
-  height: 2rem;
+  width: 2.4rem;
+  height: 2.4rem;
   cursor: pointer;
 }
 
@@ -255,7 +255,7 @@
   background-repeat: no-repeat;
   background-size: contain;
   border: none;
-  width: 2rem;
-  height: 2rem;
+  width: 2.4rem;
+  height: 2.4rem;
   cursor: pointer;
 }
