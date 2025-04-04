@@ -487,8 +487,7 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
                 
                 top_properties.append({
                     "propertyId": property_ids[i],
-                    "similarity": float(similarities[i]),
-                    "maxType": category_names[max_idx]
+                    "similarity": float(similarities[i])
                 })
             
             logger.info("[recommend_properties] MMR+우선순위 적용 후 추천 결과 (상위 %d개)", top_n)
