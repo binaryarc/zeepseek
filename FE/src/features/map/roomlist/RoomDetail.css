@@ -64,11 +64,8 @@
 
 .close-btn {
     position: absolute;
-    top: 2.6rem;   /* 위로 띄우기 */
+    top: 0;   /* 위로 띄우기 */
     right: 0px;
-    /* left: calc(24rem+8px); */
-    /* top: -1px;          */
-    /* right: -35px; */
     background: rgb(131, 85, 85);
     border:  #ccc;
     font-size: 16px;
