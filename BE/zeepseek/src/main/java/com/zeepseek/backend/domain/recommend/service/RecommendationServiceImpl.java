@@ -7,12 +7,7 @@ import com.zeepseek.backend.domain.property.model.Property;
 import com.zeepseek.backend.domain.property.model.PropertyScore;
 import com.zeepseek.backend.domain.property.service.PropertyService;
 import com.zeepseek.backend.domain.recommend.dto.request.UserRecommendationRequestDto;
-import com.zeepseek.backend.domain.recommend.dto.response.AiRecommendationFastApiResponseDto;
-import com.zeepseek.backend.domain.recommend.dto.response.AiRecommendationResponseDto;
-import com.zeepseek.backend.domain.recommend.dto.response.DetailedRecommendationDto;
-import com.zeepseek.backend.domain.recommend.dto.response.DetailedRecommendationResponseDto;
-import com.zeepseek.backend.domain.recommend.dto.response.RecommendationDto;
-import com.zeepseek.backend.domain.recommend.dto.response.RecommendationResponseDto;
+import com.zeepseek.backend.domain.recommend.dto.response.*;
 import com.zeepseek.backend.domain.recommend.exception.RecommendationException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -144,12 +139,12 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
 
         List<Long> propertyIdList = originalResponse.getPropertyIds();
-        List<DetailedRecommendationDto> detailedList = new ArrayList<>();
+        List<DetailedAiRecommendationDto> detailedList = new ArrayList<>();
 
         for (Long propId : propertyIdList) {
             try {
                 Property property = propertyService.getPropertyDetail(propId);
-                DetailedRecommendationDto dto = new DetailedRecommendationDto();
+                DetailedAiRecommendationDto dto = new DetailedAiRecommendationDto();
                 dto.setPropertyId(property.getPropertyId());
                 dto.setAddress(property.getAddress());
                 dto.setRoomType(property.getRoomType());

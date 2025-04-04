@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 public class AiRecommendationResponseDto {
-    private List<DetailedRecommendationDto> recommendedProperties = new ArrayList<>();
+    private List<DetailedAiRecommendationDto> recommendedProperties = new ArrayList<>();
     private String dongName; // dongName은 null이 될 수 있음
 
     public AiRecommendationResponseDto() {
