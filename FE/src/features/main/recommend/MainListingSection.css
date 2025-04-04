@@ -1,22 +1,29 @@
 .main-listing-section {
-  max-width: 1200px;
+  /* max-width: 1200px; */
+  position: relative;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 40px 250px;
   font-family: sans-serif;
   background-color: #f9f9f9; /* 원하는 배경색으로 변경 가능 */
+  font-family: KOROAD_Bold;
 }
 
 .main-listing-section h1 {
-  font-size: 24px;
+  text-align: left;
+  font-size: 26px;
   font-weight: bold;
   margin-bottom: 10px;
   color: #333;
 }
 
-.main-listing-section p {
-  font-size: 16px;
+.main-listing-section > p {
+  text-align: left;
+  font-size: 20px;
   margin-bottom: 30px;
   color: #666;
+}
+.listing-container-wrapper {
+  position: relative;
 }
 
 /* ul 기본 스타일 제거 */
@@ -28,9 +35,31 @@
   scroll-snap-type: x mandatory;  /* 스크롤 스냅 효과 (선택 사항) */
   list-style: none;    /* 기본 ul 스타일 제거 */
   margin: 0;
+  background-color: #f9f2f2;
 }
 
 .main-listing-container li {
   flex: 0 0 auto;      /* 항목들이 자동으로 크기가 조정되지 않고 고정됨 */
   scroll-snap-align: start; /* 스크롤 스냅 위치 지정 (선택 사항) */
+}
+
+.scroll-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.scroll-button.left {
+  left: -50px; /* 원하는 만큼 음수로 */
+}
+
+.scroll-button.right {
+  right: -50px; /* 원하는 만큼 음수로 */
+}
+.main-listing-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
