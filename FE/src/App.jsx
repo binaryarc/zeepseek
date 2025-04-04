@@ -17,7 +17,7 @@ function App() {
   return (
     <>
       <AuthInitializer />
-      <div className="app-container">
+  6    <div className="app-container">
       <img
         src={zeepseek}
         alt="zeepseek 로고"
