@@ -214,8 +214,8 @@ const Map = () => {
                 // ✅ zeep.png 커스텀 마커 설정
                 
                 const imageSrc = "/images/zeep.png"; // public 기준 경로
-                const imageSize = new window.kakao.maps.Size(80, 80); // 마커 이미지 크기
-                const imageOption = { offset: new window.kakao.maps.Point(0,0) }; // 마커 기준점
+                const imageSize = new window.kakao.maps.Size(60, 60); // 마커 이미지 크기
+                const imageOption = { offset: new window.kakao.maps.Point(center) }; // 마커 기준점
 
                 const markerImage = new window.kakao.maps.MarkerImage(
                   imageSrc,
