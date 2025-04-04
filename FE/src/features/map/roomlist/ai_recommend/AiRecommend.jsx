@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import "./AiRecommend.css";
 import { fetchAIRecommendedProperties, fetchNearbyPlaces, getPropertyDetail } from "../../../../common/api/api";
 import defaultImage from "../../../../assets/logo/192image.png"
@@ -15,6 +15,10 @@ const AiRecommend = () => {
   const [selectedRoom, setSelectedRoom] = useState(null);     // 모달에 띄울 매물 상세 정보
   const [roomScore, setRoomScore] = useState(null);           // 모달에 띄울 매물 점수
 
+  const hoverRequestIdRef = useRef(0);
+  const circleOverlayRef = useRef(null);
+  const nearbyMarkersRef = useRef([]); // ✅ 마커들 ref에 보관
+  
 
   const [maxType, setMaxType] = useState(null);
 
@@ -131,72 +135,78 @@ const AiRecommend = () => {
                 key={item.propertyId}
                 className="room-item"
                 onMouseEnter={async () => {
-
-                  // 💥 기존 마커들 먼저 제거
-                  nearbyMarkers.forEach(marker => marker.setMap(null));
-                  setNearbyMarkers([]);
-                  if (circleOverlay) {
-                    circleOverlay.setMap(null);
-                    setCircleOverlay(null);
+                  const currentId = hoverRequestIdRef.current + 1;
+                  hoverRequestIdRef.current = currentId;
+                
+                  // 기존 마커/원 제거
+                  nearbyMarkersRef.current.forEach(marker => marker.setMap(null));
+                  nearbyMarkersRef.current = [];
+                
+                  if (circleOverlayRef.current) {
+                    circleOverlayRef.current.setMap(null);
+                    circleOverlayRef.current = null;
                   }
-
-                  if (item.latitude && item.longitude) {
-                    window.setHoverMarker(item.latitude, item.longitude);
-                    if (window.map) {
-                      const latlng = new window.kakao.maps.LatLng(item.latitude, item.longitude);
-                      window.map.setLevel(5);
-                      window.map.setCenter(latlng);
-
-                      // 반경 1km 원 추가
-                      const circle = new window.kakao.maps.Circle({
-                        center: latlng,
-                        radius: 1000,
-                        strokeWeight: 2,
-                        strokeColor: '#00a0e9',
-                        strokeOpacity: 0.8,
-                        strokeStyle: 'solid',
-                        fillColor: '#00a0e9',
-                        fillOpacity: 0.1
+                
+                  if (!item.latitude || !item.longitude || !window.map) return;
+                
+                  window.setHoverMarker(item.latitude, item.longitude);
+                
+                  const latlng = new window.kakao.maps.LatLng(item.latitude, item.longitude);
+                  window.map.setLevel(5);
+                  window.map.setCenter(latlng);
+                
+                  const circle = new window.kakao.maps.Circle({
+                    center: latlng,
+                    radius: 1000,
+                    strokeWeight: 2,
+                    strokeColor: '#00a0e9',
+                    strokeOpacity: 0.8,
+                    strokeStyle: 'solid',
+                    fillColor: '#00a0e9',
+                    fillOpacity: 0.1
+                  });
+                  circle.setMap(window.map);
+                  circleOverlayRef.current = circle;
+                
+                  try {
+                    const response = await fetchNearbyPlaces(maxType, item.longitude, item.latitude);
+                    if (hoverRequestIdRef.current !== currentId) return;
+                
+                    const imageSrc = `/images/icons/${maxType}.png`;
+                    const imageSize = new window.kakao.maps.Size(30, 30);
+                    const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize);
+                
+                    const newMarkers = response.data?.map(({ latitude, longitude, name }) => {
+                      return new window.kakao.maps.Marker({
+                        position: new window.kakao.maps.LatLng(latitude, longitude),
+                        map: window.map,
+                        title: name,
+                        image: markerImage,
                       });
-                      circle.setMap(window.map);
-                      setCircleOverlay(circle);
-                    }
-
-                    const newMarkers = [];
-                      try {
-                        const response = await fetchNearbyPlaces(maxType, item.longitude, item.latitude);
-
-                        const imageSrc = `/images/icons/${maxType}.png`;
-                        const imageSize = new window.kakao.maps.Size(30, 30);
-                        const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize);
-
-                        const places = response?.data || [];
-                        places.forEach(({ latitude, longitude, name }) => {
-                          const marker = new window.kakao.maps.Marker({
-                            position: new window.kakao.maps.LatLng(latitude, longitude),
-                            map: window.map,
-                            title: name,
-                            image: markerImage,
-                          });
-                          newMarkers.push(marker);
-                        });
-                      } catch (err) {
-                        console.error('마커 불러오기 실패:', err);
-                      }
-                    setNearbyMarkers(newMarkers);
-                  } else {
-                    console.log("그럼 여기야?")
+                    }) || [];
+                
+                    newMarkers.forEach(marker => marker.setMap(window.map));
+                    nearbyMarkersRef.current = newMarkers; // ✅ ref에 보관
+                  } catch (err) {
+                    console.error("시설 마커 에러:", err);
                   }
                 }}
+                
+                
                 onMouseLeave={() => {
                   window.clearHoverMarker();
-                  nearbyMarkers.forEach(marker => marker.setMap(null));
-                  setNearbyMarkers([]);
-                  if (circleOverlay) {
-                    circleOverlay.setMap(null);
-                    setCircleOverlay(null);
+                
+                  // 항상 현재 ref 기준으로 삭제
+                  nearbyMarkersRef.current.forEach(marker => marker.setMap(null));
+                  nearbyMarkersRef.current = [];
+                
+                  if (circleOverlayRef.current) {
+                    circleOverlayRef.current.setMap(null);
+                    circleOverlayRef.current = null;
                   }
                 }}
+               
+                
                 onClick={async () => {
                   const detail = await getPropertyDetail(item.propertyId);
                   console.log("매물 상세 정보: ", detail)
