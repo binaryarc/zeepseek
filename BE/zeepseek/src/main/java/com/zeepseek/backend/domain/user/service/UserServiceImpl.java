@@ -23,30 +23,20 @@ import java.util.*;
 @Slf4j
 public class UserServiceImpl implements UserService {
 
-    // Repository & Service 의존성
     private final UserRepository userRepository;
     private final UserPreferencesRepository userPreferencesRepository;
     private final DongService dongService;
 
     /**
-     * 카카오 맵 API 키: application.yml/properties의
-     * spring.security.oauth2.client.registration.kakao.client-id 에서 주입
+     * 카카오 로컬 API 키 (spring.security.oauth2.client.registration.kakao.client-id)
      */
     private final String kakaoMapApiKey;
 
     /**
-     * Kakao 로컬 API 전용 WebClient:
-     * 생성자에서 baseUrl, Authorization 헤더를 세팅해 둠
+     * Kakao 로컬 API 호출용 WebClient (Authorization 헤더 자동 포함)
      */
     private final WebClient kakaoWebClient;
 
-    /**
-     * 생성자: @RequiredArgsConstructor 대신 직접 작성하여
-     * - UserRepository / UserPreferencesRepository / DongService
-     * - 카카오 REST API 키 (kakaoMapApiKey)
-     * 를 모두 주입받고,
-     * kakaoWebClient를 빌드한다.
-     */
     public UserServiceImpl(
             UserRepository userRepository,
             UserPreferencesRepository userPreferencesRepository,
@@ -59,16 +49,13 @@ public class UserServiceImpl implements UserService {
         this.dongService = dongService;
         this.kakaoMapApiKey = kakaoMapApiKey;
 
-        // WebClient를 미리 만들어둠: 이 클라이언트를 통해 카카오 API 호출 시 401 해결
+        // WebClient 초기화: baseUrl, Authorization 헤더 세팅
         this.kakaoWebClient = WebClient.builder()
                 .baseUrl("https://dapi.kakao.com")
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "KakaoAK " + kakaoMapApiKey)
                 .build();
     }
 
-    // -------------------------------
-    // 1) 사용자 정보 업데이트 (updateUser)
-    // -------------------------------
     @Override
     @Transactional
     public UserDto updateUser(Integer userId, UserDto userDto) {
@@ -102,9 +89,6 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-    // -------------------------------
-    // 2) 사용자 프로필 업데이트 (updateProfile)
-    // -------------------------------
     @Override
     @Transactional
     public UserDto updateProfile(Integer userId, UserProfileDto profileDto) {
@@ -122,21 +106,21 @@ public class UserServiceImpl implements UserService {
 
         User updatedUser = userRepository.save(user);
 
-        // UserPreferences 객체 생성 또는 조회
+        // UserPreferences 객체 생성 혹은 조회
         UserPreferences userPreferences = userPreferencesRepository.findById(userId)
                 .orElse(UserPreferences.builder().user(user).build());
 
-        // 1. 목적지 정보 처리 (location 값이 있을 경우에만)
+        // 1. 목적지 정보 처리
         if (profileDto.getLocation() != null && !profileDto.getLocation().isEmpty()) {
             processDestination(userPreferences, profileDto.getLocation());
         }
 
-        // 2. 선호도 정보 처리 (preferences 값이 있을 경우에만)
+        // 2. 선호도 정보 처리
         if (profileDto.getPreferences() != null && !profileDto.getPreferences().isEmpty()) {
             processPreferences(userPreferences, profileDto.getPreferences());
         }
 
-        // 사용자 선호도 저장
+        // 저장
         userPreferencesRepository.save(userPreferences);
         log.info("사용자 프로필 업데이트 완료: userId={}", userId);
 
@@ -147,7 +131,6 @@ public class UserServiceImpl implements UserService {
                 .location(userPreferences.getDestination())
                 .build();
 
-        // 선호도 정보 설정
         List<String> selectedPreferences = new ArrayList<>();
         if (userPreferences.getSafe() > 0) selectedPreferences.add("safe");
         if (userPreferences.getLeisure() > 0) selectedPreferences.add("leisure");
@@ -158,7 +141,7 @@ public class UserServiceImpl implements UserService {
         if (userPreferences.getCafe() > 0) selectedPreferences.add("cafe");
         updatedProfileDto.setPreferences(selectedPreferences);
 
-        // 업데이트된 사용자 정보 반환 (profileInfo 포함)
+        // 반환
         return UserDto.builder()
                 .idx(updatedUser.getIdx())
                 .nickname(updatedUser.getNickname())
@@ -167,13 +150,10 @@ public class UserServiceImpl implements UserService {
                 .isFirst(updatedUser.getIsFirst())
                 .isSeller(updatedUser.getIsSeller())
                 .provider(updatedUser.getProvider())
-                .profileInfo(updatedProfileDto)  // 프로필 정보 포함
+                .profileInfo(updatedProfileDto)
                 .build();
     }
 
-    // -------------------------------
-    // 3) 사용자 삭제
-    // -------------------------------
     @Override
     @Transactional
     public void deleteUser(Integer userId) {
@@ -181,9 +161,6 @@ public class UserServiceImpl implements UserService {
                 .ifPresent(userRepository::delete);
     }
 
-    // -------------------------------
-    // 4) 첫 로그인 시 프로필(나이, 성별, 위치, 선호도) 처리
-    // -------------------------------
     @Override
     @Transactional
     public UserDto processFirstLoginData(Integer userId, UserProfileDto profileDto) {
@@ -191,12 +168,12 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException("User not found"));
 
-        // 이미 첫 로그인이 아니면 예외
+        // 이미 첫 로그인이 아닐 때 예외
         if (user.getIsFirst() != 1) {
             throw new AuthException("User is not a first-time user");
         }
 
-        // 사용자 기본 정보 업데이트 (성별, 나이)
+        // 사용자 기본 정보 업데이트
         if (profileDto.getGender() != null) {
             user.setGender(profileDto.getGender());
         }
@@ -204,7 +181,7 @@ public class UserServiceImpl implements UserService {
             user.setAge(profileDto.getAge());
         }
 
-        // 첫 로그인 플래그를 0으로 변경 (이미 프로필을 입력했으므로)
+        // 첫 로그인 플래그 변경
         user.setIsFirst(0);
         User updatedUser = userRepository.save(user);
 
@@ -212,17 +189,16 @@ public class UserServiceImpl implements UserService {
         UserPreferences userPreferences = userPreferencesRepository.findById(userId)
                 .orElse(UserPreferences.builder().user(user).build());
 
-        // 1. 목적지 정보 (location)
+        // 1. 목적지 정보 처리
         processDestination(userPreferences, profileDto.getLocation());
 
-        // 2. 선호도 정보
+        // 2. 선호도 정보 처리
         processPreferences(userPreferences, profileDto.getPreferences());
 
-        // 사용자 선호도 저장
         userPreferencesRepository.save(userPreferences);
         log.info("사용자 선호도 저장 완료: userId={}", userId);
 
-        // 업데이트된 사용자 정보 반환
+        // 반환
         return UserDto.builder()
                 .idx(updatedUser.getIdx())
                 .nickname(updatedUser.getNickname())
@@ -234,35 +210,33 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-    // -------------------------------
-    // 목적지 정보 처리 (주소 파싱 + 카카오 맵 API 호출)
-    // -------------------------------
+    /**
+     * 목적지 정보 처리 (주소 → 위경도, 우편번호, 동ID)
+     */
     private void processDestination(UserPreferences userPreferences, String location) {
         if (location == null || location.isEmpty()) {
             return;
         }
 
-        // 전체 주소 설정
+        // 전체 주소 저장
         userPreferences.setDestination(location);
 
         try {
-            // 간단한 파싱 예시
+            // 간단 파싱 (예시)
             String[] addressParts = location.split(" ");
-
             if (addressParts.length >= 1) {
-                userPreferences.setSido(addressParts[0]); // 시/도
+                userPreferences.setSido(addressParts[0]);
             }
             if (addressParts.length >= 2) {
-                userPreferences.setSigungu(addressParts[1]); // 시/군/구
+                userPreferences.setSigungu(addressParts[1]);
             }
             if (addressParts.length >= 3) {
-                userPreferences.setRoadName(addressParts[2]); // 도로명
+                userPreferences.setRoadName(addressParts[2]);
             }
             if (addressParts.length >= 4) {
-                userPreferences.setBuildingInfo(addressParts[3]); // 건물번호
+                userPreferences.setBuildingInfo(addressParts[3]);
             }
             if (addressParts.length >= 5) {
-                // 나머지 부분을 상세 주소로
                 StringBuilder detailAddress = new StringBuilder();
                 for (int i = 4; i < addressParts.length; i++) {
                     detailAddress.append(addressParts[i]).append(" ");
@@ -270,7 +244,7 @@ public class UserServiceImpl implements UserService {
                 userPreferences.setDetailAddress(detailAddress.toString().trim());
             }
 
-            // 카카오 맵 API: 주소 -> 좌표, 우편번호, 동코드
+            // 카카오 맵 API 호출
             fetchCoordinatesAndZipCodeFromKakao(userPreferences, location);
 
         } catch (Exception e) {
@@ -280,13 +254,13 @@ public class UserServiceImpl implements UserService {
         log.info("목적지 정보 설정: {}", location);
     }
 
-    // -------------------------------
-    // 카카오 맵 API로 주소 -> (위경도, 우편번호, 법정동코드 등) 가져오기
-    // -------------------------------
+    /**
+     * 주소로부터 좌표 & 우편번호 얻기 (search/address.json)
+     * - 이후 coord2regioncode로 행정동 가져오기
+     */
     private void fetchCoordinatesAndZipCodeFromKakao(UserPreferences userPreferences, String address) {
         try {
             String encodedAddress = URLEncoder.encode(address, StandardCharsets.UTF_8);
-            // /v2/local/search/address.json?query=...
             String requestUrl = "/v2/local/search/address.json?query=" + encodedAddress;
 
             log.info("카카오 맵 API 호출 시작 - 주소: {}", address);
@@ -296,76 +270,51 @@ public class UserServiceImpl implements UserService {
                     .uri(requestUrl)
                     .retrieve()
                     .bodyToMono(Map.class)
-                    .block(); // 동기 처리 예시
+                    .block();
 
             log.info("카카오 맵 API 응답 수신 - 응답: {}", response);
 
             if (response != null) {
                 List<Map<String, Object>> documents = (List<Map<String, Object>>) response.get("documents");
                 if (documents != null && !documents.isEmpty()) {
+                    // 첫 번째 결과
                     Map<String, Object> firstResult = documents.get(0);
 
-                    // 주소 정보 (우편번호, b_code 등)
+                    // 주소 정보
                     Map<String, Object> addressInfo = (Map<String, Object>) firstResult.get("address");
                     String zipCode = "";
-                    Integer dongId = null;
-
-                    if (addressInfo != null) {
-                        // 우편번호
-                        if (addressInfo.get("zip_code") != null) {
-                            zipCode = (String) addressInfo.get("zip_code");
-                        }
-                        // 법정동 코드 (b_code)
-                        if (addressInfo.get("b_code") != null) {
-                            String bCode = (String) addressInfo.get("b_code");
-                            if (bCode != null && bCode.length() >= 8) {
-                                String dongIdStr = bCode.substring(0, 8);
-                                try {
-                                    dongId = Integer.parseInt(dongIdStr);
-                                    log.info("법정동 코드 추출 - 전체 코드: {}, 동ID: {}", bCode, dongId);
-                                } catch (NumberFormatException e) {
-                                    log.warn("법정동 코드 파싱 오류: {}", e.getMessage());
-                                }
-                            }
-                        }
+                    if (addressInfo != null && addressInfo.get("zip_code") != null) {
+                        zipCode = (String) addressInfo.get("zip_code");
                     } else {
-                        // road_address 영역에서 zone_no도 가능
-                        Map<String, Object> roadAddressInfo = (Map<String, Object>) firstResult.get("road_address");
-                        if (roadAddressInfo != null && roadAddressInfo.get("zone_no") != null) {
-                            zipCode = (String) roadAddressInfo.get("zone_no");
+                        // road_address에서 zone_no를 가져올 수도 있음
+                        Map<String, Object> roadAddress = (Map<String, Object>) firstResult.get("road_address");
+                        if (roadAddress != null && roadAddress.get("zone_no") != null) {
+                            zipCode = (String) roadAddress.get("zone_no");
                         }
                     }
+                    if (zipCode.isEmpty()) {
+                        zipCode = "00000";
+                    }
+                    userPreferences.setZipCode(zipCode);
 
-                    // 좌표: x=경도, y=위도
+                    // 좌표 (x=경도, y=위도)
                     Double longitude = Double.parseDouble((String) firstResult.get("x"));
                     Double latitude = Double.parseDouble((String) firstResult.get("y"));
-
-                    // 세팅
-                    if (zipCode != null && !zipCode.isEmpty()) {
-                        userPreferences.setZipCode(zipCode);
-                    } else {
-                        userPreferences.setZipCode("00000");
-                    }
-                    userPreferences.setLatitude(latitude);
                     userPreferences.setLongitude(longitude);
+                    userPreferences.setLatitude(latitude);
 
-                    if (dongId != null) {
-                        userPreferences.setDongId(dongId);
-                        log.info("법정동 코드 기반 동ID 설정 완료: {}", dongId);
-                    }
-
-                    // 행정동 정보( region_type="H" )도 필요하면 추가 호출
+                    // 좌표 → 행정동
                     fetchAdministrativeDongFromCoordinates(userPreferences, longitude, latitude);
 
-                    log.info("카카오 API 결과 - 위도: {}, 경도: {}, 우편번호: {}, 동ID: {}",
-                            latitude, longitude, userPreferences.getZipCode(), userPreferences.getDongId());
+                    log.info("카카오 API 결과 - 위도: {}, 경도: {}, 우편번호: {}",
+                            latitude, longitude, zipCode);
                     return;
                 } else {
                     log.warn("카카오 API 응답에 주소 정보가 없음 - 응답: {}", response);
                 }
             }
 
-            // 여기까지 못 왔으면 기본값으로 세팅
+            // 위 로직에서 못 찾으면 기본값
             log.warn("카카오 API에서 주소 정보를 찾을 수 없어 기본값 사용");
             setDefaultCoordinates(userPreferences, address);
 
@@ -375,10 +324,13 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    // -------------------------------
-    // 좌표 -> 행정동 코드, 법정동 코드 등을 가져오기 (coord2regioncode)
-    // -------------------------------
-    private void fetchAdministrativeDongFromCoordinates(UserPreferences userPreferences, Double longitude, Double latitude) {
+    /**
+     * 위도, 경도로 행정동 검색 (coord2regioncode)
+     * -> region_type=H (행정동) 우선, 없으면 region_type=B (법정동)
+     * -> "region_3depth_name" (예: "역삼2동") 을 DB에 조회해 dong_id 매핑
+     */
+    private void fetchAdministrativeDongFromCoordinates(UserPreferences userPreferences,
+                                                        Double longitude, Double latitude) {
         if (longitude == null || latitude == null) {
             log.warn("좌표 정보가 없어 행정동 조회를 건너뜁니다.");
             return;
@@ -408,99 +360,88 @@ public class UserServiceImpl implements UserService {
                 return;
             }
 
-            // 먼저 행정동 코드(region_type="H") 확인
+            // 1) 행정동(region_type="H") 먼저 시도
             for (Map<String, Object> doc : documents) {
                 String regionType = (String) doc.get("region_type");
-                String code = (String) doc.get("code");
-                String addressName = (String) doc.get("address_name");
+                String region3depthName = (String) doc.get("region_3depth_name");  // 예: "역삼2동"
 
-                if ("H".equals(regionType) && code != null && code.length() >= 8) {
-                    String dongIdStr = code.substring(0, 8);
-                    try {
-                        Integer dongId = Integer.parseInt(dongIdStr);
-                        log.info("!!행정동 코드 발견!! - 코드: {}, 추출된 ID: {}, 행정동명: {}",
-                                code, dongId, addressName);
-
-                        userPreferences.setDongId(dongId);
-                        return;
-                    } catch (NumberFormatException e) {
-                        log.error("행정동 코드 변환 오류: {}", e.getMessage());
+                if ("H".equals(regionType) && region3depthName != null) {
+                    // DB에서 dong.name = "역삼2동" 인 dong_id 찾기
+                    Integer matchedId = dongService.findDongIdByName(region3depthName);
+                    if (matchedId != null) {
+                        userPreferences.setDongId(matchedId);
+                        log.info("행정동 '{}' -> dong_id={} 매핑 성공", region3depthName, matchedId);
+                        return; // 행정동 성공 시 바로 종료
+                    } else {
+                        log.info("행정동 '{}' 를 dong 테이블에서 찾을 수 없음", region3depthName);
                     }
                 }
             }
 
-            // 행정동이 없으면 법정동(region_type="B") 확인
+            // 2) 법정동(region_type="B") 시도
             for (Map<String, Object> doc : documents) {
                 String regionType = (String) doc.get("region_type");
-                String code = (String) doc.get("code");
-                String addressName = (String) doc.get("address_name");
+                String region3depthName = (String) doc.get("region_3depth_name");  // 예: "역삼동"
 
-                if ("B".equals(regionType) && code != null && code.length() >= 8) {
-                    String dongIdStr = code.substring(0, 8);
-                    try {
-                        Integer dongId = Integer.parseInt(dongIdStr);
-                        log.info("법정동 코드 발견 - 코드: {}, 추출된 ID: {}, 법정동명: {}",
-                                code, dongId, addressName);
-
-                        userPreferences.setDongId(dongId);
+                if ("B".equals(regionType) && region3depthName != null) {
+                    Integer matchedId = dongService.findDongIdByName(region3depthName);
+                    if (matchedId != null) {
+                        userPreferences.setDongId(matchedId);
+                        log.info("법정동 '{}' -> dong_id={} 매핑 성공", region3depthName, matchedId);
                         return;
-                    } catch (NumberFormatException e) {
-                        log.error("법정동 코드 변환 오류: {}", e.getMessage());
+                    } else {
+                        log.info("법정동 '{}' 를 dong 테이블에서 찾을 수 없음", region3depthName);
                     }
                 }
             }
 
-            log.warn("적절한 동 코드를 찾지 못했습니다.");
+            log.warn("행정동/법정동 모두 dong 테이블 매핑에 실패했습니다.");
 
         } catch (Exception e) {
             log.error("카카오 좌표->지역코드 API 처리 중 예외 발생: {}", e.getMessage(), e);
         }
     }
 
-    // -------------------------------
-    // API 실패 시 기본 좌표/동ID 설정 (테스트용/예시용)
-    // -------------------------------
+    /**
+     * API로 못찾았을 경우 기본값
+     */
     private void setDefaultCoordinates(UserPreferences userPreferences, String address) {
         if (address.contains("부산") && address.contains("강서구") && address.contains("명지")) {
             userPreferences.setZipCode("46769");
             userPreferences.setLatitude(35.0947817266961);
             userPreferences.setLongitude(128.906874174632);
-            userPreferences.setDongId(26350106);
+            // dong_id는 따로 처리
         } else if (address.contains("부산") && address.contains("강서구")) {
             userPreferences.setZipCode("46702");
             userPreferences.setLatitude(35.2121);
             userPreferences.setLongitude(128.9812);
-            userPreferences.setDongId(26350000);
         } else if (address.contains("부산")) {
             userPreferences.setZipCode("47545");
             userPreferences.setLatitude(35.1798);
             userPreferences.setLongitude(129.0750);
-            userPreferences.setDongId(26000000);
         } else if (address.contains("강남")) {
             userPreferences.setZipCode("06235");
             userPreferences.setLatitude(37.5012);
             userPreferences.setLongitude(127.0396);
-            userPreferences.setDongId(11680000); // 강남구 대표값 예시
         } else if (address.contains("서울")) {
             userPreferences.setZipCode("04524");
             userPreferences.setLatitude(37.5665);
             userPreferences.setLongitude(126.9780);
-            userPreferences.setDongId(11000000);
         } else {
-            // 기본값 (한국 대략적인 중부)
+            // 기타
             userPreferences.setZipCode("00000");
             userPreferences.setLatitude(36.5);
             userPreferences.setLongitude(127.8);
         }
 
-        log.info("기본 정보 설정 - 위도: {}, 경도: {}, 우편번호: {}, 동ID: {}",
+        log.info("기본 정보 설정 - 위도: {}, 경도: {}, 우편번호: {}",
                 userPreferences.getLatitude(), userPreferences.getLongitude(),
-                userPreferences.getZipCode(), userPreferences.getDongId());
+                userPreferences.getZipCode());
     }
 
-    // -------------------------------
-    // 5) 선호도 정보 처리
-    // -------------------------------
+    /**
+     * 선호도 정보 처리
+     */
     private void processPreferences(UserPreferences userPreferences, List<String> selectedPreferences) {
         // 초기화
         userPreferences.setSafe(0.0f);
@@ -511,7 +452,6 @@ public class UserServiceImpl implements UserService {
         userPreferences.setTransport(0.0f);
         userPreferences.setCafe(0.0f);
 
-        // 선호도가 없으면 종료
         if (selectedPreferences == null || selectedPreferences.isEmpty()) {
             log.info("선택된 선호도가 없습니다.");
             return;
@@ -526,7 +466,6 @@ public class UserServiceImpl implements UserService {
 
         log.info("선택된 선호도: {}", limitedPreferences);
 
-        // 해당 항목만 1.0f로 설정
         for (String preference : limitedPreferences) {
             switch (preference.toLowerCase()) {
                 case "safe":
@@ -565,24 +504,18 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    // -------------------------------
-    // 6) 사용자 정보 조회 (getUserById)
-    // -------------------------------
     @Override
     public UserDto getUserById(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException("User not found"));
 
-        // 사용자 선호도 정보 조회
         UserPreferences preferences = userPreferencesRepository.findById(userId).orElse(null);
 
-        // 프로필 Dto
         UserProfileDto profileDto = UserProfileDto.builder()
                 .gender(user.getGender())
                 .age(user.getAge())
                 .build();
 
-        // 선호도 정보
         if (preferences != null) {
             profileDto.setLocation(preferences.getDestination());
 
@@ -609,9 +542,6 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-    // -------------------------------
-    // 7) 프로필 완성 여부 확인
-    // -------------------------------
     @Override
     public boolean isProfileComplete(Integer userId) {
         return userRepository.findById(userId)
