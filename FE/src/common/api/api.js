@@ -398,9 +398,9 @@ export const aiRecommendByUserId = async (userId) => {
     console.log(res)
     return res;
   } catch (err) {
+    console.error("사용자 추천 실패: ", err);
     throw err;
-  }
 }
-
+}
 
 export default zeepApi;
