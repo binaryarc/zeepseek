@@ -5,6 +5,10 @@ from fastapi import FastAPI, Request
 from app.routers.property_score_router import router as property_score_router
 from app.routers.recommend_router import router as ai_recommend_router
 from app.modules.generate_logs.generate_logs import router as activity_log_router
+
+# [추가] 모델 학습 함수를 임포트
+from app.modules.ai_recommender.recommend_service import train_model, model
+
 app = FastAPI()
 
 # uvicorn 기본 로거 대신 별도의 로거 설정
@@ -14,6 +18,24 @@ handler = logging.StreamHandler()
 formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+
+@app.on_event("startup")
+def on_startup():
+    """
+    서버가 시작될 때 자동으로 실행되는 이벤트 핸들러.
+    여기서 SVD 모델을 미리 학습(train)하거나, 저장된 모델을 로드(load)할 수 있습니다.
+    """
+    logger.info("==== [Startup] Server is starting up... ====")
+    try:
+        # 예: 모델을 미리 학습
+        logger.info("Starting to train the SVD model...")
+        train_model()  # 내부에서 model.train(df) 실행
+        if model.is_trained():
+            logger.info("SVD model is successfully trained at startup.")
+        else:
+            logger.warning("SVD model training did not succeed or data was empty.")
+    except Exception as e:
+        logger.error(f"Error during startup model training: {e}")
 
 @app.middleware("http")
 async def logging_middleware(request: Request, call_next):

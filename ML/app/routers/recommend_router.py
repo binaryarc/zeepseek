@@ -15,7 +15,6 @@ logger.setLevel(logging.INFO)
 
 router = APIRouter()
 
-
 # ==========================
 # 1. 사용자 카테고리 점수를 이용한 추천
 # ==========================
@@ -44,15 +43,22 @@ def recommend_properties_endpoint(user_scores: UserCategoryScore):
         user_data = user_scores.model_dump()
     except AttributeError:
         user_data = user_scores.dict()
+    
+    # 사용자 점수 확인 로깅
+    logger.info("[/recommend] UserCategoryScore received: %s", user_data)
 
+    # 실제 추천 호출 전후 로깅
+    logger.info("[/recommend] Calling recommend_properties service...")
     recommendations = recommend_properties(
         user_scores=user_data,
         top_n=10,
         gender=user_scores.gender,
         age=user_scores.age
     )
+    logger.info("[/recommend] Service returned: %s", recommendations)
 
     if not recommendations:
+        logger.warning("[/recommend] No properties found for given user scores.")
         raise HTTPException(status_code=404, detail="No properties found")
 
     global_max_type = None
@@ -60,11 +66,15 @@ def recommend_properties_endpoint(user_scores: UserCategoryScore):
         if rec.get("maxType") is not None:
             global_max_type = rec["maxType"]
             break
+    
+    logger.info("[/recommend] global_max_type: %s", global_max_type)
 
-    return {
+    response = {
         "recommendedProperties": recommendations,
         "maxType": global_max_type
     }
+    logger.info("[/recommend] Final response: %s", response)
+    return response
 
 
 # ==========================
@@ -78,17 +88,23 @@ def get_ai_recommend(
     GET 방식 AI 추천 엔드포인트.
     - recommend_for_mainpage 함수를 사용하여 AI 추천을 수행합니다.
     """
-    logger.info("GET AI 추천 요청: userId=%s", userId)
+    logger.info("[/ai-recommend GET] Received userId=%s", userId)
+    
+    # 추천 호출
+    logger.info("[/ai-recommend GET] Calling recommend_for_mainpage...")
     result = recommend_for_mainpage(userId)
-    # jsonable_encoder를 사용해 NumPy 타입을 파이썬 타입으로 변환
+    logger.info("[/ai-recommend GET] Raw result: %s", result)
+
+    # NumPy 타입 -> 파이썬 내장 타입 변환
     result_converted = jsonable_encoder(
         result,
         custom_encoder={
-            np.int64: int,       # np.int64 -> Python int
-            np.float64: float,   # np.float64 -> Python float
+            np.int64: int,
+            np.float64: float,
         }
     )
-    logger.info("GET AI 추천 결과(변환 후): %s", result_converted)
+    logger.info("[/ai-recommend GET] Converted result: %s", result_converted)
+
     return result_converted
 
 
@@ -101,10 +117,16 @@ def post_ai_recommend(data: dict = Body(...)):
       "user_id": 123
     }
     """
-    logger.info("POST AI 추천 요청 데이터: %s", data)
+    logger.info("[/ai-recommend POST] Received body: %s", data)
     userId = data.get("user_id")
+    logger.info("[/ai-recommend POST] Extracted userId=%s", userId)
+
+    # 추천 호출
+    logger.info("[/ai-recommend POST] Calling recommend_for_mainpage...")
     result = recommend_for_mainpage(userId)
-    # jsonable_encoder를 사용해 NumPy 타입을 파이썬 타입으로 변환
+    logger.info("[/ai-recommend POST] Raw result: %s", result)
+
+    # NumPy 타입 -> 파이썬 내장 타입 변환
     result_converted = jsonable_encoder(
         result,
         custom_encoder={
@@ -112,7 +134,8 @@ def post_ai_recommend(data: dict = Body(...)):
             np.float64: float,
         }
     )
-    logger.info("POST AI 추천 결과(변환 후): %s", result_converted)
+    logger.info("[/ai-recommend POST] Converted result: %s", result_converted)
+
     return result_converted
 
 
@@ -122,7 +145,7 @@ def train_endpoint():
     /ai-recommend/train 엔드포인트를 호출하면,
     Elasticsearch의 로그 데이터를 이용해 AI 추천 모델(SVD 기반)을 학습합니다.
     """
-    logger.info("AI 추천 모델 학습 요청 시작.")
+    logger.info("[/train] AI 추천 모델 학습 요청 시작.")
     train_model()
-    logger.info("AI 추천 모델 학습 완료.")
+    logger.info("[/train] AI 추천 모델 학습 완료.")
     return {"status": "Model trained successfully"}

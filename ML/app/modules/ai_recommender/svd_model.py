@@ -1,21 +1,58 @@
-import pandas as pd  # pandas 라이브러리: 데이터프레임 조작을 위해 사용
-from surprise import Dataset, Reader, SVD  # 추천 시스템 구축에 필요한 클래스들 임포트
+import pandas as pd
+from surprise import Dataset, Reader, SVD, dump
 
 class RecommenderModel:
     def __init__(self):
-        # SVD 알고리즘을 사용하여 추천 모델 객체를 초기화합니다.
-        self.model = SVD()
+        self.model = None
+        self.trainset = None
+
+    def is_trained(self) -> bool:
+        """
+        내부적으로 SVD 모델(self.model)과 trainset이 모두 존재하면 True.
+        """
+        return (self.model is not None) and (self.model.trainset is not None)
 
     def train(self, df: pd.DataFrame):
-        # 평점 데이터의 범위를 0에서 20으로 지정하는 Reader 객체 생성
+        """
+        df에는 최소한 'userId', 'propertyId', 'score' 컬럼이 있어야 함.
+        """
+        if df.empty:
+            raise ValueError("학습할 데이터가 없습니다. (DataFrame이 비어 있음)")
+
+        # Surprise용 Reader
         reader = Reader(rating_scale=(0, 20))
-        # 데이터프레임에서 'user_id', 'property_id', 'score' 컬럼만 추출하여 Surprise 데이터셋으로 변환
-        data = Dataset.load_from_df(df[['user_id', 'property_id', 'score']], reader)
-        # 전체 데이터를 사용하여 학습용 데이터셋 생성 (trainset)
+        # DataFrame → Surprise Dataset
+        data = Dataset.load_from_df(df[['userId', 'propertyId', 'score']], reader)
+
+        # 전체 데이터를 사용한 Trainset
         trainset = data.build_full_trainset()
-        # SVD 모델을 학습시킵니다.
+
+        # SVD 모델 훈련
+        self.model = SVD()
         self.model.fit(trainset)
+        self.trainset = trainset
 
     def predict(self, user_id: int, property_id: int) -> float:
-        # 주어진 user_id와 property_id에 대해 예측된 평점(estimation)을 반환합니다.
-        return self.model.predict(user_id, property_id).est
+        """
+        학습된 SVD 모델에 기반하여 예측 평점을 반환.
+        """
+        if not self.is_trained():
+            raise ValueError("모델이 아직 초기화되지 않았습니다. 먼저 train()을 호출하세요.")
+        prediction = self.model.predict(uid=user_id, iid=property_id)
+        return prediction.est
+
+    def save_model(self, file_path: str):
+        """
+        학습된 모델을 Surprise의 dump()로 파일에 저장 (trainset 포함).
+        """
+        if not self.is_trained():
+            raise ValueError("학습된 모델이 없어 저장할 수 없습니다.")
+        dump.dump(file_path, algo=self.model)
+
+    def load_model(self, file_path: str):
+        """
+        저장된 모델을 Surprise의 load()로 로드 (trainset 포함).
+        """
+        _, loaded_algo = dump.load(file_path)
+        self.model = loaded_algo
+        self.trainset = loaded_algo.trainset
