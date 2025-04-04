@@ -86,17 +86,21 @@ public class LogAspect {
                         // @Loggable의 type 속성에 따라 분기
                         if ("dong_compare".equals(loggable.type())) {
                             // dong 관련 데이터 처리
+                            int userId = (int) bodyMap.get("userId");
                             List<Integer> dongLists = new ArrayList<>();
                             dongLists.add((Integer) bodyMap.get("dong1"));
                             dongLists.add((Integer) bodyMap.get("dong2"));
                             extraData.put("dongIds", dongLists);
+                            extraData.put("userId", userId);
                             log.info("동 비교 RequestBody 데이터 추출: {}", dongLists);
                         } else if ("property_compare".equals(loggable.type())) {
                             // property 관련 데이터 처리
                             List<Integer> propertyLists = new ArrayList<>();
+                            int userId = (int) bodyMap.get("userId");
                             propertyLists.add((Integer) bodyMap.get("prop1"));
                             propertyLists.add((Integer) bodyMap.get("prop2"));
                             extraData.put("propertyIds", propertyLists);
+                            extraData.put("userId", userId);
                             log.info("매물 비교 RequestBody 데이터 추출: {}", propertyLists);
                         }
                     }

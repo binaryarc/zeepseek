@@ -6,10 +6,7 @@ import com.zeepseek.backend.domain.dong.service.CompareService;
 import com.zeepseek.backend.domain.logevent.annotation.Loggable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -22,7 +19,11 @@ public class CompareController {
 
     @PostMapping("/dong")
     @Loggable(action = "compare", type = "dong_compare")
-    public ResponseEntity<?> compareDong(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> compareDong(
+            @RequestBody Map<String, Object> request,
+            @CookieValue(value = "userId", defaultValue = "-1", required = false ) int userId,
+            @CookieValue(value = "age", defaultValue = "-1", required = false ) int age,
+            @CookieValue(value = "gender", defaultValue = "-1", required = false ) String gender) {
         int dong1 = (int) request.get("dong1");
         int dong2 = (int) request.get("dong2");
 
@@ -33,7 +34,11 @@ public class CompareController {
 
     @PostMapping("/property")
     @Loggable(action = "compare", type = "property_compare")
-    public ResponseEntity<?> compareProperty(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> compareProperty(
+            @RequestBody Map<String, Object> request,
+            @CookieValue(value = "userId", defaultValue = "-1", required = false ) int userId,
+            @CookieValue(value = "age", defaultValue = "-1", required = false ) int age,
+            @CookieValue(value = "gender", defaultValue = "-1", required = false ) String gender) {
         int prop1 = (int) request.get("prop1");
         int prop2 = (int) request.get("prop2");
 
