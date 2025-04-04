@@ -296,8 +296,8 @@ def get_user_preference_weights(user_id):
         return USER_PREFERENCE_CACHE[user_id]
     
     # 기본 가중치 조정값 (추가 가중치 없음)
-    default_preference = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    
+    default_preference = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+
     if not user_id:
         logger.info("User ID not provided. Using default preference weights.")
         return default_preference
@@ -448,8 +448,8 @@ def recommend_properties(user_scores: dict, top_n=5, apply_mmr_flag=True, divers
     # 4. user_scores에서 user_id 추출하여 사용자 선호도 반영
     # user_scores는 API에서 전달받는 값으로 필요한 정보를 포함할 수 있음
     user_id = None
-    if user_scores and isinstance(user_scores, dict) and "user_id" in user_scores:
-        user_id = user_scores.get("user_id")
+    if user_scores and isinstance(user_scores, dict):
+        user_id = user_scores.get("user_id") or user_scores.get("userId")
         
     # 사용자 선호도 가중치 적용 (user_id가 있는 경우)
     if user_id:
