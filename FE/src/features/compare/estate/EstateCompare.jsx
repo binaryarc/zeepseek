@@ -45,23 +45,6 @@ const EstateCompare = () => {
     loadLiked();
   }, [user?.idx]);
 
-  // useEffect(() => {
-  //   const fetchPropertyComparison = async () => {
-  //     if (!selected1 || !selected2) return;
-  //     setLoading(true);
-  //     try {
-  //       console.log(selected1.propertyId, selected2.propertyId)
-  //       const result = await fetchPropertyCompare(selected1.propertyId, selected2.propertyId);
-  //       setProPertyCompareData(result);
-  //     } catch (err) {
-  //       console.error("매물 비교 실패:", err);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  //   fetchPropertyComparison();
-  // }, [selected1, selected2]);
-
 
   useEffect(() => {
     const fetchPropertyCompareData = async () => {
@@ -202,39 +185,41 @@ const EstateCompare = () => {
 
         <div className="liked-region-box">
           <h4>찜한 매물</h4>
-          <ul>
-            {likedProperties.length > 0 ? (
-              likedProperties.map((property) => {
-                const isSelected =
-                  selected1?.propertyId === property.propertyId ||
-                  selected2?.propertyId === property.propertyId;
-                return (
-                  <li
-                    key={property.propertyId}
-                    className={isSelected ? "selected-region" : ""}
-                    onClick={() => {
-                      if (isSelected) return;
-                      if (!selected1) setSelected1(property);
-                      else if (!selected2) setSelected2(property);
-                      else {
-                        setSelected1(property);
-                        setSelected2(null);
-                      }
-                    }}
-                  >
-                    {property.address}{" "}
-                    {selected1?.propertyId === property.propertyId
-                      ? "①"
-                      : selected2?.propertyId === property.propertyId
-                      ? "②"
-                      : ""}
-                  </li>
-                );
-              })
-            ) : (
-              <li>찜한 매물이 없습니다.</li>
-            )}
-          </ul>
+          <div className="liked-list-area">
+            <ul>
+              {likedProperties.length > 0 ? (
+                likedProperties.map((property) => {
+                  const isSelected =
+                    selected1?.propertyId === property.propertyId ||
+                    selected2?.propertyId === property.propertyId;
+                  return (
+                    <li
+                      key={property.propertyId}
+                      className={isSelected ? "selected-region" : ""}
+                      onClick={() => {
+                        if (isSelected) return;
+                        if (!selected1) setSelected1(property);
+                        else if (!selected2) setSelected2(property);
+                        else {
+                          setSelected1(property);
+                          setSelected2(null);
+                        }
+                      }}
+                    >
+                      {property.address}{" "}
+                      {selected1?.propertyId === property.propertyId
+                        ? "①"
+                        : selected2?.propertyId === property.propertyId
+                        ? "②"
+                        : ""}
+                    </li>
+                  );
+                })
+              ) : (
+                <li>찜한 매물이 없습니다.</li>
+              )}
+            </ul>
+          </div>
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import "./RoomDetail.css";
 import { getPropertyDetail } from "../../../common/api/api";
 import defaultImage from "../../../assets/logo/192image.png";
@@ -16,6 +16,23 @@ import close from "../../../assets/images/detail_png/close.png";
 const RoomDetail = ({ propertyId }) => {
   const [detail, setDetail] = useState(null);
   const dispatch = useDispatch();
+  const detailRef = useRef(null); // ✅ 이 ref로 RoomDetail 영역 추적
+
+  // 다른 곳 클릭했을 때, RoomDetail 닫기
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (detailRef.current && !detailRef.current.contains(event.target)) {
+        dispatch(setSelectedPropertyId(null)); // 닫기
+      }
+    };
+  
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+  
+
   useEffect(() => {
     console.log("받은 propertyId:", propertyId);
     const fetchDetail = async () => {
@@ -35,7 +52,7 @@ const RoomDetail = ({ propertyId }) => {
   if (!detail) return null; // 아직 로딩 중
 
   return (
-    <div className="room-detail">
+    <div className="room-detail" ref={detailRef}>
       <img
         src={close}
         alt="닫기"
