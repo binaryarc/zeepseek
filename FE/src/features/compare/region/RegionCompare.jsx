@@ -74,7 +74,7 @@ function RegionCompare() {
         ]);
         setRegionScores({ [selectedRegion1.dongId]: data1, [selectedRegion2.dongId]: data2 });
 
-        const summaryResult = await fetchRegionSummary(selectedRegion1.dongId, selectedRegion2.dongId);
+        const summaryResult = await fetchRegionSummary(user.idx, selectedRegion1.dongId, selectedRegion2.dongId);
         setSummary(summaryResult?.data?.compareSummary);
         console.log("region1", selectedRegion1)
         console.log("region2", selectedRegion2)
@@ -107,8 +107,15 @@ function RegionCompare() {
 
   return (
     <div className="region-compare-total-container">
+
       <div className="region-compare-wrapper">
         <div className="region-compare-container">
+          {isLoading && (
+            <div className="loading-overlay">
+              <div className="spinner"></div>
+              비교 데이터를 불러오는 중입니다...
+            </div>
+          )}
           <div className="region-input-row">
             <div className="region-input-wrapper">
               <input
@@ -134,6 +141,8 @@ function RegionCompare() {
             </div>
           </div>
 
+          
+
           {!isLoading && selectedRegion1 && selectedRegion2 && (
             <div className="compare-table">
               <ResponsiveContainer width="100%" height={400}>
@@ -144,7 +153,7 @@ function RegionCompare() {
                     tickSize={20}
                     tick={{ fontweight: "KOROAD_Bold", fontSize: '1.2rem', fill: '#555', dy: 8 }}
                   />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                  <PolarRadiusAxis angle={70} domain={[0, 100]} />
                   <Radar
                     name={`${selectedRegion1.guName} ${selectedRegion1.name}`}
                     dataKey={selectedRegion1.dongId}
