@@ -8,6 +8,7 @@ import { useSelector } from "react-redux";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { logout } from "../../store/slices/authSlice";
+import { setSelectedRoomType } from "../../store/slices/roomListSlice";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -37,6 +38,16 @@ function Navbar() {
     }
   };
 
+
+  const handleClickRecommendButton = () => {
+      if (!user) {
+        alert("로그인 후 이용해주세요.");
+        return;
+      }
+      dispatch(setSelectedRoomType("AI 추천")); // ✅ Redux에 탭 상태 저장
+      navigate("/map");
+    };
+
   useEffect(() => {
     console.log("accessToken:", accessToken);
   })
@@ -54,8 +65,9 @@ function Navbar() {
         <div className="nav-right">
           <div className="nav-menu">
             <span onClick={() => navigate("/map")}>지도</span>
-            {/* <span onClick={() => navigate("/post-room")}>방 내놓기</span> */}
             <span onClick={() => navigate("/zzim")}>찜</span>
+            <span onClick={() => navigate("/compare")}>동네비교</span>
+            <span onClick={() => handleClickRecommendButton()}>추천받기</span>
           </div>
           <div className="nav-user-area" onClick={handleToggleDropdown}>
             <FaRegUserCircle size={22} style={{ marginRight: "6px" }} />
