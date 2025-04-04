@@ -17,6 +17,7 @@ services:
       # 기본 캐시용 Redis (primary)
       - SPRING_REDIS_PRIMARY_HOST=property_redis
       - SPRING_REDIS_PRIMARY_PORT=6379
+      - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: always

@@ -45,11 +45,12 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(endpoint -> endpoint.baseUri("/oauth2/authorize"))
-                        .redirectionEndpoint(endpoint -> endpoint.baseUri("/auth/naver/callback"))
+                        .redirectionEndpoint(endpoint -> endpoint.baseUri("/auth/*/callback"))
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler(oAuth2AuthenticationSuccessHandler)
                         .failureHandler(oAuth2AuthenticationFailureHandler)
-                );
+                )
+                ;
 
         // JWT 필터 추가
         http.addFilterBefore(new JwtAuthenticationFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
@@ -60,10 +61,18 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Collections.singletonList("*"));
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "http://j12e203.p.ssafy.io",
+                "https://j12e203.p.ssafy.io"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token"));
         configuration.setExposedHeaders(Arrays.asList("x-auth-token"));
+
+        configuration.setAllowCredentials(true);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

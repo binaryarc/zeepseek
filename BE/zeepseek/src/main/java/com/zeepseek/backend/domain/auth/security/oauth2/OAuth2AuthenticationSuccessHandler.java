@@ -32,16 +32,19 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
+        // JWT 토큰 생성
+        TokenDto tokenDto = tokenProvider.generateToken(authentication);
+
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
 
         // 사용자 정보 조회
         UserDto userDto = userService.getUserById(userPrincipal.getId());
 
-        // 사용자 정보를 쿠키로 저장
-        CookieUtils.addUserCookie(response, userDto);
+        // 세 가지 쿠키 모두 설정
+        CookieUtils.addAllUserCookies(response, userDto, tokenDto.getRefreshToken());
 
         // 리다이렉트 URL 생성
-        String targetUrl = determineTargetUrl(request, response, authentication);
+        String targetUrl = determineTargetUrl(request, response, authentication, tokenDto);
 
         if (response.isCommitted()) {
             log.debug("응답이 이미 커밋되었습니다. " + targetUrl + "로 리다이렉트할 수 없습니다");
@@ -51,11 +54,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
-    protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+    protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response,
+                                        Authentication authentication, TokenDto tokenDto) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-
-        // JWT 토큰 생성
-        TokenDto tokenDto = tokenProvider.generateToken(authentication);
 
         // 리프레시 토큰 DB에 저장
         Optional<User> userOptional = userRepository.findById(userPrincipal.getId());
@@ -68,7 +69,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         int isFirst = userPrincipal.isFirst() ? 1 : 0;
 
         // 첫 로그인 경로 수정: 프론트엔드의 설문 입력 페이지로 리다이렉트
-        String redirectPath = isFirst == 1 ? "/survey" : "/auth/naver/callback";
+        String redirectPath = isFirst == 1 ? "/survey" : "/auth/" + (authentication.getName().startsWith("kakao_") ? "kakao" : "naver") + "/callback";
 
         // 리다이렉트 URL 생성
         return UriComponentsBuilder.fromUriString(REDIRECT_BASE_URL + redirectPath)
@@ -77,5 +78,13 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .queryParam("isFirst", isFirst)
                 .queryParam("idx", userPrincipal.getId())
                 .build().toUriString();
+    }
+
+    /**
+     * 오버로딩 메서드 추가
+     */
+    protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+        TokenDto tokenDto = tokenProvider.generateToken(authentication);
+        return determineTargetUrl(request, response, authentication, tokenDto);
     }
 }

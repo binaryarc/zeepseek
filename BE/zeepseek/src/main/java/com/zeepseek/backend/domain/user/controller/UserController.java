@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/api/v1/auth") // auth 경로 사용
 @RequiredArgsConstructor
@@ -29,6 +31,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserDto>> firstLoginData(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestBody UserProfileDto profileDto,
+            HttpServletRequest request,
             HttpServletResponse response) {
 
         Integer userId = userPrincipal.getId();
@@ -36,8 +39,17 @@ public class UserController {
 
         UserDto updatedUser = userService.processFirstLoginData(userId, profileDto);
 
-        // 업데이트된 사용자 정보를 쿠키에 저장
-        CookieUtils.addUserCookie(response, updatedUser);
+        // 리프레시 토큰 가져오기
+        Optional<String> refreshToken = CookieUtils.getRefreshTokenFromCookie(request);
+
+        // 사용자 정보 쿠키 업데이트
+        CookieUtils.addUserInfoCookie(response, updatedUser);
+        CookieUtils.addUserIdCookie(response, updatedUser.getIdx());
+
+        // 리프레시 토큰이 있으면 그대로 유지
+        if (refreshToken.isPresent()) {
+            CookieUtils.addRefreshTokenCookie(response, refreshToken.get());
+        }
 
         return ResponseEntity.ok(ApiResponse.success(updatedUser));
     }
@@ -49,6 +61,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserDto>> getUserById(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable("idx") Integer idx,
+            HttpServletRequest request,
             HttpServletResponse response) {
         // 자신의 정보만 조회 가능하도록 검증
         if (!userPrincipal.getId().equals(idx)) {
@@ -57,8 +70,17 @@ public class UserController {
 
         UserDto userDto = userService.getUserById(idx);
 
-        // 사용자 정보를 쿠키에 저장
-        CookieUtils.addUserCookie(response, userDto);
+        // 리프레시 토큰 가져오기
+        Optional<String> refreshToken = CookieUtils.getRefreshTokenFromCookie(request);
+
+        // 사용자 정보 쿠키 업데이트
+        CookieUtils.addUserInfoCookie(response, userDto);
+        CookieUtils.addUserIdCookie(response, userDto.getIdx());
+
+        // 리프레시 토큰이 있으면 그대로 유지
+        if (refreshToken.isPresent()) {
+            CookieUtils.addRefreshTokenCookie(response, refreshToken.get());
+        }
 
         return ResponseEntity.ok(ApiResponse.success("정보 조회 성공", userDto));
     }
@@ -70,17 +92,27 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserDto>> updateUser(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable("idx") Integer idx,
-            @RequestBody UserDto userDto,
+            @RequestBody UserProfileDto profileDto,
+            HttpServletRequest request,
             HttpServletResponse response) {
         // 자신의 정보만 수정 가능하도록 검증
         if (!userPrincipal.getId().equals(idx)) {
             return ResponseEntity.status(403).body(ApiResponse.error("권한이 없습니다."));
         }
 
-        UserDto updatedUser = userService.updateUser(userPrincipal.getId(), userDto);
+        UserDto updatedUser = userService.updateProfile(userPrincipal.getId(), profileDto);
 
-        // 업데이트된 사용자 정보를 쿠키에 저장
-        CookieUtils.addUserCookie(response, updatedUser);
+        // 리프레시 토큰 가져오기
+        Optional<String> refreshToken = CookieUtils.getRefreshTokenFromCookie(request);
+
+        // 사용자 정보 쿠키 업데이트
+        CookieUtils.addUserInfoCookie(response, updatedUser);
+        CookieUtils.addUserIdCookie(response, updatedUser.getIdx());
+
+        // 리프레시 토큰이 있으면 그대로 유지
+        if (refreshToken.isPresent()) {
+            CookieUtils.addRefreshTokenCookie(response, refreshToken.get());
+        }
 
         return ResponseEntity.ok(ApiResponse.success(updatedUser));
     }
@@ -101,9 +133,8 @@ public class UserController {
 
         userService.deleteUser(userPrincipal.getId());
 
-        // 쿠키 삭제
-        CookieUtils.deleteCookie(request, response, "user_info");
-        CookieUtils.deleteCookie(request, response, "user_idx");
+        // 모든 인증 관련 쿠키 삭제
+        CookieUtils.deleteAuthCookies(request, response);
 
         return ResponseEntity.ok(ApiResponse.success("계정이 삭제되었습니다.", null));
     }
