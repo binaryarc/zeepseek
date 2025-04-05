@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -285,9 +286,11 @@ public class UserServiceImpl implements UserService {
     // -------------------------------
     private void fetchCoordinatesAndZipCodeFromKakao(UserPreferences userPreferences, String address) {
         try {
-            String encodedAddress = URLEncoder.encode(address, StandardCharsets.UTF_8);
+            // URI 클래스를 사용하여 이중 인코딩 문제 해결
+            URI uri = new URI(null, null, "/v2/local/search/address.json",
+                    "query=" + address, null);
             // /v2/local/search/address.json?query=...
-            String requestUrl = "/v2/local/search/address.json?query=" + encodedAddress;
+            String requestUrl = uri.getRawPath() + "?" + uri.getRawQuery();
 
             log.info("카카오 맵 API 호출 시작 - 주소: {}", address);
 
@@ -368,6 +371,7 @@ public class UserServiceImpl implements UserService {
             // 여기까지 못 왔으면 기본값으로 세팅
             log.warn("카카오 API에서 주소 정보를 찾을 수 없어 기본값 사용");
             setDefaultCoordinates(userPreferences, address);
+
 
         } catch (Exception e) {
             log.error("카카오 맵 API 호출 중 오류 발생: {}", e.getMessage(), e);
