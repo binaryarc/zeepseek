@@ -2,6 +2,7 @@ package com.zeepseek.backend.domain.property.dto.response;
 
 import com.zeepseek.backend.domain.property.dto.request.CellBoundsDto;
 import com.zeepseek.backend.domain.property.model.Property;
+import com.zeepseek.backend.domain.property.model.PropertyWithLiked;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
