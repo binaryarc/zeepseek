@@ -24,8 +24,9 @@ public class PropertyCellsController {
     @PostMapping("/cells")
     public ResponseEntity<List<CellPropertiesDto>> getPropertiesForCells(
             @RequestBody PropertyCellsRequestDto requestDto,
-            @RequestParam(defaultValue = "all") String type) {
-        List<CellPropertiesDto> response = propertyCellsService.getPropertiesForCells(requestDto.getCells(), type);
+            @RequestParam(defaultValue = "all") String type,
+            @CookieValue(value = "userId", required = false , defaultValue = "-1") int userId) {
+        List<CellPropertiesDto> response = propertyCellsService.getPropertiesForCells(requestDto.getCells(), type, userId);
         return ResponseEntity.ok(response);
     }
 }
