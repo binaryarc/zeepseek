@@ -286,11 +286,8 @@ public class UserServiceImpl implements UserService {
     // -------------------------------
     private void fetchCoordinatesAndZipCodeFromKakao(UserPreferences userPreferences, String address) {
         try {
-            // URI 클래스를 사용하여 이중 인코딩 문제 해결
-            URI uri = new URI(null, null, "/v2/local/search/address.json",
-                    "query=" + address, null);
-            // /v2/local/search/address.json?query=...
-            String requestUrl = uri.getRawPath() + "?" + uri.getRawQuery();
+            String encodedAddress = URLEncoder.encode(address, StandardCharsets.UTF_8.toString());
+            String requestUrl = "/v2/local/search/address.json?query=" + encodedAddress;
 
             log.info("카카오 맵 API 호출 시작 - 주소: {}", address);
 
