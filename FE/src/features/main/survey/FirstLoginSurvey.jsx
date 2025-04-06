@@ -1,15 +1,12 @@
 import React, { useState } from "react";
 import "./FirstLoginSurvey.css";
 import DaumPostcode from "react-daum-postcode";
-
 import { useSelector, useDispatch } from "react-redux";
 import { postSurvey } from "../../../common/api/api"; // 경로 맞춰주세요
 import { setUser } from "../../../store/slices/authSlice";
-// import { setAccessToken } from '../../../store/slices/authSlice';
 import { useNavigate } from "react-router-dom";
 
 const GENDERS = ["남자", "여자"];
-const LOCATIONS = ["멀티캠퍼스 역삼", "강남역", "신촌역", "건대입구역"];
 const CONSIDERATIONS = [
   "안전",
   "편의",

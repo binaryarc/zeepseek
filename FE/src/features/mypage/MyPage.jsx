@@ -7,6 +7,8 @@ import { logoutOAuth } from "../../common/api/authApi";
 import { deleteOAuth } from "../../common/api/authApi";
 import naverlogo from '../../assets/logo/naver.png'
 import kakaologo from '../../assets/logo/kakao.png'
+import SurveyPopup from "../../common/component/SurveyPopup";
+import { useState, useEffect } from "react";
 
 const MyPage = () => {
   const navigate = useNavigate();
@@ -14,6 +16,7 @@ const MyPage = () => {
   const accessToken = useSelector((state) => state.auth.accessToken)
   const social = user?.provider;
   const nickname = user?.nickname || '로그인 유저';
+  const [showSurvey, setShowSurvey] = useState(false);
   const dispatch = useDispatch()
   const getSocialLogo = (provider) => {
     switch (provider) {
@@ -48,6 +51,11 @@ const MyPage = () => {
       console.error("회원탈퇴 실패", err);
     }
   };
+  
+  
+  useEffect(() => {
+    console.log('user:', user)
+  })
 
   return (
     <div className="mypage-container">
@@ -72,9 +80,23 @@ const MyPage = () => {
 
         <div className="mypage-buttons">
           <button onClick={() => navigate('/zzim')}>찜한 매물 </button>
-          <button onClick={() => navigate('/survey')}>내 정보 수정</button>
+          <button onClick={() => setShowSurvey(true)}>내 정보 수정</button>
         </div>
       </div>
+      {showSurvey && (
+        <SurveyPopup
+          onClose={() => setShowSurvey(false)}
+          mode="edit"
+          initialData={{
+            gender: user.profileInfo?.gender,
+            age: user.profileInfo?.age,
+            location: user.profileInfo?.location,
+            preferences: user.profileInfo?.preferences,
+          }}
+        />
+      ) 
+      }
+    
       <div className="mypage-footer">
         <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
         <button className="withdraw-btn" onClick={handleUserDelete}>회원 탈퇴</button>

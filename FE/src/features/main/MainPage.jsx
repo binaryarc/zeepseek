@@ -14,12 +14,21 @@ import "./MainPage.css";
 import MainSearchbar from "../../common/searchbar/MainSearchBar";
 import { useSelector } from "react-redux";
 import MainListingSection from "./recommend/MainListingSection";
+import SurveyPopup from "../../common/component/SurveyPopup";
+import { useEffect, useState } from "react";
 
 function MainPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user); // 🔹 로그인 여부 확인
+  const [showSurvey, setShowSurvey] = useState(false);
 
+  useEffect(() => {
+    if (user?.isFirst === 1) {
+      setShowSurvey(true);
+    }
+  }, [user]);
+  
   const handleMoveToMap = (roomType) => {
     dispatch(setSelectedRoomType(roomType));
     navigate("/map");
@@ -35,6 +44,8 @@ function MainPage() {
     }
   };
 
+
+
   const handleClickRecommendButton = () => {
     if (!user) {
       alert("로그인 후 이용해주세요.");
@@ -47,6 +58,7 @@ function MainPage() {
   return (
     <div className="main-container">
       <Navbar />
+      {showSurvey && <SurveyPopup onClose={() => setShowSurvey(false)} />}
       <img src={zeepseek} alt="zeepseek 로고" className="main-logo" />
       {/* 메인 헤더 */}
       <header className="main-header">

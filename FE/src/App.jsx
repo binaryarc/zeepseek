@@ -9,15 +9,13 @@ function App() {
 
   const navigate = useNavigate();
   const handleAnimationEnd = () => {
-    // ✅ 첫 로그인 사용자라면 메인으로 이동 막기
-
     navigate('/main');
   };
 
   return (
     <>
       <AuthInitializer />
-  6    <div className="app-container">
+      <div className="app-container">
       <img
         src={zeepseek}
         alt="zeepseek 로고"
