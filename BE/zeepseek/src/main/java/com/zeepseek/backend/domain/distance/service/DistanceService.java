@@ -26,7 +26,7 @@ public class DistanceService {
 
     private final WebClient webClient;
     public DistanceService(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.baseUrl("https://dapi.kakao.com").build();
+        this.webClient = webClientBuilder.baseUrl("https://apis-navi.kakaomobility.com").build();
     }
     // 전희성 추가 : RestAPI 및 webclient 추가 끝
     
