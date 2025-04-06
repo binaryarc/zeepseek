@@ -7,10 +7,15 @@ import ReactDOM from "react-dom/client";
 import DetailRegion from "../detailregion/DetailRegion";
 import { Provider } from "react-redux";
 import store from "../../../store/store";
-import { fetchRoomListByBounds, setMapReady } from "../../../store/slices/roomListSlice";
+import {
+  fetchRoomListByBounds,
+  setMapReady,
+  setSelectedPropertyId,
+  setSelectedRoomType,
+} from "../../../store/slices/roomListSlice";
 import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
-
+import { useLayoutEffect } from "react";
 
 const Map = () => {
   const [map, setMap] = useState(null); // 👈 map 객체 저장용 상태
@@ -25,9 +30,21 @@ const Map = () => {
   const { currentGuName, currentDongName, selectedRoomType } = useSelector(
     (state) => state.roomList
   );
-  const user = useSelector((state) => state.auth.user)
+  const user = useSelector((state) => state.auth.user);
+
+  const location = useLocation();
   // 컴포넌트 상단
   window.isMapReady = false;
+
+  useLayoutEffect(() => {
+    if (location.state?.roomType) {
+      dispatch(setSelectedRoomType(location.state.roomType));
+    }
+    if (location.state?.selectedPropertyId) {
+      console.log(location.state?.selectedPropertyId);
+      dispatch(setSelectedPropertyId(location.state.selectedPropertyId));
+    }
+  }, []);
 
   // 아래 window 객체에 등록
   window.setHoverMarker = (lat, lng) => {
@@ -140,9 +157,7 @@ const Map = () => {
 
           // ✅ 지도 레벨이 4 이상으로 올라갔을 때 매물 리스트 다시 불러오기
           if (level > 3) {
-            
             if (currentGuName && currentDongName && selectedRoomType) {
-
               if (level >= 6) {
                 dispatch(
                   fetchRoomListByBounds({
@@ -227,17 +242,19 @@ const Map = () => {
                 // 기존 마커 제거
                 if (markerRef.current) markerRef.current.setMap(null);
                 // ✅ zeep.png 커스텀 마커 설정
-                
+
                 const imageSrc = "/images/zeep.png"; // public 기준 경로
                 const imageSize = new window.kakao.maps.Size(60, 60); // 마커 이미지 크기
-                const imageOption = { offset: new window.kakao.maps.Point(center) }; // 마커 기준점
+                const imageOption = {
+                  offset: new window.kakao.maps.Point(center),
+                }; // 마커 기준점
 
                 const markerImage = new window.kakao.maps.MarkerImage(
                   imageSrc,
                   imageSize,
                   imageOption
                 );
-                                
+
                 const marker = new window.kakao.maps.Marker({
                   position: center,
                   image: markerImage,
@@ -316,8 +333,6 @@ const Map = () => {
       });
     };
   }, []);
-
-  const location = useLocation();
 
   useEffect(() => {
     if (!map || !location.state) return;
