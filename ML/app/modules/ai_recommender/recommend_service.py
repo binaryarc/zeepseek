@@ -34,7 +34,8 @@ PROPERTY_CACHE_TIMESTAMP = 0
 def fetch_logs_from_es(days: int = 30, size: int = 10000):
     """
     Elasticsearch에서 최근 'days' 일간 로그를 가져와
-    [userId, propertyId, action, dongId] -> ACTION_SCORE 매핑 후 DataFrame 반환
+    [userId, propertyId, action, dongId] -> ACTION_SCORE 매핑 후 DataFrame 반환.
+    propertyId가 -1인 데이터는 제거합니다.
     """
     query = {
         "query": {
@@ -56,20 +57,22 @@ def fetch_logs_from_es(days: int = 30, size: int = 10000):
         logger.info("No logs found from ES.")
         return pd.DataFrame(columns=["userId", "propertyId", "action", "dongId"])
     df["score"] = df["action"].map(ACTION_SCORE).fillna(0)
-    logger.info("[fetch_logs_from_es] Retrieved %d logs", len(df))
+    # -1인 propertyId 제거
+    df = df[df["propertyId"] != -1]
+    logger.info("[fetch_logs_from_es] Retrieved %d logs after filtering propertyId=-1", len(df))
     return df[["userId", "propertyId", "score", "dongId"]]
 
 def train_model():
     """
     ES 로그 데이터를 가져와 SVD 모델 학습
-    - 학습 시 userId, propertyId가 -1인 데이터는 제거
+    - 학습 시 userId, propertyId가 -1인 데이터는 제거합니다.
     """
     logger.info("Starting model training...")
     df = fetch_logs_from_es(days=30)
     if df.empty:
         logger.warning("No training data found. Skipping SVD model training.")
         return
-    # -1 필터링
+    # -1 필터링 (추가로 userId도 -1인 경우 제거)
     df = df[(df["userId"] != -1) & (df["propertyId"] != -1)]
     logger.info("Data after filtering -1 => %d logs remain", len(df))
     if df.empty:
