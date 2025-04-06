@@ -26,12 +26,15 @@ public class DistanceService {
     @Value("${spring.security.oauth2.client.registration.kakao.client-id}")
     private String kakaoApiKey;
 
-    private final WebClient webClient;
+    private final WebClient mobilityWebClient;
+    private final WebClient localWebClient;
+
     public DistanceService(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.baseUrl("https://apis-navi.kakaomobility.com").build();
+        this.mobilityWebClient = webClientBuilder.baseUrl("https://apis-navi.kakaomobility.com").build();
+        this.localWebClient = webClientBuilder.baseUrl("https://dapi.kakao.com").build();
     }
     // 전희성 추가 : RestAPI 및 webclient 추가 끝
-    
+
     public CoordinateResponse haversineDistance (CoordinateInfo coordinateInfo) {
 
         double distance = haversine(coordinateInfo.getLat1(),
@@ -77,22 +80,29 @@ public class DistanceService {
         log.info("출발지: {}, {}", lat1, lon1);
         log.info("도착지: {}, {}", lat2, lon2);
 
-        // 도보 API 호출
-        Map<String, Object> walkResponse = callKakaoMobilityAPI(lon1, lat1, lon2, lat2, "WALK");
+        // 도보 API 호출 - 카카오 로컬 API로 변경
+        Map<String, Object> walkResponse = callKakaoLocalAPI(lon1, lat1, lon2, lat2, "pedestrian");
         log.info("도보 API 응답: {}", walkResponse);
 
-        // 대중교통 API 호출
-        Map<String, Object> transitResponse = callKakaoMobilityAPI(lon1, lat1, lon2, lat2, "TRANSIT");
+        // 대중교통 API 호출 - 카카오 로컬 API로 변경
+        Map<String, Object> transitResponse = callKakaoLocalAPI(lon1, lat1, lon2, lat2, "transit");
         log.info("대중교통 API 응답: {}", transitResponse);
 
-        // 자동차 API 호출
+        // 자동차 API 호출 - 기존 모빌리티 API 유지
         Map<String, Object> drivingResponse = callKakaoMobilityAPI(lon1, lat1, lon2, lat2, "DRIVING");
         log.info("자동차 API 응답: {}", drivingResponse);
 
         // 응답 파싱
-        Integer walkingDuration = extractDuration(walkResponse);
-        Integer transitDuration = extractDuration(transitResponse);
-        Integer drivingDuration = extractDuration(drivingResponse);
+        Integer walkingDuration = extractLocalDuration(walkResponse);
+        Integer transitDuration = extractLocalDuration(transitResponse);
+        Integer drivingDuration = extractMobilityDuration(drivingResponse);
+
+        // 도보 시간이 null인 경우 하버사인 공식 사용
+        if (walkingDuration == null) {
+            double distance = haversine(lat1, lon1, lat2, lon2);
+            walkingDuration = calculateWalkingTime(distance);
+            log.info("도보 시간 API 획득 실패, 하버사인 공식 사용: {}초", walkingDuration);
+        }
 
         KakaoTransitResponse response = KakaoTransitResponse.builder()
                 .walkingDuration(walkingDuration)
@@ -104,17 +114,48 @@ public class DistanceService {
         return response;
     }
 
-    // 카카오모빌리티 API 호출 메서드
+    // 카카오 로컬 API 호출 메서드 (도보, 대중교통용)
+    private Map<String, Object> callKakaoLocalAPI(double sLon, double sLat, double eLon, double eLat, String type) {
+        try {
+            return localWebClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/v2/local/directions/" + type) // pedestrian 또는 transit
+                            .queryParam("origin", sLon + "," + sLat)
+                            .queryParam("destination", eLon + "," + eLat)
+                            .build())
+                    .header(HttpHeaders.AUTHORIZATION, "KakaoAK " + kakaoApiKey)
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError() || status.is5xxServerError(),
+                            response -> response.bodyToMono(String.class)
+                                    .flatMap(error -> {
+                                        log.error("카카오 로컬 API 오류: {}", error);
+                                        return Mono.error(new RuntimeException("API 호출 실패: " + error));
+                                    })
+                    )
+                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                    .onErrorResume(e -> {
+                        log.error("로컬 API 호출 중 오류 발생: {}", e.getMessage());
+                        return Mono.just(new HashMap<>());
+                    })
+                    .block();
+        } catch (Exception e) {
+            log.error("로컬 API 호출 예외: {}", e.getMessage());
+            return new HashMap<>();
+        }
+    }
+
+    // 카카오모빌리티 API 호출 메서드 (자동차용)
     private Map<String, Object> callKakaoMobilityAPI(double sLon, double sLat, double eLon, double eLat, String mode) {
         try {
-            return webClient.get()
+            return mobilityWebClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .path("/v1/directions")
                             .queryParam("origin", sLon + "," + sLat)
                             .queryParam("destination", eLon + "," + eLat)
                             .queryParam("priority", "TIME")
                             .queryParam("car_type", "1")  // 자동차 유형 (1: 일반)
-                            .queryParam("mode", mode)     // 이동 수단 (WALK, TRANSIT, DRIVING)
+                            .queryParam("mode", mode)     // 이동 수단 (DRIVING)
                             .build())
                     .header(HttpHeaders.AUTHORIZATION, "KakaoAK " + kakaoApiKey)
                     .retrieve()
@@ -128,19 +169,44 @@ public class DistanceService {
                     )
                     .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                     .onErrorResume(e -> {
-                        log.error("API 호출 중 오류 발생: {}", e.getMessage());
+                        log.error("모빌리티 API 호출 중 오류 발생: {}", e.getMessage());
                         return Mono.just(new HashMap<>());
                     })
                     .block();
         } catch (Exception e) {
-            log.error("API 호출 예외: {}", e.getMessage());
+            log.error("모빌리티 API 호출 예외: {}", e.getMessage());
             return new HashMap<>();
         }
     }
 
-    // 카카오 API 응답에서 소요 시간 추출
+    // 카카오 로컬 API 응답에서 소요 시간 추출
     @SuppressWarnings("unchecked")
-    private Integer extractDuration(Map<String, Object> response) {
+    private Integer extractLocalDuration(Map<String, Object> response) {
+        try {
+            // 로컬 API는 응답 구조가 다를 수 있음
+            if (response != null) {
+                if (response.containsKey("routes")) {
+                    List<Map<String, Object>> routes = (List<Map<String, Object>>) response.get("routes");
+                    if (!routes.isEmpty()) {
+                        Map<String, Object> route = routes.get(0);
+                        if (route.containsKey("duration")) {
+                            return (Integer) route.get("duration");
+                        }
+                    }
+                } else if (response.containsKey("duration")) {
+                    // 일부 API는 최상위에 duration이 있을 수 있음
+                    return (Integer) response.get("duration");
+                }
+            }
+        } catch (Exception e) {
+            log.error("카카오 로컬 API 응답 파싱 오류", e);
+        }
+        return null;
+    }
+
+    // 카카오 모빌리티 API 응답에서 소요 시간 추출 (기존 메서드)
+    @SuppressWarnings("unchecked")
+    private Integer extractMobilityDuration(Map<String, Object> response) {
         try {
             if (response != null && response.containsKey("routes")) {
                 List<Map<String, Object>> routes = (List<Map<String, Object>>) response.get("routes");
@@ -162,7 +228,7 @@ public class DistanceService {
                 }
             }
         } catch (Exception e) {
-            log.error("카카오 API 응답 파싱 오류", e);
+            log.error("카카오 모빌리티 API 응답 파싱 오류", e);
         }
         return null;
     }
