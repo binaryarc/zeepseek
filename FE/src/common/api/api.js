@@ -309,12 +309,15 @@ export const postSurvey = async (surveyData, accessToken) => {
   return response.data;
 };
 
-export const patchSurvey = (userId, surveyData, accessToken) =>
+export const patchSurvey = async (userId, surveyData, accessToken) =>{
+  const response = await
   zeepApi.patch(`/auth/${userId}`, surveyData, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
-  });
+  }
+);
+return response.data;}
 
 
 
