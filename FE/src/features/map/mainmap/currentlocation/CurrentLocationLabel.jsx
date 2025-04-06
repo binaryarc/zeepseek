@@ -8,6 +8,7 @@ import {
   setCurrentGuAndDongName,
 } from "../../../../store/slices/roomListSlice";
 import store from "../../../../store/store";
+import { useLocation } from "react-router-dom";
 
 function CurrentLocationLabel({ map }) {
   const [locationName, setLocationName] = useState("");
@@ -19,6 +20,38 @@ function CurrentLocationLabel({ map }) {
   //   (state) => state.roomList.selectedRoomType
   // );
   const user = useSelector((state) => state.auth.user);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location?.state?.selectedPropertyId) {
+
+      setTimeout(() => {
+        requestAnimationFrame(() => {
+          const center = map.getCenter();
+          const level = map.getLevel();
+
+          const geocoder = new window.kakao.maps.services.Geocoder();
+
+          geocoder.coord2RegionCode(
+            center.getLng(),
+            center.getLat(),
+            (result, status) => {
+              if (status !== window.kakao.maps.services.Status.OK) return;
+
+              const regionData = result[1];
+              const guName = regionData.region_2depth_name;
+              const dongName = regionData.region_3depth_name.replaceAll(
+                ".",
+                "·"
+              );
+
+              setLocationName(level >= 6 ? guName : dongName);
+            }
+          );
+        });
+      }, 300);
+    }
+  }, [location?.state?.selectedPropertyId]);
 
   // ✅ searchLock 최신값 반영
   useEffect(() => {
@@ -31,6 +64,12 @@ function CurrentLocationLabel({ map }) {
     const geocoder = new window.kakao.maps.services.Geocoder();
 
     const updateCenterAddress = () => {
+      // ✅ 검색에서 들어온 경우 idle 처리 무시
+      if (location.state?.selectedPropertyId) {
+        console.log("⛔ 검색 이동으로 인한 idle 이벤트 → 라벨 무시");
+        return;
+      }
+
       console.log("✅ idle 이벤트 발생!", map.getCenter());
       const center = map.getCenter();
       const level = map.getLevel();
