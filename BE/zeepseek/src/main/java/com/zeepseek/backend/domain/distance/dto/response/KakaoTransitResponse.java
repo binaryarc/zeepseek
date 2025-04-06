@@ -10,8 +10,9 @@ import lombok.ToString;
 public class KakaoTransitResponse {
     private Integer walkingDuration;    // 도보 시간 (초)
     private Integer transitDuration;    // 대중교통 시간 (초)
-    
-    // 사용자 친화적인 시간 문자열 반환 메서드
+    private Integer drivingDuration;    // 자차 시간 (초)
+
+    // 도보 시간 문자열
     public String getWalkingTimeString() {
         if (walkingDuration == null) return "정보 없음";
         int minutes = walkingDuration / 60;
@@ -21,10 +22,22 @@ public class KakaoTransitResponse {
             return (minutes / 60) + "시간 " + (minutes % 60) + "분";
         }
     }
-    
+
+    // 대중교통 시간 문자열
     public String getTransitTimeString() {
         if (transitDuration == null) return "정보 없음";
         int minutes = transitDuration / 60;
+        if (minutes < 60) {
+            return minutes + "분";
+        } else {
+            return (minutes / 60) + "시간 " + (minutes % 60) + "분";
+        }
+    }
+
+    // 자차 시간 문자열
+    public String getDrivingTimeString() {
+        if (drivingDuration == null) return "정보 없음";
+        int minutes = drivingDuration / 60;
         if (minutes < 60) {
             return minutes + "분";
         } else {
