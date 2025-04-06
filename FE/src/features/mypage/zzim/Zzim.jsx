@@ -5,21 +5,33 @@ import { fetchLikedProperties, unlikeProperty } from "../../../common/api/api";
 import "./Zzim.css";
 import Navbar from "../../../common/navbar/Navbar";
 import { useDispatch, useSelector } from "react-redux";
-import blankImg from "../../../assets/logo/512image.png"
+import blankImg from "../../../assets/logo/512image.png";
 import { FaHeart } from "react-icons/fa";
-import { setSelectedPropertyId } from "../../../store/slices/roomListSlice";
+import {
+  // setSelectedPropertyId,
+  setSelectedRoomType,
+} from "../../../store/slices/roomListSlice";
 import { useNavigate } from "react-router-dom";
 
 const Zzim = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [groupedZzims, setGroupedZzims] = useState({});
-  const user = useSelector((state) => state.auth?.user)
-  const [flag, setFlag] = useState(false)
+  const user = useSelector((state) => state.auth?.user);
+  const [flag, setFlag] = useState(false);
+
+  const handleCardClick = (property) => {
+    dispatch(setSelectedRoomType("찜"));
+    navigate("/map", {
+      state: {
+        selectedPropertyId: property.propertyId,
+      },
+    });
+  };
 
   useEffect(() => {
     if (!user?.idx) return;
-    
+
     fetchLikedProperties(user.idx).then((zzims) => {
       // 구 단위로 그룹핑
       const grouped = zzims.reduce((acc, item) => {
@@ -29,7 +41,7 @@ const Zzim = () => {
         return acc;
       }, {});
       setGroupedZzims(grouped);
-      console.log(groupedZzims)
+      console.log(groupedZzims);
     });
   }, [user?.idx, flag]);
 
@@ -47,45 +59,45 @@ const Zzim = () => {
   const getRoomType = (roomBathCount) => {
     // 숫자에 해당하는 매핑 객체
     const roomTypeMapping = {
-      "1": "원룸",
-      "2": "투룸",
-      "3": "쓰리룸",
-      "4": "포룸"  // 필요에 따라 다른 문자열로 변경 가능
+      1: "원룸",
+      2: "투룸",
+      3: "쓰리룸",
+      4: "포룸", // 필요에 따라 다른 문자열로 변경 가능
     };
-    
+
     // roomBathCount 값이 존재하는지 확인 후, '/'를 기준으로 split하여 첫번째 값 추출
     if (roomBathCount) {
-      const count = roomBathCount.split('/')[0];
+      const count = roomBathCount.split("/")[0];
       return roomTypeMapping[count] || "";
     }
     return "";
   };
 
-const toggleLike = async (room, e) => {
+  const toggleLike = async (room, e) => {
     e.stopPropagation();
     const { propertyId } = room;
     if (user === null) return alert("로그인이 필요합니다.");
 
     try {
       await unlikeProperty(propertyId, user.idx);
-      setFlag(prevFlag => !prevFlag);
+      setFlag((prevFlag) => !prevFlag);
     } catch (err) {
       console.error("찜 취소 실패:", err);
     }
   };
 
   // 카드 클릭 시: Redux에 선택된 매물 정보 및 검색 키워드(주소) 업데이트 후 map 페이지로 이동
-  const handleCardClick = (room) => {
-    dispatch(setSelectedPropertyId(room.propertyId));
-  
-    navigate("/map", {
-      state: {
-        lat: room.latitude,
-        lng: room.longitude,
-        property: room, // ✅ 클릭한 매물도 함께 넘기기
-      },
-    });
-  };
+  // const handleCardClick = (room) => {
+  //   dispatch(setSelectedPropertyId(room.propertyId));
+
+  //   navigate("/map", {
+  //     state: {
+  //       lat: room.latitude,
+  //       lng: room.longitude,
+  //       property: room, // ✅ 클릭한 매물도 함께 넘기기
+  //     },
+  //   });
+  // };
   return (
     <div className="zzim-page">
       <Navbar />
@@ -113,8 +125,8 @@ const toggleLike = async (room, e) => {
             <h3 className="gu-name">{gu}</h3>
             <div className="zzim-list">
               {groupedZzims[gu].map((room) => (
-                <div 
-                  key={room.propertyId} 
+                <div
+                  key={room.propertyId}
                   className="zzim-card"
                   onClick={() => handleCardClick(room)}
                 >
@@ -123,11 +135,16 @@ const toggleLike = async (room, e) => {
                     alt="매물 이미지"
                     className="zzim-img"
                   />
-                  <button onClick={(e) => toggleLike(room , e)} className="zzim-delete-btn">
+                  <button
+                    onClick={(e) => toggleLike(room, e)}
+                    className="zzim-delete-btn"
+                  >
                     <FaHeart color="red" size={24} />
                   </button>
                   <div className="zzim-info">
-                    <span className="zzim-room-type">{getRoomType(room.roomBathCount)}</span>
+                    <span className="zzim-room-type">
+                      {getRoomType(room.roomBathCount)}
+                    </span>
                     <p className="price">{room.price}</p>
                     <p className="desc">{room.description}</p>
                     <p className="addr">{room.address}</p>

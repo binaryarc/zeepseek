@@ -1,9 +1,9 @@
 .facility-type-sidebar {
   position: absolute;
-  top: 300px; /* 헤더 밑으로 */
-  right: 20px;
+  top: 100px; /* 헤더 밑으로 */
+  right: 30px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 10px;
   z-index: 10;
 }
