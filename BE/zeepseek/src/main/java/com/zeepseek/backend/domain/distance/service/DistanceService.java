@@ -114,7 +114,6 @@ public class DistanceService {
                             .queryParam("destination", eLon + "," + eLat)
                             .queryParam("priority", "TIME")
                             .queryParam("car_type", "1")  // 자동차 유형 (1: 일반)
-                            .queryParam("avoid", "0")     // 회피 옵션 (0: 없음)
                             .queryParam("mode", mode)     // 이동 수단 (WALK, TRANSIT, DRIVING)
                             .build())
                     .header(HttpHeaders.AUTHORIZATION, "KakaoAK " + kakaoApiKey)
