@@ -12,6 +12,7 @@ const ZzimList = () => {
   const [rooms, setRooms] = useState([]);
   const selectedPropertyId = useSelector((state) => state.roomlist)
   const [circleOverlay, setCircleOverlay] = useState(null);
+  const [selectedRoom, setSelectedRoom] = useState(null);
   const [nearbyMarkers, setNearbyMarkers] = useState([]);
   const user = useSelector((state) => state.auth.user);
 
@@ -45,18 +46,15 @@ const ZzimList = () => {
     loadZzimRooms();
   }, [user?.idx]);
 
-  const handleMouseEnter = async (room) => {
+  const drawOverlayAndMarkers = async (room) => {
     if (!room.latitude || !room.longitude) return;
-
-    nearbyMarkers.forEach((m) => m.setMap(null));
-    if (circleOverlay) circleOverlay.setMap(null);
 
     const map = window.map;
     const latlng = new window.kakao.maps.LatLng(room.latitude, room.longitude);
-    window.setHoverMarker(room.latitude, room.longitude);
     map.setCenter(latlng);
     map.setLevel(5);
 
+    if (circleOverlay) circleOverlay.setMap(null);
     const circle = new window.kakao.maps.Circle({
       center: latlng,
       radius: 1000,
@@ -69,34 +67,60 @@ const ZzimList = () => {
     circle.setMap(map);
     setCircleOverlay(circle);
 
-    // ✅ 안전한 데이터 구조 분해
     try {
-        const response = await fetchNearbyPlaces(selectedFacilityType, room.longitude, room.latitude);
-        const places = response?.data || [];
-      
-        const emoji = facilityEmojiMap[selectedFacilityType] || "📍";
-      
-        const markers = places.map(({ latitude, longitude }) => {
-          const content = `<div class="custom-facility-marker">${emoji}</div>`;
-          return new window.kakao.maps.CustomOverlay({
-            position: new window.kakao.maps.LatLng(latitude, longitude),
-            content,
-            yAnchor: 1,
-          });
+      const response = await fetchNearbyPlaces(selectedFacilityType, room.longitude, room.latitude);
+      const places = response?.data || [];
+      const emoji = facilityEmojiMap[selectedFacilityType] || "📍";
+
+      nearbyMarkers.forEach((m) => m.setMap(null));
+
+      const markers = places.map(({ latitude, longitude }) => {
+        const content = `<div class="custom-facility-marker">${emoji}</div>`;
+        return new window.kakao.maps.CustomOverlay({
+          position: new window.kakao.maps.LatLng(latitude, longitude),
+          content,
+          yAnchor: 1,
         });
-      
-        markers.forEach((m) => m.setMap(map));
-        setNearbyMarkers(markers);
-      } catch (error) {
-        console.error("주변 시설 가져오기 실패:", error);
-      }
+      });
+
+      markers.forEach((m) => m.setMap(map));
+      setNearbyMarkers(markers);
+    } catch (error) {
+      console.error("주변 시설 가져오기 실패:", error);
+    }
   };
 
-  const handleMouseLeave = () => {
-    window.clearHoverMarker();
-    nearbyMarkers.forEach((m) => m.setMap(null));
-    if (circleOverlay) circleOverlay.setMap(null);
+  useEffect(() => {
+    if (selectedRoom) {
+      drawOverlayAndMarkers(selectedRoom);
+    } else {
+      if (circleOverlay) circleOverlay.setMap(null);
+      nearbyMarkers.forEach((m) => m.setMap(null));
+      setCircleOverlay(null);
+      setNearbyMarkers([]);
+    }
+  }, [selectedRoom, selectedFacilityType]);
+
+//   const handleMouseLeave = () => {
+//     window.clearHoverMarker();
+//     nearbyMarkers.forEach((m) => m.setMap(null));
+//     if (circleOverlay) circleOverlay.setMap(null);
+//   };
+
+  const handleRoomClick = (room) => {
+    dispatch(
+            setSelectedPropertyId(
+            selectedPropertyId === room.propertyId
+            ? null
+            : room.propertyId
+            ))
+    if (selectedRoom?.propertyId === room.propertyId) {
+      setSelectedRoom(null);
+    } else {
+      setSelectedRoom(room);
+    }
   };
+
 
   // 찜 토글 기능
   const toggleLike = async (room) => {
@@ -157,17 +181,9 @@ const ZzimList = () => {
                 <div
                   key={room.propertyId}
                   className={`room-item ${selectedPropertyId === room.propertyId ? "selected" : ""}`}
-                  onClick={() =>
-                                  dispatch(
-                                    setSelectedPropertyId(
-                                      selectedPropertyId === room.propertyId
-                                        ? null
-                                        : room.propertyId
-                                    )
-                                  )
-                                }
-                  onMouseEnter={() => handleMouseEnter(room)}
-                  onMouseLeave={handleMouseLeave}
+                  onClick={() => handleRoomClick(room)}
+                //   onMouseEnter={() => handleMouseEnter(room)}
+                //   onMouseLeave={handleMouseLeave}
                 >
                   <img src={room.imageUrl || defaultImage} alt="매물 이미지" />
                   <div className="room-info">
