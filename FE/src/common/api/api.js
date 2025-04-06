@@ -8,8 +8,8 @@ const zeepApi = axios.create({
 });
 
 // const authApi = axios.create({
-//   baseURL: `https://j12e203.p.ssafy.io/api/v1`, // ✅ API 서버 주소
-//   withCredentials: true, // ✅ 쿠키 포함 요청
+//   baseURL: `http://localhost:8082/api/v1`, // ✅ API 서버 주소
+//   withCredentials: false, 
 // });
 
 // ✅ 요청 인터셉터 (모든 요청에 `accessToken` 자동 추가)
@@ -308,6 +308,15 @@ export const postSurvey = async (surveyData, accessToken) => {
   });
   return response.data;
 };
+
+export const patchSurvey = (userId, surveyData, accessToken) =>
+  zeepApi.patch(`/auth/${userId}`, surveyData, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+
 
 export const fetchNearbyPlaces = async (type, lng, lat) => {
   try {

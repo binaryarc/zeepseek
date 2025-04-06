@@ -33,10 +33,11 @@ const NaverRedirectHandler = () => {
 
           // ✅ 여기서 분기 처리
           if (userInfoData.isFirst === 1) {
-            navigate("/survey");
+            navigate("/main", { state: { showSurvey: true } }); // ✅ 상태로 전달
           } else {
             navigate("/main");
           }
+          
         } catch (error) {
           console.error("네이버 로그인 처리 실패:", error);
           navigate("/login");
