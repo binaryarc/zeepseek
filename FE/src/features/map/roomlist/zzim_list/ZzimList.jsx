@@ -7,14 +7,20 @@ import defaultImage from "../../../../assets/logo/192image.png";
 import { setSelectedPropertyId } from "../../../../store/slices/roomListSlice";
 import { fetchLikedProperties, unlikeProperty, fetchNearbyPlaces } from "../../../../common/api/api";
 import { useDispatch } from "react-redux";
+import { useLocation } from "react-router-dom";
+import { useLayoutEffect } from "react";
+import DongNameMarkers from "../../mainmap/salecountmarkers/DongNameMarkers/DongNameMarkers";
+import GuNameMarkers from "../../mainmap/salecountmarkers/GuNameMarkers/GuNameMarkers";
+
 
 const ZzimList = () => {
   const [rooms, setRooms] = useState([]);
-  const selectedPropertyId = useSelector((state) => state.roomlist)
+  const selectedPropertyId = useSelector((state) => state.roomlist?.selectedPropertyId);
   const [circleOverlay, setCircleOverlay] = useState(null);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [nearbyMarkers, setNearbyMarkers] = useState([]);
   const user = useSelector((state) => state.auth.user);
+  const location = useLocation()
 
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 15;
@@ -35,6 +41,25 @@ const ZzimList = () => {
     transport: "🚌",
     cafe: "☕",
   };
+
+  useLayoutEffect(() => {
+    const id = location.state?.selectedPropertyId;
+    if (!id) return;
+
+    setTimeout(() => {
+        
+        requestAnimationFrame(() => {
+            const targetCard = document.querySelector(
+                `[data-property-id="${id}"]`
+            );
+            if (targetCard) {
+                targetCard.click();
+            } else {
+                console.log("🔴 targetCard not found yet");
+            }
+        });
+    }, 300);
+  }, [location.state?.selectedPropertyId]);
 
   useEffect(() => {
     const loadZzimRooms = async () => {
@@ -93,7 +118,15 @@ const ZzimList = () => {
   useEffect(() => {
     if (selectedRoom) {
       drawOverlayAndMarkers(selectedRoom);
+
+      // ✅ 선택된 매물의 마커 표시
+    if (selectedRoom.latitude && selectedRoom.longitude) {
+        window.setHoverMarker(selectedRoom.latitude, selectedRoom.longitude);
+      }
     } else {
+      // ✅ 마커 제거
+      window.clearHoverMarker();
+    
       if (circleOverlay) circleOverlay.setMap(null);
       nearbyMarkers.forEach((m) => m.setMap(null));
       setCircleOverlay(null);
@@ -153,6 +186,10 @@ const ZzimList = () => {
 
     return (
         <>
+            {/* 지도 위 동/구 이름 오버레이 */}
+        <DongNameMarkers map={window.map} />
+        <GuNameMarkers map={window.map} />
+        
         <div className="facility-type-sidebar">
             {[
                 { key: "leisure", label: "여가" },
@@ -180,6 +217,7 @@ const ZzimList = () => {
               {currentRooms.map((room) => (
                 <div
                   key={room.propertyId}
+                  data-property-id={String(room.propertyId)}
                   className={`room-item ${selectedPropertyId === room.propertyId ? "selected" : ""}`}
                   onClick={() => handleRoomClick(room)}
                 //   onMouseEnter={() => handleMouseEnter(room)}
