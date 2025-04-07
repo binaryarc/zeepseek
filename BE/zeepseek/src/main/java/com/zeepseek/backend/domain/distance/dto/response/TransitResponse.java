@@ -11,6 +11,7 @@ public class TransitResponse {
     private Integer walkingDuration;    // 도보 시간 (초)
     private Integer transitDuration;    // 대중교통 시간 (초)
     private Integer drivingDuration;    // 자차 시간 (초)
+    private String destination;         // 사용자 목적지 이름
 
     // 도보 시간 문자열
     public String getWalkingTimeString() {
