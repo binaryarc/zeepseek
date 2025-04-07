@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./RoomList.css";
 import AiRecommend from "./ai_recommend/AiRecommend";
 import ZzimList from "./zzim_list/ZzimList";
@@ -13,9 +13,12 @@ import {
 import defaultImage from "../../../assets/logo/192image.png";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { likeProperty, unlikeProperty } from "../../../common/api/api";
-import { useEffect } from "react";
+import { useRef } from "react";
 
 const RoomList = () => {
+
+  const roomListRef = useRef(null); 
+
   const reduxSelectedRoomType = useSelector(
     (state) => state.roomList.selectedRoomType
   );
@@ -29,11 +32,37 @@ const RoomList = () => {
   }, [reduxSelectedRoomType]);
 
   const dispatch = useDispatch();
-  const { currentGuName, currentDongName } = useSelector(
-    (state) => state.roomList
-  );
+  const {
+    currentGuName,
+    currentDongName,
+    rooms,
+    loading,
+    keyword,
+    selectedPropertyId,
+    currentPage,
+    pageSize,
+  } = useSelector((state) => state.roomList);
 
-  let level = 5;
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        roomListRef.current &&
+        !roomListRef.current.contains(e.target)
+      ) {
+        // 외부 클릭이면 RoomDetail 닫기
+        dispatch(setSelectedPropertyId(null));
+      }
+    };
+    if (selectedPropertyId !== null) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [selectedPropertyId]);
+
+  let level = null;
   if (window.isMapReady && typeof window.map?.getLevel === "function") {
     level = window.map.getLevel();
   } else {
@@ -51,7 +80,6 @@ const RoomList = () => {
       } else {
         await likeProperty(propertyId, user.idx);
       }
-
       // ✅ rooms 배열 업데이트
       const updatedRooms = rooms.map((r) =>
         r.propertyId === propertyId ? { ...r, liked: !r.liked } : r
@@ -66,21 +94,10 @@ const RoomList = () => {
     setSelectedTab(tab);
     dispatch(setSelectedRoomType(tab));
 
-    // // ✅ AI 추천 탭이면 지도에서 grid 관련 레이어 제거
-    // if (tab === "AI 추천") {
-    //   if (window.clearPolygonLayer) {
-    //     window.clearPolygonLayer(); // 예: 폴리곤 클러스터 제거
-    //   }
-    //   if (window.clearClusterMarkers) {
-    //     window.clearClusterMarkers(); // 예: 클러스터 마커 제거
-    //   }
-    //   return;
-    // }
-
     if (currentGuName && (currentDongName || currentDongName === "")) {
-      console.log("현재레벨;",level)
       console.log(tab);
       if (level < 6 && level > 3) {
+        console.log("아아아아아아", user.idx);
         dispatch(
           fetchRoomListByBounds({
             guName: currentGuName,
@@ -99,13 +116,19 @@ const RoomList = () => {
           })
         );
       }
-
       console.log(currentDongName, currentGuName, "실행돼썽용용");
     }
   };
-  // ✅ Redux 상태에서 매물 리스트, 로딩 상태 가져오기
-  const { rooms, loading, keyword, selectedPropertyId, currentPage, pageSize } =
-    useSelector((state) => state.roomList);
+
+  // Modified: 
+  // keyword가 비어있지 않고 (null이 아니고) keyword와 currentDongName이 다르면 무조건 currentDongName 사용
+  // 그렇지 않으면 keyword가 있으면 keyword, 없으면 currentDongName 사용
+  const displayKeyword =
+    keyword && keyword.trim() !== "" && keyword !== currentDongName
+      ? currentDongName
+      : keyword && keyword.trim() !== ""
+      ? keyword
+      : currentDongName;
 
   const totalPages = Math.ceil(rooms.length / pageSize);
   const maxPageButtons = 3; // 페이지 버튼 최대 노출 수
@@ -121,13 +144,8 @@ const RoomList = () => {
     dispatch(setCurrentPage(page));
   };
 
-  // const handlePageChange = (page) => {
-  //   window.scrollTo({ top: 0, behavior: "smooth" });
-  //   dispatch(setCurrentPage(page));
-  // };
-
   return (
-    <div className="room-list">
+    <div className="room-list" ref={roomListRef}>
       <nav className="room-type">
         {["원룸/투룸", "오피스텔", "주택/빌라", "AI 추천", "찜"].map((tab) => (
           <span
@@ -145,10 +163,12 @@ const RoomList = () => {
       ) : selectedTab === "찜" ? (
         <ZzimList />
       ) : loading ? (
-        <div className="loading-message">🔄 매물 불러오는 중...</div>
+        <div className="loading-message">
+          <span className="room-spinner" /> 매물 로딩 중...
+        </div>
       ) : currentRooms.length === 0 ? (
         <div className="no-result-message">
-          ❗ "{keyword}"에 대한 매물이 없습니다.
+          ❗ "{displayKeyword}"에 대한 매물이 없습니다.
         </div>
       ) : (
         <>
@@ -158,15 +178,16 @@ const RoomList = () => {
               className={`room-item ${
                 selectedPropertyId === room.propertyId ? "selected" : ""
               }`}
-              onClick={() =>
-                dispatch(
-                  setSelectedPropertyId(
-                    selectedPropertyId === room.propertyId
-                      ? null
-                      : room.propertyId
-                  )
-                )
-              }
+              onClick={() => {
+                if (selectedPropertyId === room.propertyId) {
+                  console.log("끕니다");
+                  dispatch(setSelectedPropertyId(null)); // 다시 클릭 → 닫기
+                } else {
+                  console.log(selectedPropertyId, room.propertyId);
+                  console.log("켜요요");
+                  dispatch(setSelectedPropertyId(room.propertyId)); // 다른 매물 → 열기
+                }
+              }}
               onMouseEnter={() => {
                 if (room.latitude && room.longitude) {
                   window.setHoverMarker(room.latitude, room.longitude);
@@ -184,7 +205,10 @@ const RoomList = () => {
                 <p className="room-description">{room.description}</p>
                 <p className="room-address">{room.address}</p>
                 <button
-                  onClick={() => toggleLike(room)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleLike(room);
+                  }}
                   className={`like-btn ${room.liked ? "liked" : ""}`} // liked 상태에 따라 클래스를 추가
                 >
                   {room.liked ? "❤️" : "🤍"}
@@ -192,7 +216,6 @@ const RoomList = () => {
               </div>
             </div>
           ))}
-
           <div className="pagination">
             <button onClick={() => goToPage(1)} disabled={currentPage === 1}>
               &laquo;
@@ -203,7 +226,6 @@ const RoomList = () => {
             >
               &lsaquo;
             </button>
-
             {Array.from(
               { length: endPage - startPage + 1 },
               (_, i) => startPage + i
@@ -216,7 +238,6 @@ const RoomList = () => {
                 {num}
               </button>
             ))}
-
             <button
               onClick={() => goToPage(currentPage + 1)}
               disabled={currentPage === totalPages}
