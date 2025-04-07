@@ -48,6 +48,9 @@ public class DistanceController {
                 userPreferences.getLatitude(),
                 userPreferences.getLongitude());
 
+        response.setDestination(userPreferences.getDestination() != null ?
+                userPreferences.getDestination() : "");
+
         return ResponseEntity.ok(response);
     }
 }
