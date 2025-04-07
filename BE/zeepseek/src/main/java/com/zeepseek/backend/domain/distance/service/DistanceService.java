@@ -3,6 +3,7 @@ package com.zeepseek.backend.domain.distance.service;
 import com.zeepseek.backend.domain.distance.dto.request.CoordinateInfo;
 import com.zeepseek.backend.domain.distance.dto.response.CoordinateResponse;
 import com.zeepseek.backend.domain.distance.dto.response.TransitResponse;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -42,6 +43,13 @@ public class DistanceService {
                 .build();
     }
     // 전희성 추가 : RestAPI 및 webclient 추가 끝
+
+    // 티맵 API 로그 추가
+    @PostConstruct
+    public void init() {
+        // 디버깅을 위한 로그 출력 (프로덕션에서는 제거 권장)
+        log.info("TMap API Key: {}", tmapApiKey);
+    }
 
     public CoordinateResponse haversineDistance(CoordinateInfo coordinateInfo) {
 
