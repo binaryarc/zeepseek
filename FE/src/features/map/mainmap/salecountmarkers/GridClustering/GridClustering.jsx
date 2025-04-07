@@ -1,77 +1,103 @@
 import { useEffect, useRef } from "react";
 import { fetchGridSaleCountsByType } from "../../../../../common/api/api";
 import "./GridClustering.css";
-import { generateGridCells } from "./useGridCells";
-import { useSelector } from "react-redux";
-import { useDispatch } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { setRoomsFromGridResult, setGridRoomList } from "../../../../../store/slices/roomListSlice";
 
+// 절대 좌표 기준의 그리드 셀 생성 함수 (위도/경도 간격)
+function generateFixedGridCells(bounds, cellSizeLat = 0.01, cellSizeLng = 0.01) {
+  const sw = bounds.getSouthWest();
+  const ne = bounds.getNorthEast();
+
+  const startLat = Math.floor(sw.getLat() / cellSizeLat) * cellSizeLat;
+  const startLng = Math.floor(sw.getLng() / cellSizeLng) * cellSizeLng;
+  const endLat = Math.ceil(ne.getLat() / cellSizeLat) * cellSizeLat;
+  const endLng = Math.ceil(ne.getLng() / cellSizeLng) * cellSizeLng;
+
+  const cells = [];
+  for (let lat = startLat; lat < endLat; lat += cellSizeLat) {
+    for (let lng = startLng; lng < endLng; lng += cellSizeLng) {
+      cells.push({
+        minLat: lat,
+        maxLat: lat + cellSizeLat,
+        minLng: lng,
+        maxLng: lng + cellSizeLng,
+      });
+    }
+  }
+  return cells;
+}
+
+// 줌 레벨에 따른 셀 크기 반환 함수
+function getCellSizeByZoom(zoomLevel) {
+  // zoomLevel이 3, 2, 1일 때 각각 다른 셀 크기를 반환합니다.
+  if (zoomLevel === 3) {
+    return { cellSizeLat: 0.0025, cellSizeLng: 0.0025 };
+  } else if (zoomLevel === 2) {
+    return { cellSizeLat: 0.001, cellSizeLng: 0.001 };
+  } else if (zoomLevel === 1) {
+    return { cellSizeLat: 0.0005, cellSizeLng: 0.0005 };
+  } else {
+    // 3보다 높은 zoomLevel(즉, 더 멀리 보는 경우)는 그리드를 표시하지 않습니다.
+    return { cellSizeLat: 0, cellSizeLng: 0 };
+  }
+}
 
 function GridClustering({ map }) {
-  const polygonsRef = useRef([]);
-  const overlaysRef = useRef([]);
+  // 캐싱 객체: 각 그리드 클러스터(폴리곤과 오버레이)를 고유 키로 저장
+  const gridClusterCacheRef = useRef({});
   const dispatch = useDispatch();
   const popupRef = useRef(null);
-  const selectedRoomType = useSelector(
-    (state) => state.roomList.selectedRoomType)
+  const selectedRoomType = useSelector((state) => state.roomList.selectedRoomType);
 
   const roomTypeMap = {
-      "원룸/투룸": "one-room",
-      "주택/빌라": "house",
-      "오피스텔": "office",
-    };
+    "원룸/투룸": "one-room",
+    "주택/빌라": "house",
+    "오피스텔": "office",
+  };
   const filterKey = roomTypeMap[selectedRoomType];
 
   useEffect(() => {
     if (!map || !window.kakao) return;
 
     const drawGridClusters = async () => {
-      
       const level = map.getLevel();
-      if (level > 3) return;
-
-      // ✅ AI 추천 탭일 땐 그리드 안 그림
+      // 여기서는 줌 레벨 1~3일 때 그리드를 표시합니다.
+      if (level > 3 || level < 1) return;
+      // AI 추천 탭일 경우 표시하지 않음
       if (selectedRoomType === "AI 추천") return;
 
-      polygonsRef.current.forEach(p => p.setMap(null));
-      overlaysRef.current.forEach(o => o.setMap(null));
-      if (popupRef.current) popupRef.current.setMap(null);
-      polygonsRef.current = [];
-      overlaysRef.current = [];
-
-      const proj = map.getProjection();
       const bounds = map.getBounds();
-      const sw = bounds.getSouthWest();
-      const ne = bounds.getNorthEast();
+      
+      // 현재 줌 레벨에 따른 셀 크기 계산
+      const { cellSizeLat, cellSizeLng } = getCellSizeByZoom(level);
+      if (!cellSizeLat || !cellSizeLng) return; // 크기가 0이면 그리드를 표시하지 않음
 
-      const swPoint = proj.containerPointFromCoords(sw);
-      const nePoint = proj.containerPointFromCoords(ne);
+      // 절대 좌표 기준의 고정된 셀 생성
+      const cells = generateFixedGridCells(bounds, cellSizeLat, cellSizeLng);
 
-      const latPerPx = Math.abs(ne.getLat() - sw.getLat()) / Math.abs(nePoint.y - swPoint.y);
-      const lngPerPx = Math.abs(ne.getLng() - sw.getLng()) / Math.abs(nePoint.x - swPoint.x);
-
-      const gridSizePx = 160;
-      const gridSizeLat = latPerPx * gridSizePx;
-      const gridSizeLng = lngPerPx * gridSizePx;
-
-      const cells = generateGridCells(bounds, gridSizeLat, gridSizeLng);
-
-      console.log("grid: ", cells)
-
+      // 각 셀에 대한 매물 집계 API 호출
       const result = await fetchGridSaleCountsByType(cells, filterKey);
-      console.log(filterKey)
-
-      console.log("result: ", result)
-
       dispatch(setRoomsFromGridResult(result));
+
+      // 업데이트된 셀 키를 추적 (현재 화면에 보이는 셀)
+      const updatedKeys = new Set();
 
       result.forEach(item => {
         const { cell, properties } = item;
         const { minLat, maxLat, minLng, maxLng } = cell;
-
-        // grid 안에 매물이 없으면 return
         if (!properties || properties.length === 0) return;
 
+        // 셀의 고유 키 생성 (절대 좌표 기준)
+        const cellKey = `${minLat}-${minLng}-${maxLat}-${maxLng}`;
+        updatedKeys.add(cellKey);
+
+        // 셀의 중앙 좌표 계산
+        const centerLat = (minLat + maxLat) / 2;
+        const centerLng = (minLng + maxLng) / 2;
+        const centerLatLng = new window.kakao.maps.LatLng(centerLat, centerLng);
+
+        // 사각형 경계(폴리곤) 경로 생성
         const rectPath = [
           new window.kakao.maps.LatLng(minLat, minLng),
           new window.kakao.maps.LatLng(minLat, maxLng),
@@ -79,65 +105,61 @@ function GridClustering({ map }) {
           new window.kakao.maps.LatLng(maxLat, minLng),
         ];
 
-        const polygon = new window.kakao.maps.Polygon({
-          path: [rectPath],
-          strokeWeight: 1,
-          strokeColor: "#fb8c00",
-          strokeOpacity: 0.8,
-          fillColor: "rgba(255,167,38,0.3)",
-          fillOpacity: 0.5,
-        });
-        polygon.setMap(map);
-        polygonsRef.current.push(polygon);
+        let gridCluster = gridClusterCacheRef.current[cellKey];
+        if (gridCluster) {
+          // 이미 생성된 클러스터가 있다면, 매물 수 업데이트 등 필요한 내용 갱신
+          const div = gridCluster.overlay.getContent();
+          div.querySelector(".grid-count").innerText = properties.length;
+          gridCluster.polygon.setMap(map);
+          gridCluster.overlay.setMap(map);
+        } else {
+          // 클러스터가 없다면 새롭게 생성
+          const polygon = new window.kakao.maps.Polygon({
+            path: [rectPath],
+            strokeWeight: 1,
+            strokeColor: "#fb8c00",
+            strokeOpacity: 0.8,
+            fillColor: "rgba(255,167,38,0.3)",
+            fillOpacity: 0.5,
+          });
+          polygon.setMap(map);
 
-        const centerLat = (minLat + maxLat) / 2;
-        const centerLng = (minLng + maxLng) / 2;
+          const div = document.createElement("div");
+          div.innerHTML = `
+            <div class="grid-count-wrapper">
+              <div class="grid-count">${properties.length}</div>
+            </div>
+          `;
+          div.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dispatch(setGridRoomList(properties));
+          };
 
-        const div = document.createElement("div");
-        div.innerHTML = `
-          <div class="grid-count-wrapper">
-            <div class="grid-count">${properties.length}</div>
-          </div>
-        `;
+          const overlay = new window.kakao.maps.CustomOverlay({
+            position: centerLatLng,
+            content: div,
+            xAnchor: 0.5,
+            yAnchor: 0.5,
+            map,
+          });
+          window.kakao.maps.event.addListener(overlay, "click", () => {
+            if (popupRef.current) popupRef.current.setMap(null);
+            dispatch(setGridRoomList(properties));
+          });
 
-        div.onclick = (e) => {
-          e.preventDefault(); // 👈 기본 동작 방지
-          e.stopPropagation(); // 👈 이벤트 버블링 방지
-          console.log("클릭됨!", properties);
-          dispatch(setGridRoomList(properties));
-          // map.setCenter(new window.kakao.maps.LatLng(centerLat, centerLng));
-        };
+          gridCluster = { polygon, overlay };
+          gridClusterCacheRef.current[cellKey] = gridCluster;
+        }
+      });
 
-        const overlay = new window.kakao.maps.CustomOverlay({
-          position: new window.kakao.maps.LatLng(centerLat, centerLng),
-          content: div,
-          xAnchor: 0.5,
-          yAnchor: 0.5,
-          map,
-        });
-
-        window.kakao.maps.event.addListener(overlay, "click", () => {
-          console.log('실행되니', properties)
-          if (popupRef.current) popupRef.current.setMap(null);
-
-          dispatch(setGridRoomList(properties));
-          console.log('실행되니', properties)
-
-          // const listHtml = properties
-          //   .map(p => `<li>${p.address} - ${p.price}</li>`) // 필요 시 더 상세하게 구성 가능
-          //   .join("");
-
-          // const popup = new window.kakao.maps.CustomOverlay({
-          //   position: new window.kakao.maps.LatLng(centerLat, centerLng),
-          //   content: `<div class="property-popup"><ul>${listHtml}</ul></div>`,
-          //   yAnchor: 1,
-          //   map,
-          // });
-
-          // popupRef.current = popup;
-        });
-
-        overlaysRef.current.push(overlay);
+      // 캐시에 남아있는, 현재 화면에 보이지 않는 클러스터는 숨깁니다.
+      Object.keys(gridClusterCacheRef.current).forEach(cellKey => {
+        if (!updatedKeys.has(cellKey)) {
+          const { polygon, overlay } = gridClusterCacheRef.current[cellKey];
+          polygon.setMap(null);
+          overlay.setMap(null);
+        }
       });
     };
 
@@ -145,11 +167,12 @@ function GridClustering({ map }) {
     window.kakao.maps.event.addListener(map, "idle", drawGridClusters);
 
     return () => {
-      polygonsRef.current.forEach(p => p.setMap(null));
-      overlaysRef.current.forEach(o => o.setMap(null));
+      Object.values(gridClusterCacheRef.current).forEach(({ polygon, overlay }) => {
+        polygon.setMap(null);
+        overlay.setMap(null);
+      });
+      gridClusterCacheRef.current = {};
       if (popupRef.current) popupRef.current.setMap(null);
-      polygonsRef.current = [];
-      overlaysRef.current = [];
       window.kakao.maps.event.removeListener(map, "idle", drawGridClusters);
     };
   }, [map, selectedRoomType]);
