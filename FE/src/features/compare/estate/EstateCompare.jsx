@@ -17,6 +17,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import zeepai from "../../../assets/images/zeepai.png";
+import defaultImg from "../../../assets/logo/512image.png"
 
 const EstateCompare = () => {
   const [likedProperties, setLikedProperties] = useState([]);
@@ -195,7 +196,7 @@ const EstateCompare = () => {
                   return (
                     <li
                       key={property.propertyId}
-                      className={isSelected ? "selected-region" : ""}
+                      className={`property-item ${isSelected ? "selected-region" : ""}`}
                       onClick={() => {
                         if (isSelected) return;
                         if (!selected1) setSelected1(property);
@@ -206,12 +207,25 @@ const EstateCompare = () => {
                         }
                       }}
                     >
-                      {property.address}{" "}
-                      {selected1?.propertyId === property.propertyId
-                        ? "①"
-                        : selected2?.propertyId === property.propertyId
-                        ? "②"
-                        : ""}
+                      <div className="property-image">
+                        {/* property.imageUrl이 없을 경우 기본 이미지를 넣을 수 있음 */}
+                        <img src={property.imageUrl || defaultImg} alt={property.address} />
+                      </div>
+                      <div className="property-details">
+                        <div className="property-address">{property.address}</div>
+                        <div className="property-price">
+                          {property.contractType ? `${property.contractType}` : "계약 정보 없음"}
+                          &ensp;
+                          {property.price ? `${property.price}` : "가격 정보 없음"}
+                        </div>
+                      </div>
+                      <div className="property-selection">
+                        {selected1?.propertyId === property.propertyId
+                          ? "①"
+                          : selected2?.propertyId === property.propertyId
+                          ? "②"
+                          : ""}
+                      </div>
                     </li>
                   );
                 })
