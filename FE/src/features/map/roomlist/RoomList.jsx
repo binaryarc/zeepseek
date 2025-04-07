@@ -33,7 +33,7 @@ const RoomList = () => {
     (state) => state.roomList
   );
 
-  let level = null;
+  let level = 5;
   if (window.isMapReady && typeof window.map?.getLevel === "function") {
     level = window.map.getLevel();
   } else {
@@ -78,6 +78,7 @@ const RoomList = () => {
     // }
 
     if (currentGuName && (currentDongName || currentDongName === "")) {
+      console.log("현재레벨;",level)
       console.log(tab);
       if (level < 6 && level > 3) {
         console.log('아아아아아아', user.idx)
