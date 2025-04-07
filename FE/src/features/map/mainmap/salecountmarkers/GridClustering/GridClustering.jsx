@@ -30,15 +30,15 @@ function generateFixedGridCells(bounds, cellSizeLat = 0.01, cellSizeLng = 0.01) 
 
 // 줌 레벨에 따른 셀 크기 반환 함수
 function getCellSizeByZoom(zoomLevel) {
-  // zoomLevel이 3, 2, 1일 때 각각 다른 셀 크기를 반환합니다.
+  // 줌 레벨 3, 2, 1에 따라 다른 셀 크기를 반환합니다.
   if (zoomLevel === 3) {
-    return { cellSizeLat: 0.0025, cellSizeLng: 0.0025 };
+    return { cellSizeLat: 0.002, cellSizeLng: 0.002 };
   } else if (zoomLevel === 2) {
     return { cellSizeLat: 0.001, cellSizeLng: 0.001 };
   } else if (zoomLevel === 1) {
     return { cellSizeLat: 0.0005, cellSizeLng: 0.0005 };
   } else {
-    // 3보다 높은 zoomLevel(즉, 더 멀리 보는 경우)는 그리드를 표시하지 않습니다.
+    // 허용 범위 외의 줌 레벨일 때는 0을 반환하여 그리드를 표시하지 않음
     return { cellSizeLat: 0, cellSizeLng: 0 };
   }
 }
@@ -60,19 +60,41 @@ function GridClustering({ map }) {
   useEffect(() => {
     if (!map || !window.kakao) return;
 
+    const clearGridClusters = () => {
+      Object.keys(gridClusterCacheRef.current).forEach(cellKey => {
+        const { polygon, overlay } = gridClusterCacheRef.current[cellKey];
+        polygon.setMap(null);
+        overlay.setMap(null);
+      });
+    };
+
+    // 줌 변경 이벤트: 줌이 바뀌면 기존 그리드 클러스터를 바로 숨깁니다.
+    const zoomListener = window.kakao.maps.event.addListener(map, "zoom_changed", () => {
+      clearGridClusters();
+    });
+
     const drawGridClusters = async () => {
       const level = map.getLevel();
-      // 여기서는 줌 레벨 1~3일 때 그리드를 표시합니다.
-      if (level > 3 || level < 1) return;
+      // 줌 레벨이 1~3 범위가 아니라면 기존 그리드 클러스터 제거 후 리턴
+      if (level > 3 || level < 1) {
+        clearGridClusters();
+        return;
+      }
       // AI 추천 탭일 경우 표시하지 않음
-      if (selectedRoomType === "AI 추천") return;
+      if (selectedRoomType === "AI 추천") {
+        clearGridClusters();
+        return;
+      }
 
       const bounds = map.getBounds();
       
       // 현재 줌 레벨에 따른 셀 크기 계산
       const { cellSizeLat, cellSizeLng } = getCellSizeByZoom(level);
-      if (!cellSizeLat || !cellSizeLng) return; // 크기가 0이면 그리드를 표시하지 않음
-
+      if (!cellSizeLat || !cellSizeLng) {
+        clearGridClusters();
+        return;
+      }
+      
       // 절대 좌표 기준의 고정된 셀 생성
       const cells = generateFixedGridCells(bounds, cellSizeLat, cellSizeLng);
 
@@ -167,6 +189,7 @@ function GridClustering({ map }) {
     window.kakao.maps.event.addListener(map, "idle", drawGridClusters);
 
     return () => {
+      // 제거 시 모든 리스너와 그리드 클러스터 제거
       Object.values(gridClusterCacheRef.current).forEach(({ polygon, overlay }) => {
         polygon.setMap(null);
         overlay.setMap(null);
@@ -174,6 +197,7 @@ function GridClustering({ map }) {
       gridClusterCacheRef.current = {};
       if (popupRef.current) popupRef.current.setMap(null);
       window.kakao.maps.event.removeListener(map, "idle", drawGridClusters);
+      window.kakao.maps.event.removeListener(map, "zoom_changed", zoomListener);
     };
   }, [map, selectedRoomType]);
 
