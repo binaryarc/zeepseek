@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
   LabelList,
   Legend,
+  CartesianGrid,
 } from "recharts";
 import date from "../../../../../assets/images/detail_png/date.png";
 import floor from "../../../../../assets/images/detail_png/floor.png";
@@ -32,7 +33,7 @@ const AiRecommendList = ({ room, values, onClose }) => {
 
   const chartData = categories.map(({ key, label }) => ({
     name: label,
-    사용자점수: -(values[key] || 0),
+    사용자점수: (values[key] || 0),
     매물점수: (room[key] || 0) , // 👈 반드시 *100 해줘야 비교가 정확함
   }));
 
@@ -58,11 +59,11 @@ const AiRecommendList = ({ room, values, onClose }) => {
                 className="modal-image"
               />
             </div>
-          <div className="recommend-detail-info">
-              <p className="detail-address">{room.address}</p>
+            <div className="recommend-detail-info">
               <h2>
                 {room.contractType} {room.price}
               </h2>
+              <p className="recommend-detail-address">{room.address}</p>
               <p>관리비 {formatFee(room.maintenanceFee)}</p>
               <div className="detail-description">{room.description}</div>
               <hr />
@@ -101,18 +102,15 @@ const AiRecommendList = ({ room, values, onClose }) => {
           <div className="modal-score-section" style={{ width: "50%", height: "100%" }}>
             
             <p><strong>사용자와 매물의 점수 비교</strong></p>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height="75%">
               <BarChart
                 layout="vertical"
                 data={chartData}
-                margin={{ top: 20, right: 40, left: 40, bottom: 20 }}
-                barCategoryGap="20%" // 바 간격 조절
+                margin={{ top: 20, right: 50, left: 50, bottom: 20 }}
+                barCategoryGap={30} // 카테고리 간격 충분히 늘리기
               >
-                <XAxis
-                  type="number"
-                  domain={[0, 100]}
-                  tickFormatter={(value) => `${value}`}
-                />
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" domain={[0, 100]} hide />
                 <YAxis
                   type="category"
                   dataKey="name"
@@ -124,41 +122,25 @@ const AiRecommendList = ({ room, values, onClose }) => {
                   formatter={(value, name) => [`${value.toFixed(2)}점`, name]}
                 />
                 <Legend
-                  wrapperStyle={{ marginTop: 10 }}
-                  payload={[
-                    { value: '사용자점수', type: 'square', color: '#8884d8' },
-                    { value: '매물점수', type: 'square', color: '#82ca9d' },
-                  ]}
+                  verticalAlign="bottom"
+                  height={36}
+                  wrapperStyle={{ paddingTop: 20 }}
                 />
                 <Bar
                   dataKey="사용자점수"
                   fill="#8884d8"
-                  barSize={20}
+                  barSize={12}
                   radius={[0, 10, 10, 0]}
-                >
-                  <LabelList
-                    dataKey="사용자점수"
-                    position="right"
-                    formatter={(value) => `${value}점`}
-                    fill="#ffffff"
-                  />
-                </Bar>
+                />
                 <Bar
                   dataKey="매물점수"
                   fill="#82ca9d"
-                  barSize={20}
-                  radius={[10, 0, 0, 10]}
-                >
-                  <LabelList
-                    dataKey="매물점수"
-                    position="right"
-                    formatter={(value) => `${value.toFixed(2)}점`}
-                    fill="#ffffff"
-                  />
-                </Bar>
+                  barSize={12}
+                  radius={[0, 10, 10, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
-            <p><strong>내 취향과의 유사도:</strong> {room.similarity}</p>
+            <p><strong>내 취향과의 유사도:</strong> {(room.similarity * 100).toFixed(2)}%</p>
           </div>
         </div>
       </div>
