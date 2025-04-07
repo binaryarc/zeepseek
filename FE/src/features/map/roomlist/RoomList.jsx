@@ -81,7 +81,7 @@ const RoomList = () => {
       console.log("현재레벨;",level)
       console.log(tab);
       if (level < 6 && level > 3) {
-        console.log('아아아아아아', user.idx)
+        // console.log('아아아아아아', user?.idx)
         dispatch(
           fetchRoomListByBounds({
             guName: currentGuName,
