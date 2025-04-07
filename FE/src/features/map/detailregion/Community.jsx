@@ -19,6 +19,7 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
     y: 0,
     commentId: null,
   });
+  const [isChanged, setIsChanged] = useState(false);
 
   useEffect(() => {
     const loadComments = async () => {
@@ -48,6 +49,7 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
       const updated = await fetchDongComments(dongId);
       setComments(updated);
       setNewComment("");
+      setIsChanged(true);
     } catch {
       alert("댓글 작성에 실패했어요 😢");
     } finally {
@@ -66,6 +68,7 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
       await deleteDongComment(dongId, commentId, accessToken);
       const updated = await fetchDongComments(dongId);
       setComments(updated);
+      setIsChanged(true);
     } catch {
       alert("삭제에 실패했어요 😢");
     }
@@ -111,7 +114,7 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
         <h4>
           {guName} {dongName}
         </h4>
-        <img src={back} alt="" onClick={onClose} className="community-back" />
+        <img src={back} alt="" onClick={() => onClose(isChanged)} className="community-back" />
       </div>
       <ul className="dong-comment-list" ref={commentListRef}>
         {comments.map((c, i) => {
