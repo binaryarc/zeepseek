@@ -7,7 +7,7 @@ import lombok.ToString;
 @Data
 @Builder
 @ToString
-public class KakaoTransitResponse {
+public class TransitResponse {
     private Integer walkingDuration;    // 도보 시간 (초)
     private Integer transitDuration;    // 대중교통 시간 (초)
     private Integer drivingDuration;    // 자차 시간 (초)

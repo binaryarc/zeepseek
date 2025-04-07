@@ -2,7 +2,7 @@ package com.zeepseek.backend.domain.distance.controller;
 
 import com.zeepseek.backend.domain.distance.dto.request.CoordinateInfo;
 import com.zeepseek.backend.domain.distance.dto.response.CoordinateResponse;
-import com.zeepseek.backend.domain.distance.dto.response.KakaoTransitResponse;
+import com.zeepseek.backend.domain.distance.dto.response.TransitResponse;
 import com.zeepseek.backend.domain.distance.service.DistanceService;
 import com.zeepseek.backend.domain.user.entity.UserPreferences;
 import com.zeepseek.backend.domain.user.repository.UserPreferencesRepository;
@@ -42,7 +42,7 @@ public class DistanceController {
         }
 
         // 카카오 API 호출
-        KakaoTransitResponse response = distanceService.getKakaoTransitInfo(
+        TransitResponse response = distanceService.getTransitInfo(
                 propertyLat,
                 propertyLon,
                 userPreferences.getLatitude(),
