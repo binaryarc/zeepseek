@@ -29,7 +29,7 @@ const KakaoRedirectHandler = () => {
 
           // 🔀 최초 로그인 여부 분기
           if (userInfoData.isFirst === 1) {
-            navigate("/survey");
+            navigate("/main", { state: { showSurvey: true } }); // ✅ 상태로 전달
           } else {
             navigate("/main");
           }
