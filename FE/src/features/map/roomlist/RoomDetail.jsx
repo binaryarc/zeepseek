@@ -50,7 +50,7 @@ const RoomDetail = ({ propertyId }) => {
       if (user.idx && data.latitude && data.longitude) {
         console.log('여기옴?')
         const commuteData = await fetchCommuteTime({
-          userId: 13,
+          userId: user.idx,
           lat: data.latitude,
           lon: data.longitude,
         });
