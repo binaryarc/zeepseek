@@ -102,64 +102,62 @@ const AiRecommendList = ({ room, values, onClose }) => {
             
             <p><strong>사용자와 매물의 점수 비교</strong></p>
             <ResponsiveContainer width="100%" height={300}>
-  <BarChart
-    layout="vertical"
-    data={chartData}
-    margin={{ top: 20, right: 40, left: 40, bottom: 20 }}
-    barCategoryGap="20%" // 바 간격 조절
-  >
-    <XAxis
-      type="number"
-      domain={[0, 100]}
-      tickFormatter={(value) => `${value}`}
-    />
-    <YAxis
-      type="category"
-      dataKey="name"
-      axisLine={false}
-      tickLine={false}
-      tick={{ fontWeight: "bold", fontSize: 14 }}
-    />
-    <Tooltip
-      formatter={(value, name) => [`${value.toFixed(2)}점`, name]}
-    />
-    <Legend
-      wrapperStyle={{ marginTop: 10 }}
-      payload={[
-        { value: '사용자점수', type: 'square', color: '#8884d8' },
-        { value: '매물점수', type: 'square', color: '#82ca9d' },
-      ]}
-    />
-    <Bar
-      dataKey="사용자점수"
-      fill="#8884d8"
-      barSize={20}
-      radius={[0, 10, 10, 0]}
-    >
-      <LabelList
-        dataKey="사용자점수"
-        position="right"
-        formatter={(value) => `${value}점`}
-        fill="#ffffff"
-      />
-    </Bar>
-    <Bar
-      dataKey="매물점수"
-      fill="#82ca9d"
-      barSize={20}
-      radius={[10, 0, 0, 10]}
-    >
-      <LabelList
-        dataKey="매물점수"
-        position="right"
-        formatter={(value) => `${value.toFixed(2)}점`}
-        fill="#ffffff"
-      />
-    </Bar>
-  </BarChart>
-</ResponsiveContainer>
-
-
+              <BarChart
+                layout="vertical"
+                data={chartData}
+                margin={{ top: 20, right: 40, left: 40, bottom: 20 }}
+                barCategoryGap="20%" // 바 간격 조절
+              >
+                <XAxis
+                  type="number"
+                  domain={[0, 100]}
+                  tickFormatter={(value) => `${value}`}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontWeight: "bold", fontSize: 14 }}
+                />
+                <Tooltip
+                  formatter={(value, name) => [`${value.toFixed(2)}점`, name]}
+                />
+                <Legend
+                  wrapperStyle={{ marginTop: 10 }}
+                  payload={[
+                    { value: '사용자점수', type: 'square', color: '#8884d8' },
+                    { value: '매물점수', type: 'square', color: '#82ca9d' },
+                  ]}
+                />
+                <Bar
+                  dataKey="사용자점수"
+                  fill="#8884d8"
+                  barSize={20}
+                  radius={[0, 10, 10, 0]}
+                >
+                  <LabelList
+                    dataKey="사용자점수"
+                    position="right"
+                    formatter={(value) => `${value}점`}
+                    fill="#ffffff"
+                  />
+                </Bar>
+                <Bar
+                  dataKey="매물점수"
+                  fill="#82ca9d"
+                  barSize={20}
+                  radius={[10, 0, 0, 10]}
+                >
+                  <LabelList
+                    dataKey="매물점수"
+                    position="right"
+                    formatter={(value) => `${value.toFixed(2)}점`}
+                    fill="#ffffff"
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
             <p><strong>내 취향과의 유사도:</strong> {room.similarity}</p>
           </div>
         </div>
