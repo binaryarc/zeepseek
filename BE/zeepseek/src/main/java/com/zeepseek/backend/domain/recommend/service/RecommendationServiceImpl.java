@@ -15,6 +15,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -39,7 +40,9 @@ public class RecommendationServiceImpl implements RecommendationService {
         this.dongRepository = dongRepository;
     }
 
+    // SpEL로 getCacheKey가 cacheKey로
     @Override
+    @Cacheable(value = "recommendations", key = "#requestDto.cacheKey", unless = "#result == null")
     public DetailedRecommendationResponseDto getRecommendations(UserRecommendationRequestDto requestDto, HttpServletRequest request) {
         // 1) 쿠키에서 age와 gender 정보 추출
         if (request.getCookies() != null) {

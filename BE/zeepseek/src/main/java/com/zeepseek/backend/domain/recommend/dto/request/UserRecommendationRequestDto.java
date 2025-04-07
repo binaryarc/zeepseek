@@ -19,17 +19,20 @@ public class UserRecommendationRequestDto {
     private Double leisureScore;
     private Integer age;
     private Integer gender;
+
     /**
-     * 모든 점수 중 가장 높은 점수를 반환합니다.
-     * 만약 모든 점수가 null이면 0.0을 반환합니다.
-     *
-     * @return 가장 높은 점수
+     * 캐시 키 생성 메서드
+     * (userId와 각 선호도 점수를 연결하여 고유한 키 생성)
      */
-    public Double getMaxScore() {
-        return Stream.of(transportScore, restaurantScore, healthScore, convenienceScore, cafeScore, chickenScore, leisureScore)
-                .filter(Objects::nonNull)
-                .max(Double::compare)
-                .orElse(0.0);
+    public String getCacheKey() {
+        return userId + "_" +
+                transportScore + "_" +
+                restaurantScore + "_" +
+                healthScore + "_" +
+                convenienceScore + "_" +
+                cafeScore + "_" +
+                chickenScore + "_" +
+                leisureScore;
     }
 
     /**
