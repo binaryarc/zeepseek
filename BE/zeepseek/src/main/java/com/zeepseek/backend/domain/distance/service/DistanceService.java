@@ -106,24 +106,18 @@ public class DistanceService {
         log.info("출발지: {}, {}", lat1, lon1);
         log.info("도착지: {}, {}", lat2, lon2);
 
-        // 도보 시간 - TMap API 사용
-        Integer walkingDuration = getTmapPedestrianDuration(lat1, lon1, lat2, lon2);
-        log.info("TMap 도보 시간: {}초", walkingDuration);
+        // 도보 시간 - 하버사인 공식 사용
+        double distance = haversine(lat1, lon1, lat2, lon2);
+        Integer walkingDuration = calculateWalkingTime(distance);
+        log.info("하버사인 공식으로 계산한 도보 시간: {}초", walkingDuration);
 
-        // 대중교통 시간 - ODsay API 사용
+        // 대중교통 시간 - TMap API 사용
         Integer transitDuration = getTmapTransitDuration(lat1, lon1, lat2, lon2);
         log.info("TMap 대중교통 시간: {}초", transitDuration);
 
         // 자동차 API 호출 - 기존 모빌리티 API 유지
         Integer drivingDuration = getKakaoMobilityDuration(lon1, lat1, lon2, lat2);
         log.info("카카오 자동차 시간: {}초", drivingDuration);
-
-        // 도보 시간이 null인 경우 하버사인 공식 사용
-        if (walkingDuration == null) {
-            double distance = haversine(lat1, lon1, lat2, lon2);
-            walkingDuration = calculateWalkingTime(distance);
-            log.info("도보 시간 API 획득 실패, 하버사인 공식 사용: {}초", walkingDuration);
-        }
 
         TransitResponse response = TransitResponse.builder()
                 .walkingDuration(walkingDuration)
@@ -133,68 +127,6 @@ public class DistanceService {
 
         log.info("최종 응답: {}", response);
         return response;
-    }
-
-    // TMap 보행자 경로 API 호출 메서드 추가
-    private Integer getTmapPedestrianDuration(double startLat, double startLon, double endLat, double endLon) {
-        try {
-            // API 요청 본문 구성
-            Map<String, Object> requestBody = new HashMap<>();
-
-            // 출발지 좌표
-            requestBody.put("startX", startLon);  // 경도(Longitude)
-            requestBody.put("startY", startLat);  // 위도(Latitude)
-            requestBody.put("startName", "출발지");
-
-            // 도착지 좌표
-            requestBody.put("endX", endLon);  // 경도(Longitude)
-            requestBody.put("endY", endLat);  // 위도(Latitude)
-            requestBody.put("endName", "도착지");
-
-            // 옵션 설정 - 최단시간
-            requestBody.put("searchOption", "0");
-
-            Map<String, Object> response = tmapWebClient.post()
-                    .uri("/tmap/routes/pedestrian?version=1&format=json")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(BodyInserters.fromValue(requestBody))
-                    .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                    .onErrorResume(e -> {
-                        log.error("TMap API 호출 중 오류 발생: {}", e.getMessage());
-                        return Mono.just(new HashMap<>());
-                    })
-                    .block();
-
-            return extractTmapPedestrianDuration(response);
-        } catch (Exception e) {
-            log.error("TMap API 호출 예외: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    // TMap API 응답에서 소요 시간 추출 메서드 추가
-    @SuppressWarnings("unchecked")
-    private Integer extractTmapPedestrianDuration(Map<String, Object> response) {
-        try {
-            if (response != null && response.containsKey("features")) {
-                List<Map<String, Object>> features = (List<Map<String, Object>>) response.get("features");
-                for (Map<String, Object> feature : features) {
-                    if (feature.containsKey("properties")) {
-                        Map<String, Object> properties = (Map<String, Object>) feature.get("properties");
-                        if (properties.containsKey("totalTime")) {
-                            // TMap은 분 단위로 제공, 초 단위로 변환
-                            int totalTimeSec = Integer.parseInt(properties.get("totalTime").toString());
-                            // 실제 응답은 초 단위이므로 변환 불필요 (기존 주석 유지용)
-                            return totalTimeSec;
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.error("TMap API 응답 파싱 오류", e);
-        }
-        return null;
     }
 
     // TMap 대중교통 추가
