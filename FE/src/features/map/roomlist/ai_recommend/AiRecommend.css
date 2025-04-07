@@ -1,5 +1,5 @@
   .ai-filter-container {
-    padding: 1rem;
+    /* padding: 1rem; */
     padding-top: 0%;
     height: 70vh;
     display: flex;
@@ -81,6 +81,7 @@
     padding: 0.6rem 1.2rem;
     background-color: #ebce94;
     width: 100%;
+    margin: auto;
     /* border: none; */
     border: 0.1px solid;
     border-radius: 0.3rem;
@@ -90,15 +91,36 @@
     font-family: KOROAD_Bold;
   }
 
+  .re-recommend-search-btn {
+    margin-top: 1rem;
+    padding: 0.6rem 1.2rem;
+    background-color: #ebce94;
+    width: 90%;
+    /* border: none; */
+    border: 0.1px solid;
+    border-radius: 0.3rem;
+    color: rgb(60, 59, 59);
+    font-size: 1.2rem;
+    cursor: pointer;
+    font-family: KOROAD_Bold;
+  }
+
+  .result-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 버튼 가운데 정렬 */
+  }
+
 
   .recommend-results {
-    margin-top: 2rem;
+    /* margin-top: 2rem; */
     font-family: KOROAD;
   }
   
   .result-title {
     font-size: 1.2rem;
     font-weight: bold;
+    margin-left: 1.2rem;
     margin-bottom: 1rem;
   }
   
@@ -166,6 +188,10 @@
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+  }
+
+  .slider-section {
+    padding: 1rem;
   }
 
 

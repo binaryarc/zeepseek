@@ -15,6 +15,10 @@
   transform-origin: bottom center;
 }
 
+/* .detail-overlay {
+  width: 50%;
+} */
+
 /* 또잉또잉 애니메이션 */
 @keyframes pin-bounce {
   0% {
@@ -26,4 +30,9 @@
   100% {
     transform: scale(1);
   }
+}
+
+.detail-overlay {
+  width: 60px;
+  height: 60px;
 }
