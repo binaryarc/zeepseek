@@ -99,7 +99,7 @@ const AiRecommendList = ({ room, values, onClose }) => {
           </div>
 
           {/* 오른쪽: 그래프 */}
-          <div className="modal-score-section" style={{ width: "50%", height: "100%" }}>
+          <div className="modal-score-section" style={{ width: "100%", height: "360px" }}>
             
             <p><strong>사용자와 매물의 점수 비교</strong></p>
             <ResponsiveContainer width="100%" height="75%">

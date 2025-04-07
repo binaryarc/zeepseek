@@ -15,12 +15,11 @@ import { useSelector } from "react-redux";
 const AiRecommend = () => {
 
   const [selectedRoom, setSelectedRoom] = useState(null); // 모달에 띄울 매물 상세 정보
-  // const [roomScore, setRoomScore] = useState(null); // 모달에 띄울 매물 점수
   const [sliderValues, setSliderValues] = useState(null);
 
-  const hoverRequestIdRef = useRef(0);
-  const circleOverlayRef = useRef(null);
-  const nearbyMarkersRef = useRef([]); // ✅ 마커들 ref에 보관
+  const hoverRequestIdRef = useRef(0);  // 최신 마커 관리용 useRef
+  const circleOverlayRef = useRef(null);  // 최신 원 마커 관리용 useRef
+  const nearbyMarkersRef = useRef([]); // 마커들 ref에 보관
 
   const [maxType, setMaxType] = useState(null);
 
@@ -29,7 +28,7 @@ const AiRecommend = () => {
   const filters = [
     "여가",
     "식당",
-    "보건",
+    "의료",
     "편의",
     "대중교통",
     "카페",
@@ -62,7 +61,7 @@ const AiRecommend = () => {
       gender: user.gender,
       transportScore: filterValues["대중교통"] / 100,
       restaurantScore: filterValues["식당"] / 100,
-      healthScore: filterValues["보건"] / 100,
+      healthScore: filterValues["의료"] / 100,
       convenienceScore: filterValues["편의"] / 100,
       cafeScore: filterValues["카페"] / 100,
       chickenScore: filterValues["치킨집"] / 100,
@@ -72,7 +71,7 @@ const AiRecommend = () => {
     setSliderValues({
       transportScore: filterValues["대중교통"],
       restaurantScore: filterValues["식당"],
-      healthScore: filterValues["보건"],
+      healthScore: filterValues["의료"],
       convenienceScore: filterValues["편의"],
       cafeScore: filterValues["카페"],
       chickenScore: filterValues["치킨집"],
@@ -82,6 +81,7 @@ const AiRecommend = () => {
     console.log("request data: ", preferenceData);
 
     setIsLoading(true); // 로딩 시작
+
     try {
       const result = await fetchAIRecommendedProperties(preferenceData);
       if (result) {
@@ -116,6 +116,57 @@ const AiRecommend = () => {
   const handleRetry = () => {
     setIsRecoDone(false);
     setRecommendedList([]);
+    setSelectedRoom(null)
+  };
+
+  const handleRoomClick = async (item) => {
+    window.clearHoverMarker();
+    nearbyMarkersRef.current.forEach((marker) => marker.setMap(null));
+    nearbyMarkersRef.current = [];
+    if (circleOverlayRef.current) {
+      circleOverlayRef.current.setMap(null);
+      circleOverlayRef.current = null;
+    }
+
+    if (!item.latitude || !item.longitude || !window.map) return;
+    window.setHoverMarker(item.latitude, item.longitude);
+    const latlng = new window.kakao.maps.LatLng(item.latitude, item.longitude);
+    window.map.setLevel(5);
+    window.map.setCenter(latlng);
+
+    const circle = new window.kakao.maps.Circle({
+      center: latlng,
+      radius: 1000,
+      strokeWeight: 2,
+      strokeColor: "#00a0e9",
+      strokeOpacity: 0.8,
+      strokeStyle: "solid",
+      fillColor: "#00a0e9",
+      fillOpacity: 0.1,
+    });
+    circle.setMap(window.map);
+    circleOverlayRef.current = circle;
+
+    try {
+      const response = await fetchNearbyPlaces(maxType, item.longitude, item.latitude);
+      const imageSrc = `/images/icons/${maxType}.png`;
+      const imageSize = new window.kakao.maps.Size(30, 30);
+      const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize);
+      const newMarkers = (response.data || []).map(({ latitude, longitude, name }) =>
+        new window.kakao.maps.Marker({
+          position: new window.kakao.maps.LatLng(latitude, longitude),
+          map: window.map,
+          title: name,
+          image: markerImage,
+        })
+      );
+      newMarkers.forEach((marker) => marker.setMap(window.map));
+      nearbyMarkersRef.current = newMarkers;
+    } catch (err) {
+      console.error("시설 마커 에러:", err);
+    }
+
+    setSelectedRoom(item);
   };
 
   return (
@@ -162,6 +213,7 @@ const AiRecommend = () => {
         </div>
       )}
 
+      
       {isRecoDone && !isLoading && (
         <div className="result-section">
           <button className="re-recommend-search-btn" onClick={handleRetry}>
@@ -176,98 +228,7 @@ const AiRecommend = () => {
                 <li
                   key={item.propertyId}
                   className="room-item"
-                  onMouseEnter={async () => {
-                    const currentId = hoverRequestIdRef.current + 1;
-                    hoverRequestIdRef.current = currentId;
-
-                    // 기존 마커/원 제거
-                    nearbyMarkersRef.current.forEach((marker) =>
-                      marker.setMap(null)
-                    );
-                    nearbyMarkersRef.current = [];
-
-                    if (circleOverlayRef.current) {
-                      circleOverlayRef.current.setMap(null);
-                      circleOverlayRef.current = null;
-                    }
-
-                    if (!item.latitude || !item.longitude || !window.map)
-                      return;
-
-                    window.setHoverMarker(item.latitude, item.longitude);
-
-                    const latlng = new window.kakao.maps.LatLng(
-                      item.latitude,
-                      item.longitude
-                    );
-                    window.map.setLevel(5);
-                    window.map.setCenter(latlng);
-
-                    const circle = new window.kakao.maps.Circle({
-                      center: latlng,
-                      radius: 1000,
-                      strokeWeight: 2,
-                      strokeColor: "#00a0e9",
-                      strokeOpacity: 0.8,
-                      strokeStyle: "solid",
-                      fillColor: "#00a0e9",
-                      fillOpacity: 0.1,
-                    });
-                    circle.setMap(window.map);
-                    circleOverlayRef.current = circle;
-
-                    try {
-                      const response = await fetchNearbyPlaces(
-                        maxType,
-                        item.longitude,
-                        item.latitude
-                      );
-                      if (hoverRequestIdRef.current !== currentId) return;
-
-                      const imageSrc = `/images/icons/${maxType}.png`;
-                      const imageSize = new window.kakao.maps.Size(30, 30);
-                      const markerImage = new window.kakao.maps.MarkerImage(
-                        imageSrc,
-                        imageSize
-                      );
-
-                      const newMarkers =
-                        response.data?.map(({ latitude, longitude, name }) => {
-                          return new window.kakao.maps.Marker({
-                            position: new window.kakao.maps.LatLng(
-                              latitude,
-                              longitude
-                            ),
-                            map: window.map,
-                            title: name,
-                            image: markerImage,
-                          });
-                        }) || [];
-
-                      newMarkers.forEach((marker) => marker.setMap(window.map));
-                      nearbyMarkersRef.current = newMarkers; // ✅ ref에 보관
-                    } catch (err) {
-                      console.error("시설 마커 에러:", err);
-                    }
-                  }}
-                  onMouseLeave={() => {
-                    window.clearHoverMarker();
-
-                    // 항상 현재 ref 기준으로 삭제
-                    nearbyMarkersRef.current.forEach((marker) =>
-                      marker.setMap(null)
-                    );
-                    nearbyMarkersRef.current = [];
-
-                    if (circleOverlayRef.current) {
-                      circleOverlayRef.current.setMap(null);
-                      circleOverlayRef.current = null;
-                    }
-                  }}
-                  onClick={() => {
-                    setSelectedRoom(item)
-                    console.log(sliderValues)
-                  }}
+                  onClick={() => handleRoomClick(item)}
                 >
                   <img src={item.imageUrl || defaultImage} alt="매물 이미지" />
                   <div className="room-info">
