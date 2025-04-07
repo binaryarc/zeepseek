@@ -20,7 +20,7 @@ import { debounce } from "lodash"; // debounce 임포트
 
 const Map = () => {
   const [map, setMap] = useState(null); // map 객체 저장용 상태
-  // 기존의 배열 ref 대신, 각 폴리곤을 feature 고유 id를 키로 캐싱
+  // 각 폴리곤을 feature 고유 id를 키로 캐싱
   const polygonCacheRef = useRef({});
   const geoDataRef = useRef(null); // GeoJSON 데이터를 저장할 ref
   const markerRef = useRef(null);
@@ -28,6 +28,9 @@ const Map = () => {
   const selectedPolygonRef = useRef(null);
   const selectedDongIdRef = useRef(null);
   const hoverMarkerRef = useRef(null);
+  // dong이 선택된 상태를 나타내는 플래그 (dong 영역이 활성화되어 있으면 true)
+  const isDongSelectedRef = useRef(false);
+
   const dispatch = useDispatch();
   const { currentGuName, currentDongName, selectedRoomType } = useSelector(
     (state) => state.roomList
@@ -135,21 +138,23 @@ const Map = () => {
             window.isMapReady = true;
           }
 
-          // 기존 마커 및 오버레이 제거
-          if (markerRef.current) {
-            markerRef.current.setMap(null);
-            markerRef.current = null;
-          }
-          if (overlayRef.current) {
-            overlayRef.current.setMap(null);
-            overlayRef.current = null;
-          }
-          if (selectedPolygonRef.current) {
-            selectedPolygonRef.current.setOptions({
-              strokeOpacity: 0,
-              fillOpacity: 0.02,
-            });
-            selectedPolygonRef.current = null;
+          // 만약 dong 영역이 선택되어 있다면 idle에서 초기화하지 않음.
+          if (!isDongSelectedRef.current) {
+            if (markerRef.current) {
+              markerRef.current.setMap(null);
+              markerRef.current = null;
+            }
+            if (overlayRef.current) {
+              overlayRef.current.setMap(null);
+              overlayRef.current = null;
+            }
+            if (selectedPolygonRef.current) {
+              selectedPolygonRef.current.setOptions({
+                strokeOpacity: 0,
+                fillOpacity: 0.02,
+              });
+              selectedPolygonRef.current = null;
+            }
           }
 
           if (!geoDataRef.current) return;
@@ -222,7 +227,7 @@ const Map = () => {
                 // 이벤트 리스너는 최초 생성 시 한 번 등록
                 window.kakao.maps.event.addListener(polygon, "click", () => {
                   const clickedDongId = feature.properties.ADM_CD;
-                  // 이미 선택된 동이면 오버레이 제거 (토글 방식)
+                  // 이미 선택된 동이면 → 토글 방식으로 선택 해제
                   if (selectedDongIdRef.current === clickedDongId) {
                     if (overlayRef.current) overlayRef.current.setMap(null);
                     overlayRef.current = null;
@@ -236,13 +241,16 @@ const Map = () => {
                       selectedPolygonRef.current = null;
                     }
                     selectedDongIdRef.current = null;
+                    isDongSelectedRef.current = false; // 선택 해제
                     return;
                   }
 
-                  // 새로운 동 클릭 시, 기존 오버레이/마커 제거 후 새로 생성
+                  // 새로운 동 클릭 시: 기존 선택 상태를 갱신하고 플래그를 true로 설정
                   selectedDongIdRef.current = clickedDongId;
+                  isDongSelectedRef.current = true;
                   mapInstance.setCenter(center);
 
+                  // 기존 마커 제거
                   if (markerRef.current) markerRef.current.setMap(null);
 
                   const imageSrc = "/images/zeep.png"; // public 기준 경로
@@ -265,6 +273,7 @@ const Map = () => {
                   });
                   markerRef.current = marker;
 
+                  // 기존 오버레이 제거
                   if (overlayRef.current) overlayRef.current.setMap(null);
 
                   const content = document.createElement("div");
@@ -287,6 +296,7 @@ const Map = () => {
                   overlay.setMap(mapInstance);
                   overlayRef.current = overlay;
 
+                  // 기존 선택된 폴리곤 스타일 초기화
                   if (selectedPolygonRef.current) {
                     selectedPolygonRef.current.setOptions({
                       strokeOpacity: 0,
