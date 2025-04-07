@@ -44,7 +44,14 @@ const DetailRegion = () => {
   const [dongData, setDongData] = useState(null);
   const [comments, setComments] = useState([]);
   const [showCommunity, setShowCommunity] = useState(false);  const dispatch = useDispatch();
-
+  const handleCommunityClose = async (isChanged) => {
+    setShowCommunity(false);
+    if (isChanged) {
+      const updated = await fetchDongComments(dongId);
+      setComments(updated);
+    }
+  };
+  
   useEffect(() => {
     if (!dongId) return;
 
@@ -142,7 +149,7 @@ const DetailRegion = () => {
           dongId={dongId}
           dongName={dongData.name}
           guName={dongData.guName}
-          onClose={() => setShowCommunity(false)}
+          onClose={handleCommunityClose}
         />
       )}
     </div>
