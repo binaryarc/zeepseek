@@ -171,7 +171,7 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
       </div>
       {showAlert && (
         <AlertModal
-          message={mode === "edit" ? "정보 수정이 완료되었습니다!" : "설문이 완료되었습니다!"}
+          message={mode === "edit" ? "정보 수정이 완료되었습니다!" : "설문이 완료되었습니다"}
           buttonText="확인"
           onClose={() => {
             setShowAlert(false);
