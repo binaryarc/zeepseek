@@ -9,10 +9,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.HttpProtocol;
+import reactor.netty.http.client.HttpClient;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,19 +28,26 @@ public class DistanceService {
     final double R = 6371; // 지구의 반지름 (킬로미터)
 
     // 전희성 추가 : RestAPI 및 webclient 추가 시작
-    @Value("${spring.security.oauth2.client.registration.kakao.client-id}")
-    private String kakaoApiKey;
 
-    // TMap API 키 추가
-    @Value("${tmap.api.key}")
-    private String tmapApiKey;
+    // 생성자 주입 방식 사용 (추천 방법: 1번)
+    private final String kakaoApiKey;
+    private final String tmapApiKey;
 
     private final WebClient mobilityWebClient;
     private final WebClient tmapWebClient;
 
-    public DistanceService(WebClient.Builder webClientBuilder) {
-        this.mobilityWebClient = webClientBuilder.baseUrl("https://apis-navi.kakaomobility.com").build();
-        this.tmapWebClient     = webClientBuilder
+    public DistanceService(WebClient.Builder webClientBuilder,
+                           @Value("${spring.security.oauth2.client.registration.kakao.client-id}") String kakaoApiKey,
+                           @Value("${tmap.api.key}") String tmapApiKey) {
+        this.kakaoApiKey = kakaoApiKey;
+        this.tmapApiKey = tmapApiKey;
+
+        HttpClient httpClient = HttpClient.create().protocol(HttpProtocol.HTTP11);
+        this.mobilityWebClient = webClientBuilder
+                .baseUrl("https://apis-navi.kakaomobility.com")
+                .build();
+        this.tmapWebClient = WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .baseUrl("https://apis.openapi.sk.com")
                 .defaultHeader("appKey", tmapApiKey)   // 기본 헤더로 appKey 세팅
                 .build();
