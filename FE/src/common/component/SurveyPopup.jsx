@@ -5,7 +5,7 @@ import { postSurvey, patchSurvey } from "../../common/api/api";
 import { setUser } from "../../store/slices/authSlice";
 import "./SurveyPopup.css";
 import AlertModal from "./AlertModal";
-
+import { fetchRandomNickname } from "../../common/api/api";
 const GENDERS = ["남자", "여자"];
 const CONSIDERATIONS = ["안전", "편의", "여가", "대중교통", "식당", "카페", "보건", "치킨집"];
 
@@ -26,7 +26,8 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
   const dispatch = useDispatch();
   const accessToken = useSelector((state) => state.auth.accessToken);
   const user = useSelector((state) => state.auth.user);
-  const nickname = user?.nickname || "로그인 유저";
+  const [nickname, setNickname] = useState(user?.nickname || "");
+
   const isFormValid = gender && age && location && selectedConsiders.length > 0;
   const [showAlert, setShowAlert] = useState(false);
   const handleAddressSelect = (data) => {
@@ -42,6 +43,18 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
     }
   };
 
+  const handleRandomNickname = async () => {
+    try {
+      const random = await fetchRandomNickname();
+      setNickname(random);
+      dispatch(setUser({ ...user, nickname: random })); // 🧠 Redux에도 반영
+    } catch (err) {
+      console.error("랜덤 닉네임 오류:", err);
+      alert("랜덤 닉네임을 가져오지 못했어요.");
+    }
+  };
+  
+
   const handleSubmit = async () => {
     if (!gender || !age || !location) {
       return alert("성별, 나이, 위치를 모두 입력해주세요.");
@@ -56,8 +69,9 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
       안전: "safe", 편의: "convenience", 여가: "leisure", 대중교통: "transport",
       식당: "restaurant", 카페: "cafe", 보건: "health", 치킨집: "chicken",
     };
-  
+      
     const surveyData = {
+      nickname: nickname,
       gender: genderValue,
       age: ageValue,
       location,
@@ -92,12 +106,30 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
   return (
     <div className="survey-overlay">
       <div className="survey-box">
-      <h2>{nickname}님, {mode === "edit" ? "정보를 수정해볼까요?" : "반가워요!"}</h2>
+      <h2>{mode === "edit" ? "정보를 수정해볼까요?" : "반가워요!"}</h2>
         <p>
         {mode === "edit"
             ? "회원님의 정보에 맞게 집을 추천해드릴게요!"
             : "정보를 입력하면 딱 맞는 매물을 추천해드릴게요😉"}
         </p>
+          <label>닉네임</label>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+        <input
+          type="text"
+          value={nickname}
+          onChange={(e) => {
+            setNickname(e.target.value);
+            dispatch(setUser({ ...user, nickname: e.target.value })); // 🧠 Redux 반영
+          }}
+          placeholder="닉네임을 입력하세요"
+          className="nickname-input"
+        />
+          <button type="button" onClick={handleRandomNickname} className="surveyserachbtn">
+            랜덤 생성
+          </button>
+        </div>
+
+
 
         <label>성별</label>
         <select value={gender} onChange={(e) => setGender(e.target.value)}>
@@ -115,7 +147,7 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
           ))}
         </select>
 
-        <label>기준 위치</label>
+        <label>기준 위치(직장/학교)</label>
         <div style={{ display: "flex", gap: "0.5rem" }}>
           <input
             type="text"
@@ -167,7 +199,7 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
 
 
 
-        <button className="survey-close-btn" onClick={onClose}>✖</button>
+        {/* <button className="survey-close-btn" onClick={onClose}>✖</button> */}
       </div>
       {showAlert && (
         <AlertModal
