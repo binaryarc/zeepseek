@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { postSurvey, patchSurvey } from "../../common/api/api";
 import { setUser } from "../../store/slices/authSlice";
 import "./SurveyPopup.css";
+import AlertModal from "./AlertModal";
 
 const GENDERS = ["남자", "여자"];
 const CONSIDERATIONS = ["안전", "편의", "여가", "대중교통", "식당", "카페", "보건", "치킨집"];
@@ -27,7 +28,7 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
   const user = useSelector((state) => state.auth.user);
   const nickname = user?.nickname || "로그인 유저";
   const isFormValid = gender && age && location && selectedConsiders.length > 0;
-
+  const [showAlert, setShowAlert] = useState(false);
   const handleAddressSelect = (data) => {
     setLocation(data.address);
     setIsPostcodeOpen(false);
@@ -77,7 +78,8 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
   
       if (response.success) {
         dispatch(setUser(response.data));
-        onClose();
+        setShowAlert(true)
+        // onClose();
       } else {
         alert("설문 제출에 실패했습니다.");
       }
@@ -93,7 +95,7 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
       <h2>{nickname}님, {mode === "edit" ? "정보를 수정해볼까요?" : "반가워요!"}</h2>
         <p>
         {mode === "edit"
-            ? "회원님의 정보에 따라 추천이 달라져요. 아래 정보를 수정해주세요."
+            ? "회원님의 정보에 맞게 집을 추천해드릴게요!"
             : "정보를 입력하면 딱 맞는 매물을 추천해드릴게요😉"}
         </p>
 
@@ -139,6 +141,8 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
           </div>
         )}
 
+
+
         <label>매물 고려사항 (최대 3개)</label>
         <div className="consideration-grid">
           {CONSIDERATIONS.map((item, i) => (
@@ -154,17 +158,28 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
         </div>
 
         <button
-            className={`start-button ${!isFormValid ? 'disabled' : ''}`}
-            onClick={handleSubmit}
-            disabled={!isFormValid}
-            >
-            시작하기
+          className={`start-button ${!isFormValid ? 'disabled' : ''}`}
+          onClick={handleSubmit}
+          disabled={!isFormValid}
+        >
+          {mode === "edit" ? "수정하기" : "시작하기"}
         </button>
+
 
 
         <button className="survey-close-btn" onClick={onClose}>✖</button>
       </div>
-    </div>
+      {showAlert && (
+        <AlertModal
+          message={mode === "edit" ? "정보 수정이 완료되었습니다!" : "설문이 완료되었습니다!"}
+          buttonText="확인"
+          onClose={() => {
+            setShowAlert(false);
+            onClose(); // ✅ SurveyPopup 닫기까지
+          }}
+        />
+      )}
+    </div>    
   );
 };
 
