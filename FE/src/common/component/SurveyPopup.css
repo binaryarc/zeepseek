@@ -65,7 +65,9 @@
     border-radius: 1.5rem;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 600px;
+    height: 90vh;
+    overflow-y: auto;
+    max-width: 650px;
     box-sizing: border-box;
     font-family: KOROAD;
   }
@@ -140,3 +142,36 @@
     cursor: not-allowed;
     color: #999;
   }
+
+  .nickname-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  
+  .nickname-input {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-family: KOROAD;
+  }
+  
+  .nickname-random-btn {
+    background-color: #f6a94d;
+    border: none;
+    color: white;
+    font-family: KOROAD_Light;
+    font-size: 16px;
+    padding: 0.4rem 0.9rem;
+    border-radius: 0.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  
+  .nickname-random-btn:hover {
+    background-color: #ec982f;
+  }
+  

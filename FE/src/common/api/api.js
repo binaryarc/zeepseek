@@ -7,10 +7,10 @@ const zeepApi = axios.create({
   withCredentials: false, // ✅ 쿠키 포함 요청
 });
 
-// const authApi = axios.create({
-//   baseURL: `http://localhost:8082/api/v1`, // ✅ API 서버 주소
-//   withCredentials: false, 
-// });
+const authApi = axios.create({
+  baseURL: `http://localhost:8082/api/v1`, // ✅ API 서버 주소
+  withCredentials: false, 
+});
 
 // ✅ 요청 인터셉터 (모든 요청에 `accessToken` 자동 추가)
 // api.interceptors.request.use((config) => {
@@ -301,7 +301,7 @@ export const unlikeDongApi = async (dongId, userId) => {
 
 export const postSurvey = async (surveyData, accessToken) => {
   // console.log("accessToken:", accessToken);
-  const response = await zeepApi.post("/auth/survey", surveyData, {
+  const response = await authApi.post("/auth/survey", surveyData, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
@@ -413,6 +413,12 @@ export const aiRecommendByUserId = async (userId) => {
     console.error("사용자 추천 실패: ", err);
     throw err;
 }
+}
+
+
+export const fetchRandomNickname = async () => {
+  const response = await zeepApi.get('/auth/random-nickname');
+  return response.data.data;
 }
 
 export default zeepApi;
