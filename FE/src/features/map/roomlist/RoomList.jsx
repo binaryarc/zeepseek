@@ -13,9 +13,15 @@ import {
 import defaultImage from "../../../assets/logo/192image.png";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { likeProperty, unlikeProperty } from "../../../common/api/api";
-import { useEffect } from "react";
+import { useRef, useEffect } from "react";
 
 const RoomList = () => {
+  const selectedPropertyId = useSelector(
+    (state) => state.roomList.selectedPropertyId
+  );
+
+  const roomListRef = useRef(null); 
+
   const reduxSelectedRoomType = useSelector(
     (state) => state.roomList.selectedRoomType
   );
@@ -32,6 +38,25 @@ const RoomList = () => {
   const { currentGuName, currentDongName } = useSelector(
     (state) => state.roomList
   );
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        roomListRef.current &&
+        !roomListRef.current.contains(e.target)
+      ) {
+        // 외부 클릭이면 RoomDetail 닫기
+        dispatch(setSelectedPropertyId(null));
+      }
+    };
+    if (selectedPropertyId !== null) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [selectedPropertyId]);
 
   let level = 5;
   if (window.isMapReady && typeof window.map?.getLevel === "function") {
@@ -78,7 +103,7 @@ const RoomList = () => {
     // }
 
     if (currentGuName && (currentDongName || currentDongName === "")) {
-      console.log("현재레벨;",level)
+      console.log("현재레벨;", level);
       console.log(tab);
       if (level < 6 && level > 3) {
         dispatch(
@@ -104,9 +129,9 @@ const RoomList = () => {
     }
   };
   // ✅ Redux 상태에서 매물 리스트, 로딩 상태 가져오기
-  const { rooms, loading, keyword, selectedPropertyId, currentPage, pageSize } =
-    useSelector((state) => state.roomList);
-
+  const { rooms, loading, keyword, currentPage, pageSize } = useSelector(
+    (state) => state.roomList
+  );
   const totalPages = Math.ceil(rooms.length / pageSize);
   const maxPageButtons = 3; // 페이지 버튼 최대 노출 수
   const startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
@@ -127,7 +152,7 @@ const RoomList = () => {
   // };
 
   return (
-    <div className="room-list">
+    <div className="room-list" ref={roomListRef}>
       <nav className="room-type">
         {["원룸/투룸", "오피스텔", "주택/빌라", "AI 추천", "찜"].map((tab) => (
           <span
@@ -158,15 +183,16 @@ const RoomList = () => {
               className={`room-item ${
                 selectedPropertyId === room.propertyId ? "selected" : ""
               }`}
-              onClick={() =>
-                dispatch(
-                  setSelectedPropertyId(
-                    selectedPropertyId === room.propertyId
-                      ? null
-                      : room.propertyId
-                  )
-                )
-              }
+              onClick={() => {
+                if (selectedPropertyId === room.propertyId) {
+                  console.log("끕니다");
+                  dispatch(setSelectedPropertyId(null)); // 다시 클릭 → 닫기
+                } else {
+                  console.log(selectedPropertyId, room.propertyId);
+                  console.log("켜요요");
+                  dispatch(setSelectedPropertyId(room.propertyId)); // 다른 매물 → 열기
+                }
+              }}
               onMouseEnter={() => {
                 if (room.latitude && room.longitude) {
                   window.setHoverMarker(room.latitude, room.longitude);
@@ -184,7 +210,10 @@ const RoomList = () => {
                 <p className="room-description">{room.description}</p>
                 <p className="room-address">{room.address}</p>
                 <button
-                  onClick={() => toggleLike(room)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleLike(room);
+                  }}
                   className={`like-btn ${room.liked ? "liked" : ""}`} // liked 상태에 따라 클래스를 추가
                 >
                   {room.liked ? "❤️" : "🤍"}
