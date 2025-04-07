@@ -13,6 +13,7 @@ import {
 import defaultImage from "../../../assets/logo/192image.png";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { likeProperty, unlikeProperty } from "../../../common/api/api";
+import { useEffect } from "react";
 
 const RoomList = () => {
   const reduxSelectedRoomType = useSelector(
@@ -22,6 +23,10 @@ const RoomList = () => {
   const [selectedTab, setSelectedTab] = useState(
     reduxSelectedRoomType || "원룸/투룸"
   );
+
+  useEffect(() => {
+    setSelectedTab(reduxSelectedRoomType);
+  }, [reduxSelectedRoomType]);
 
   const dispatch = useDispatch();
   const { currentGuName, currentDongName } = useSelector(
