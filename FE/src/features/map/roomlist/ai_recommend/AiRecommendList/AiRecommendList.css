@@ -1,3 +1,7 @@
+ body {
+  /* font-family: KOROAD; */
+ }
+
 .recommend-modal-overlay {
   position: fixed;
   top: 0;
@@ -9,6 +13,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  
 }
 
 .recommend-modal {
@@ -16,8 +21,9 @@
   padding: 2rem;
   border-radius: 1rem;
   width: 80vw;
-  height: 70vh;
+  height: 75vh;
   position: relative;
+  font-family: KOROAD;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
@@ -73,4 +79,20 @@
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
+}
+
+.recommend-room-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem; /* 아이템 간 간격 */
+}
+
+.recommend-detail-line {
+  display: flex;
+  align-items: center;
+  width: 48%; /* 한 줄에 2개씩 배치되도록 */
+  margin-bottom: 0.5rem;
+}
+
+.modal-score-section {
 }

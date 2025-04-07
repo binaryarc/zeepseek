@@ -17,8 +17,21 @@ import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 import { useLayoutEffect } from "react";
 import { debounce } from "lodash"; // debounce 임포트
+import centroidData from "../../../assets/data/seoul_dong_centroids_from_geojson.json";
 
 const Map = () => {
+  function getDongIdFromGeojsonDongName(admNm) {
+    const clickedDongName = admNm.trim(); // 예: "가회동"
+  
+    const match = centroidData.find((item) => {
+      const nameDong = item.name.trim().split(" ").pop(); // 예: "서울특별시 종로구 가회동" → "가회동"
+      return nameDong === clickedDongName;
+    });
+    console.log(match.dongId)
+  
+    return match?.dongId ?? null;
+  }
+
   const [map, setMap] = useState(null); // map 객체 저장용 상태
   // 각 폴리곤을 feature 고유 id를 키로 캐싱
   const polygonCacheRef = useRef({});
@@ -227,6 +240,8 @@ const Map = () => {
                 // 이벤트 리스너는 최초 생성 시 한 번 등록
                 window.kakao.maps.event.addListener(polygon, "click", () => {
                   const clickedDongId = feature.properties.ADM_CD;
+                  const dongNameFromGeojson = feature.properties.ADM_NM;
+                  const dongId = getDongIdFromGeojsonDongName(dongNameFromGeojson);
                   // 이미 선택된 동이면 → 토글 방식으로 선택 해제
                   if (selectedDongIdRef.current === clickedDongId) {
                     if (overlayRef.current) overlayRef.current.setMap(null);
@@ -280,11 +295,16 @@ const Map = () => {
                   content.className = "detail-overlay";
 
                   const root = ReactDOM.createRoot(content);
-                  root.render(
-                    <Provider store={store}>
-                      <DetailRegion dongId={feature.properties.ADM_CD} />
-                    </Provider>
-                  );
+                  if (dongId) {
+                    console.log(dongId)
+                    root.render(
+                      <Provider store={store}>
+                        <DetailRegion dongId={dongId} />
+                      </Provider>
+                    );
+                  } else {
+                    alert("동 ID를 찾을 수 없습니다.");
+                  }
 
                   const overlay = new window.kakao.maps.CustomOverlay({
                     position: center,
