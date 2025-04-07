@@ -1,5 +1,5 @@
 // import zeepApi from "./api";
-// import axios from "axios";
+import axios from "axios";
 // const authApi = axios.create({
 //   baseURL: `http://localhost:8082/api/v1`, // ✅ API 서버 주소
 //   withCredentials: true, // ✅ 쿠키 포함 요청
