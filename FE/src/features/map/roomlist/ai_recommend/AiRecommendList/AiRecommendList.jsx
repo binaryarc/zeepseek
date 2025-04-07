@@ -27,12 +27,14 @@ const AiRecommendList = ({ room, item, onClose }) => {
                 {room.contractType} {room.price}
               </h2>
               <p><strong>설명:</strong> {room.description}</p>
+              
+              <p>abd</p>
             </div>
           </div>
           <div className="modal-score-section">
             <p>유사도 : {item.similarity}</p>
             <p>점수 비교</p>
-            
+
           </div>
         </div>
       </div>

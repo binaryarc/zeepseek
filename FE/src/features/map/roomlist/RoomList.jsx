@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./RoomList.css";
 import AiRecommend from "./ai_recommend/AiRecommend";
+import ZzimList from "./zzim_list/ZzimList";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setSelectedPropertyId,
@@ -12,6 +13,7 @@ import {
 import defaultImage from "../../../assets/logo/192image.png";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { likeProperty, unlikeProperty } from "../../../common/api/api";
+import { useEffect } from "react";
 
 const RoomList = () => {
   const reduxSelectedRoomType = useSelector(
@@ -22,12 +24,16 @@ const RoomList = () => {
     reduxSelectedRoomType || "원룸/투룸"
   );
 
+  useEffect(() => {
+    setSelectedTab(reduxSelectedRoomType);
+  }, [reduxSelectedRoomType]);
+
   const dispatch = useDispatch();
   const { currentGuName, currentDongName } = useSelector(
     (state) => state.roomList
   );
 
-  let level = null;
+  let level = 5;
   if (window.isMapReady && typeof window.map?.getLevel === "function") {
     level = window.map.getLevel();
   } else {
@@ -72,6 +78,7 @@ const RoomList = () => {
     // }
 
     if (currentGuName && (currentDongName || currentDongName === "")) {
+      console.log("현재레벨;",level)
       console.log(tab);
       if (level < 6 && level > 3) {
         console.log('아아아아아아', user.idx)
@@ -123,7 +130,7 @@ const RoomList = () => {
   return (
     <div className="room-list">
       <nav className="room-type">
-        {["원룸/투룸", "오피스텔", "주택/빌라", "AI 추천"].map((tab) => (
+        {["원룸/투룸", "오피스텔", "주택/빌라", "AI 추천", "찜"].map((tab) => (
           <span
             key={tab}
             className={selectedTab === tab ? "active-tab" : ""}
@@ -136,6 +143,8 @@ const RoomList = () => {
 
       {selectedTab === "AI 추천" ? (
         <AiRecommend />
+      ) : selectedTab === "찜" ? (
+        <ZzimList />
       ) : loading ? (
         <div className="loading-message">🔄 매물 불러오는 중...</div>
       ) : currentRooms.length === 0 ? (

@@ -16,6 +16,7 @@
     flex-shrink: 0; /* nav는 고정 */
     z-index: 100;
   }
+  
 
   /* .room-list {
     width: 40%;
@@ -91,7 +92,7 @@
   }
 
   .room-item.selected {
-    background-color: #fdf6e3; /* 연한 노란 배경 */
+    background-color: #FBF9F2; /* 연한 노란 배경 */
     border-left: 4px solid #f9b233; /* 강조 선 */
   }
   

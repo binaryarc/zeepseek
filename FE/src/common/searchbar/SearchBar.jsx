@@ -31,7 +31,7 @@ function Searchbar() {
   const mapReady = useSelector((state) => state.roomList.mapReady);
 
   useEffect(() => {
-    if (keywordFromRedux ) {
+    if (keywordFromRedux) {
       if (!mapReady) return;
       console.log("🔍 키워드 변경 감지:", keywordFromRedux); // ✅ 이거 꼭 넣어보세요
       setSearchText(keywordFromRedux); // input 채우기
@@ -69,9 +69,12 @@ function Searchbar() {
     if (!keyword.trim()) return;
 
     try {
-      const result = await dispatch(fetchRoomList({ keyword, filter: roomType, userId: user?.idx ?? null }));
+      const result = await dispatch(
+        fetchRoomList({ keyword, filter: roomType, userId: user?.idx ?? null })
+      );
       const properties = result.payload;
-      if (!properties || properties.length === 0) return alert("검색 결과가 없습니다.");
+      if (!properties || properties.length === 0)
+        return alert("검색 결과가 없습니다.");
 
       const first = properties[0];
       const geocoder = new window.kakao.maps.services.Geocoder();

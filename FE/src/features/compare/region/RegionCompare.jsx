@@ -23,6 +23,11 @@ function RegionCompare() {
   const [likedRegions, setLikedRegions] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
 
+  // 비교한 동네 이름 저장
+  const [lastComparedRegion1, setLastComparedRegion1] = useState(null);
+  const [lastComparedRegion2, setLastComparedRegion2] = useState(null);
+
+
   const user = useSelector((state) => state.auth.user)
 
   useEffect(() => {
@@ -74,6 +79,9 @@ function RegionCompare() {
         ]);
         setRegionScores({ [selectedRegion1.dongId]: data1, [selectedRegion2.dongId]: data2 });
 
+        setLastComparedRegion1(selectedRegion1);
+        setLastComparedRegion2(selectedRegion2);
+
         const summaryResult = await fetchRegionSummary(user.idx, selectedRegion1.dongId, selectedRegion2.dongId);
         setSummary(summaryResult?.data?.compareSummary);
         console.log("region1", selectedRegion1)
@@ -100,10 +108,11 @@ function RegionCompare() {
 
   const chartData = scoreLabels.map(({ label, key }) => ({
     subject: label,
-    [selectedRegion1?.dongId]: regionScores[selectedRegion1?.dongId]?.[key] || 0,
-    [selectedRegion2?.dongId]: regionScores[selectedRegion2?.dongId]?.[key] || 0,
+    [lastComparedRegion1?.dongId]: regionScores[lastComparedRegion1?.dongId]?.[key] || 0,
+    [lastComparedRegion2?.dongId]: regionScores[lastComparedRegion2?.dongId]?.[key] || 0,
     fullMark: 100,
   }));
+  
 
   return (
     <div className="region-compare-total-container">
@@ -143,7 +152,7 @@ function RegionCompare() {
 
           
 
-          {!isLoading && selectedRegion1 && selectedRegion2 && (
+          {!isLoading && lastComparedRegion1 && lastComparedRegion2 && (
             <div className="compare-table">
               <ResponsiveContainer width="100%" height={400}>
                 <RadarChart outerRadius={130} data={chartData}>
@@ -155,15 +164,15 @@ function RegionCompare() {
                   />
                   <PolarRadiusAxis angle={70} domain={[0, 100]} />
                   <Radar
-                    name={`${selectedRegion1.guName} ${selectedRegion1.name}`}
-                    dataKey={selectedRegion1.dongId}
+                    name={`${lastComparedRegion1.guName} ${lastComparedRegion1.name}`}
+                    dataKey={lastComparedRegion1.dongId}
                     stroke="#4CAF50"
                     fill="#4CAF50"
                     fillOpacity={0.3}
                   />
                   <Radar
-                    name={`${selectedRegion2.guName} ${selectedRegion2.name}`}
-                    dataKey={selectedRegion2.dongId}
+                    name={`${lastComparedRegion2.guName} ${lastComparedRegion2.name}`}
+                    dataKey={lastComparedRegion2.dongId}
                     stroke="#673AB7"
                     fill="#673AB7"
                     fillOpacity={0.3}
@@ -256,7 +265,7 @@ function RegionCompare() {
         </div>
       </div>
       <div className="region-ai-summary-container">
-        {summary && (
+        {lastComparedRegion1 && lastComparedRegion2 && summary && (
           <div className="summary-box">
             <div className="summary-box-header">
               <img src={zeepai} alt="ai_image" className="zeepai_summary_image" />

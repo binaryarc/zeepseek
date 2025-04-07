@@ -8,8 +8,8 @@ const zeepApi = axios.create({
 });
 
 // const authApi = axios.create({
-//   baseURL: `https://j12e203.p.ssafy.io/api/v1`, // ✅ API 서버 주소
-//   withCredentials: true, // ✅ 쿠키 포함 요청
+//   baseURL: `http://localhost:8082/api/v1`, // ✅ API 서버 주소
+//   withCredentials: false, 
 // });
 
 // ✅ 요청 인터셉터 (모든 요청에 `accessToken` 자동 추가)
@@ -309,6 +309,18 @@ export const postSurvey = async (surveyData, accessToken) => {
   return response.data;
 };
 
+export const patchSurvey = async (userId, surveyData, accessToken) =>{
+  const response = await
+  zeepApi.patch(`/auth/${userId}`, surveyData, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  }
+);
+return response.data;}
+
+
+
 export const fetchNearbyPlaces = async (type, lng, lat) => {
   try {
     const response = await zeepApi.get(
@@ -391,6 +403,16 @@ export const searchDongByName = async (dongName) => {
   }
 }
 
-
+// ai 추천 api
+export const aiRecommendByUserId = async (userId) => {
+  try {
+    const res = await zeepApi.get(`/recommend/ai-recommend?userId=${userId}`)
+    console.log(res)
+    return res;
+  } catch (err) {
+    console.error("사용자 추천 실패: ", err);
+    throw err;
+}
+}
 
 export default zeepApi;

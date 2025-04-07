@@ -8,6 +8,7 @@ import {
   setCurrentGuAndDongName,
 } from "../../../../store/slices/roomListSlice";
 import store from "../../../../store/store";
+import { useLocation } from "react-router-dom";
 
 function CurrentLocationLabel({ map }) {
   const [locationName, setLocationName] = useState("");
@@ -19,6 +20,70 @@ function CurrentLocationLabel({ map }) {
   //   (state) => state.roomList.selectedRoomType
   // );
   const user = useSelector((state) => state.auth.user);
+  const location = useLocation();
+  const selectedRoomType = useSelector((state) => state.roomList.selectedRoomType);
+  const idleSkipRef = useRef(false);
+
+  useEffect(() => {
+    // 외부에서 호출할 수 있게 라벨 갱신 함수 window에 등록
+    window.updateCurrentLocationLabel = () => {
+      const center = map.getCenter();
+      const level = map.getLevel();
+      const geocoder = new window.kakao.maps.services.Geocoder();
+  
+      geocoder.coord2RegionCode(
+        center.getLng(),
+        center.getLat(),
+        (result, status) => {
+          if (status !== window.kakao.maps.services.Status.OK) return;
+  
+          const regionData = result[1];
+          const guName = regionData.region_2depth_name;
+          const dongName = regionData.region_3depth_name.replaceAll(".", "·");
+  
+          setLocationName(level >= 6 ? guName : dongName);
+        }
+      );
+    };
+  
+    return () => {
+      // 페이지 나갈 때 정리
+      delete window.updateCurrentLocationLabel;
+    };
+  }, [map]);
+  
+  useEffect(() => {
+    if (location?.state?.selectedPropertyId) {
+      console.log('여기들어옴?')
+      idleSkipRef.current = true;
+
+      setTimeout(() => {
+        requestAnimationFrame(() => {
+          const center = map.getCenter();
+          const level = map.getLevel();
+
+          const geocoder = new window.kakao.maps.services.Geocoder();
+
+          geocoder.coord2RegionCode(
+            center.getLng(),
+            center.getLat(),
+            (result, status) => {
+              if (status !== window.kakao.maps.services.Status.OK) return;
+
+              const regionData = result[1];
+              const guName = regionData.region_2depth_name;
+              const dongName = regionData.region_3depth_name.replaceAll(
+                ".",
+                "·"
+              );
+
+              setLocationName(level >= 6 ? guName : dongName);
+            }
+          );
+        });
+      }, 300);
+    }
+  }, [location?.state?.selectedPropertyId]);
 
   // ✅ searchLock 최신값 반영
   useEffect(() => {
@@ -31,6 +96,12 @@ function CurrentLocationLabel({ map }) {
     const geocoder = new window.kakao.maps.services.Geocoder();
 
     const updateCenterAddress = () => {
+      // ✅ 검색에서 들어온 경우 idle 처리 무시
+      if (idleSkipRef.current) {
+        idleSkipRef.current = false;
+        return;
+      }
+
       console.log("✅ idle 이벤트 발생!", map.getCenter());
       const center = map.getCenter();
       const level = map.getLevel();
@@ -89,7 +160,7 @@ function CurrentLocationLabel({ map }) {
     return () => {
       window.kakao.maps.event.removeListener(map, "idle", updateCenterAddress);
     };
-  }, [map]);
+  }, [map, selectedRoomType]);
 
   if (!locationName) return null;
 
