@@ -97,9 +97,15 @@ const RoomList = () => {
     }
   };
 
-  // Modified: keyword가 빈 문자열 또는 null이면 currentDongName을 사용
+  // Modified: 
+  // keyword가 비어있지 않고 (null이 아니고) keyword와 currentDongName이 다르면 무조건 currentDongName 사용
+  // 그렇지 않으면 keyword가 있으면 keyword, 없으면 currentDongName 사용
   const displayKeyword =
-    keyword && keyword.trim() !== "" ? keyword : currentDongName;
+    keyword && keyword.trim() !== "" && keyword !== currentDongName
+      ? currentDongName
+      : keyword && keyword.trim() !== ""
+      ? keyword
+      : currentDongName;
 
   const totalPages = Math.ceil(rooms.length / pageSize);
   const maxPageButtons = 3; // 페이지 버튼 최대 노출 수
