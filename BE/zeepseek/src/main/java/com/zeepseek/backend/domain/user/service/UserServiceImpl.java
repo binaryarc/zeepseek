@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserPreferencesRepository userPreferencesRepository;
     private final DongService dongService;
-
+    private final NicknameService nicknameService;
     private final String kakaoMapApiKey;
     private final WebClient kakaoWebClient;
 
@@ -36,6 +36,7 @@ public class UserServiceImpl implements UserService {
             UserRepository userRepository,
             UserPreferencesRepository userPreferencesRepository,
             DongService dongService,
+            NicknameService nicknameService,
             @Value("${spring.security.oauth2.client.registration.kakao.client-id}")
             String kakaoMapApiKey
     ) {
@@ -43,7 +44,7 @@ public class UserServiceImpl implements UserService {
         this.userPreferencesRepository = userPreferencesRepository;
         this.dongService = dongService;
         this.kakaoMapApiKey = kakaoMapApiKey;
-
+        this.nicknameService = nicknameService;
         this.kakaoWebClient = WebClient.builder()
                 .baseUrl("https://dapi.kakao.com")
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "KakaoAK " + kakaoMapApiKey)
@@ -139,6 +140,13 @@ public class UserServiceImpl implements UserService {
 
         if (dto.getGender() != null) u.setGender(dto.getGender());
         if (dto.getAge()    != null) u.setAge(dto.getAge());
+
+        // 클라이언트에서 보낸 닉네임이 있으면 업데이트 (랜덤 생성된 닉네임 포함)
+        if (dto.getNickname() != null && !dto.getNickname().trim().isEmpty()) {
+            u.setNickname(dto.getNickname());
+            log.info("Nickname updated for user {}: {}", userId, dto.getNickname());
+        }
+
         u.setIsFirst(0);
         User saved = userRepository.save(u);
 
