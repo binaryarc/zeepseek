@@ -1,4 +1,5 @@
 import time
+import threading
 import logging
 from fastapi import FastAPI, Request
 # 라우터 모듈에서 APIRouter 인스턴스(router)를 가져옵니다.
@@ -19,23 +20,41 @@ formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
+def periodic_training():
+    """
+    주기적으로 SVD 모델을 재학습하는 배치 작업 (2시간마다 실행)
+    """
+    while True:
+        try:
+            logger.info("==== [Periodic Training] Starting SVD model training batch ====")
+            train_model()
+            if model.is_trained():
+                logger.info("==== [Periodic Training] SVD model training completed successfully ====")
+            else:
+                logger.warning("==== [Periodic Training] SVD model training did not succeed (or data was empty) ====")
+        except Exception as e:
+            logger.error("==== [Periodic Training] Error during model training: %s", e)
+        # 2시간(7200초) 대기
+        time.sleep(7200)
+
 @app.on_event("startup")
 def on_startup():
     """
-    서버가 시작될 때 자동으로 실행되는 이벤트 핸들러.
-    여기서 SVD 모델을 미리 학습(train)하거나, 저장된 모델을 로드(load)할 수 있습니다.
+    서버 시작 시 SVD 모델을 학습하고, 주기적인 배치 작업을 백그라운드 스레드로 실행합니다.
     """
     logger.info("==== [Startup] Server is starting up... ====")
     try:
-        # 예: 모델을 미리 학습
-        logger.info("Starting to train the SVD model...")
-        train_model()  # 내부에서 model.train(df) 실행
+        logger.info("Starting to train the SVD model at startup...")
+        train_model()  # 서버 기동 시 한 번 학습
         if model.is_trained():
             logger.info("SVD model is successfully trained at startup.")
         else:
-            logger.warning("SVD model training did not succeed or data was empty.")
+            logger.warning("SVD model training did not succeed or data was empty at startup.")
     except Exception as e:
-        logger.error(f"Error during startup model training: {e}")
+        logger.error("Error during startup model training: %s", e)
+    
+    # 주기적 모델 재학습을 위한 백그라운드 스레드 시작 (데몬 스레드로 실행)
+    threading.Thread(target=periodic_training, daemon=True).start()
 
 @app.middleware("http")
 async def logging_middleware(request: Request, call_next):
