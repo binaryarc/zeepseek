@@ -174,4 +174,32 @@
     }
   }
 
+  .loading-message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: KOROAD;
+    font-size : 1.5rem;
+    margin-top: 50px
+  }
+
+  .room-spinner {
+    display: inline-block;
+    width: 18px !important;
+    height: 18px !important;
+    border: 1.5px solid #4caf50; /* 초록색 테두리 */
+    border-top: 1.5px solid transparent; /* 회전 효과 */
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: 20px;
+    vertical-align: middle;
+    margin-bottom: 0 !important;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
   
