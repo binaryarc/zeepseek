@@ -64,7 +64,7 @@
 .liked-region-box {
   background-color: white;
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: 1rem 0 1rem 3rem;
   width: 25%;
   /* height: 50vh; */
   height: 515px;
@@ -82,7 +82,6 @@
   flex: 1; /* 나머지 공간을 전부 차지 */
   padding-right: 6px;
 }
-
 
 .liked-region-box h4 {
   margin-bottom: 10px;
