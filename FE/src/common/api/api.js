@@ -415,6 +415,20 @@ export const aiRecommendByUserId = async (userId) => {
 }
 }
 
+// 🚇 기준지 ↔ 매물 통근 시간 조회 API
+export const fetchCommuteTime = async ({ userId, lat, lon }) => {
+  try {
+    const res = await zeepApi.get(
+      `/distance/property-transit?userId=${userId}&propertyLat=${lat}&propertyLon=${lon}`
+    );
+    console.log('dd', res)
+    return res.data; // ✅ { driveTime, publicTransportTime, walkTime }
+  } catch (error) {
+    console.error("통근 시간 조회 실패:", error);
+    return null;
+  }
+};
+
 
 export const fetchRandomNickname = async () => {
   const response = await zeepApi.get('/auth/random-nickname');
