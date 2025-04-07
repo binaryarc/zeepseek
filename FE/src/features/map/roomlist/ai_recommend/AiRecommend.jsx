@@ -13,10 +13,10 @@ import zeepai from "../../../../assets/images/zeepai.png";
 import { useSelector } from "react-redux";
 
 const AiRecommend = () => {
-  // const [nearbyMarkers, setNearbyMarkers] = useState([]);     // 매물 주변 시설 위치 마킹
-  // const [circleOverlay, setCircleOverlay] = useState(null);   // 매물 반경 1km 원 마킹
+
   const [selectedRoom, setSelectedRoom] = useState(null); // 모달에 띄울 매물 상세 정보
-  const [roomScore, setRoomScore] = useState(null); // 모달에 띄울 매물 점수
+  // const [roomScore, setRoomScore] = useState(null); // 모달에 띄울 매물 점수
+  const [sliderValues, setSliderValues] = useState(null);
 
   const hoverRequestIdRef = useRef(0);
   const circleOverlayRef = useRef(null);
@@ -69,15 +69,39 @@ const AiRecommend = () => {
       leisureScore: filterValues["여가"] / 100,
     };
 
+    setSliderValues({
+      transportScore: filterValues["대중교통"],
+      restaurantScore: filterValues["식당"],
+      healthScore: filterValues["보건"],
+      convenienceScore: filterValues["편의"],
+      cafeScore: filterValues["카페"],
+      chickenScore: filterValues["치킨집"],
+      leisureScore: filterValues["여가"],
+    })
+
     console.log("request data: ", preferenceData);
 
     setIsLoading(true); // 로딩 시작
     try {
       const result = await fetchAIRecommendedProperties(preferenceData);
       if (result) {
+        const rawList = result.recommendedProperties;
+
+        // 1. 각 매물의 상세 정보를 요청
+        const detailedList = await Promise.all(
+          rawList.map(async (item) => {
+            const detail = await getPropertyDetail(item.propertyId);
+            return {
+              ...item,     // AI 추천 점수 등
+              ...detail,   // 상세 정보 (contractType, price 등)
+            };
+          })
+        );
+
         console.log("전체 추천 결과: ", result);
         console.log("추천 매물 목록:", result.recommendedProperties);
-        setRecommendedList(result.recommendedProperties);
+        console.log("detailedList: ", detailedList)
+        setRecommendedList(detailedList);
         setIsRecoDone(true);
         setMaxType(result.maxType);
         console.log("user정보: ", user);
@@ -140,7 +164,7 @@ const AiRecommend = () => {
 
       {isRecoDone && !isLoading && (
         <div className="result-section">
-          <button className="recommend-search-btn" onClick={handleRetry}>
+          <button className="re-recommend-search-btn" onClick={handleRetry}>
             추천 다시 받기
           </button>
           <div className="recommend-results">
@@ -240,14 +264,9 @@ const AiRecommend = () => {
                       circleOverlayRef.current = null;
                     }
                   }}
-                  onClick={async () => {
-                    const detail = await getPropertyDetail(item.propertyId);
-                    console.log("매물 상세 정보: ", detail);
-                    console.log("매물 점수 정보: ", item);
-                    if (detail) {
-                      setSelectedRoom(detail);
-                      setRoomScore(item);
-                    }
+                  onClick={() => {
+                    setSelectedRoom(item)
+                    console.log(sliderValues)
                   }}
                 >
                   <img src={item.imageUrl || defaultImage} alt="매물 이미지" />
@@ -265,11 +284,7 @@ const AiRecommend = () => {
         </div>
       )}
       {selectedRoom && (
-        <AiRecommendList
-          room={selectedRoom}
-          item={roomScore}
-          onClose={() => setSelectedRoom(null)}
-        />
+        <AiRecommendList room={selectedRoom} values={sliderValues} onClose={() => setSelectedRoom(null)} />
       )}
     </div>
   );
