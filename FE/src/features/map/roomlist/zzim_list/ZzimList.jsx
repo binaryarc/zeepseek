@@ -20,7 +20,7 @@ import { useRef } from "react";
 const ZzimList = () => {
   const [rooms, setRooms] = useState([]);
   const selectedPropertyId = useSelector(
-    (state) => state.roomlist?.selectedPropertyId
+    (state) => state.roomList?.selectedPropertyId
   );
   const [selectedRoom, setSelectedRoom] = useState(null);
   const user = useSelector((state) => state.auth.user);
@@ -48,6 +48,7 @@ const ZzimList = () => {
     cafe: "☕",
     restaurant: "🍜"
   };
+  
   useEffect(() => {
     return () => {
       // ✅ 탭 이동 시 오버레이와 마커 정리
@@ -150,6 +151,8 @@ const ZzimList = () => {
     } else {
       // ✅ 마커 제거
       window.clearHoverMarker();
+      dispatch(setSelectedPropertyId(null));
+      
 
       if (circleRef.current) circleRef.current.setMap(null);
       nearbyMarkerRef.current.forEach((m) => m.setMap(null));
