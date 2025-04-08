@@ -32,7 +32,11 @@ PROPERTY_IDS_CACHE = None
 PROPERTY_CACHE_TIMESTAMP = 0
 
 def fetch_logs_from_es(days: int = 30, size: int = 10000):
-    # _source에 computedRoomType, age, gender 추가 (로그에 해당 정보가 있다면)
+    """
+    Elasticsearch에서 최근 'days' 일간 로그를 가져와
+    [userId, propertyId, action, dongId, computedRoomType, age, gender] -> ACTION_SCORE 매핑 후 DataFrame 반환.
+    propertyId가 -1인 데이터는 제거합니다.
+    """
     query = {
         "query": {
             "range": {
@@ -49,10 +53,15 @@ def fetch_logs_from_es(days: int = 30, size: int = 10000):
     )
     docs = [doc["_source"] for doc in result["hits"]["hits"]]
     df = pd.DataFrame(docs)
+    # [수정] 만약 특정 컬럼이 누락되면 기본값 None으로 추가
+    for col in ["computedRoomType", "age", "gender"]:
+        if col not in df.columns:
+            df[col] = None
     if df.empty:
         logger.info("No logs found from ES.")
         return pd.DataFrame(columns=["userId", "propertyId", "action", "dongId", "computedRoomType", "age", "gender"])
     df["score"] = df["action"].map(ACTION_SCORE).fillna(0)
+    # -1인 propertyId 제거
     df = df[df["propertyId"] != -1]
     logger.info("[fetch_logs_from_es] Retrieved %d logs after filtering propertyId=-1", len(df))
     return df[["userId", "propertyId", "score", "dongId", "computedRoomType", "age", "gender"]]
@@ -228,7 +237,7 @@ def hybrid_recommend(user_id: int, top_k=5, dong_id: int = None):
     logger.info("Starting hybrid recommendation for user %d...", user_id)
     # dominant computedRoomType 결정
     dominant_computed_room_type = get_dominant_computed_room_type(user_id)
-    # SVD 추천은 dominant computedRoomType 혹은 dong_id가 있으면 해당 조건으로 필터링
+    # SVD 추천은 dominant computedRoomType 혹은 dong_id가 있으면 해당 조건으로 필터링하도록 함
     try:
         rec_svd = recommend(user_id, top_k, dong_id=dong_id, computed_room_type=dominant_computed_room_type)
     except ValueError as e:
@@ -245,7 +254,6 @@ def hybrid_recommend(user_id: int, top_k=5, dong_id: int = None):
     logger.info("Hybrid recommendation for user %d: %s", user_id, merged)
     return merged
 
-
 def recommend_for_mainpage(userId: int, top_k=10):
     logger.info("Starting mainpage recommendation for user %d...", userId)
     session = SessionLocal()
@@ -261,7 +269,6 @@ def recommend_for_mainpage(userId: int, top_k=10):
     targetDong = get_most_frequent_dong_for_user(userId)
     # targetDong이 없으면 fallback 사용
     final_dong = targetDong if targetDong is not None else fallbackDong
-    # SVD 추천 부분에 dong_id를 전달하여 해당 동의 매물만 추천
     if not targetDong:
         logger.info("No dong logs => fallback hybrid recommendation using user_preference dong_id=%s", fallbackDong)
         recs = hybrid_recommend(userId, top_k, dong_id=fallbackDong)
