@@ -226,7 +226,7 @@ def get_demographic_weight_adjustments(gender, age_group):
                     gender, age_group, 조정표[key])
         return 조정표[key]
     else:
-        logger.warning("[get_demographic_weight_adjustments] 정의되지 않은 (성별, 연령대)이므로 기본값 사용: (%s, %s)", gender, age_group)
+        logger.warning("[get_demographic_weight_adjustments] 정의되지 않은 (성별, 연령대) → 기본값 사용: (%s, %s)", gender, age_group)
         return 기본값
 
 def get_user_preference_weights(user_id):
@@ -367,24 +367,34 @@ def recommend_properties(
     else:
         logger.info("[recommend_properties] user_id가 없어, 사용자 선호도 가중치 적용 안 함.")
 
-    # ===== Modified: 추가된 필터링 (가격 및 방 유형) =====
-    # 입력 조건은 user_scores에 "priceRange" (예: [min, max])와 "roomType" (예: "원룸", "투룸", "빌라", "주택") 필드가 있다고 가정합니다.
+    # ===== Modified: 추가된 필터링 (가격, 방 유형, 계약 유형) =====
+    # 사용자 조건: "priceRange" (예: [min_price, max_price]), "roomType" (예: "원룸", "투룸", "빌라", "주택"), "contractType" (예: "단기임대", "월세", "전세", "매매")
     price_range = user_scores.get("priceRange")
     desired_room_type = user_scores.get("roomType")
-    if price_range or desired_room_type:
+    desired_contract_type = user_scores.get("contractType")
+    if price_range or desired_room_type or desired_contract_type:
         session = SessionLocal()
         try:
-            # property_score에 있는 매물 ID에 한해서, property 테이블과 조인 없이 조건에 맞는 매물만 조회한다.
-            query = "SELECT property_id FROM property WHERE property_id IN :ids"
+            # 한 번의 쿼리로 property 테이블에서 매물 상세 정보를 조회
+            query = "SELECT property_id, price, room_type, room_bath_count, contract_type FROM property WHERE property_id IN :ids"
             params = {"ids": tuple(property_ids)}
             conditions = []
+            # 가격 필터링
             if price_range:
-                conditions.append("price BETWEEN :min_price AND :max_price")
+                # 계약 유형에 따라 가격 전처리
+                if desired_contract_type in ["단기임대", "월세"]:
+                    # 보증금/월세 형태 => 보증금(슬래시 앞의 값)을 사용
+                    conditions.append("CAST(SUBSTRING_INDEX(price, '/', 1) AS UNSIGNED) BETWEEN :min_price AND :max_price")
+                elif desired_contract_type in ["전세", "매매"]:
+                    # 예: "3억 2,000" 형태 -> '억' 앞의 숫자를 사용 (간단 처리)
+                    conditions.append("CAST(REPLACE(SUBSTRING_INDEX(price, '억', 1), ' ', '') AS UNSIGNED) BETWEEN :min_price AND :max_price")
+                else:
+                    conditions.append("price BETWEEN :min_price AND :max_price")
                 params["min_price"] = price_range[0]
                 params["max_price"] = price_range[1]
+            # 방 유형 필터링
             if desired_room_type:
                 if desired_room_type in ["원룸", "투룸"]:
-                    # room_bath_count 컬럼에서 "/" 앞의 숫자 추출하여 필터링
                     if desired_room_type == "원룸":
                         conditions.append("CAST(SUBSTRING_INDEX(room_bath_count, '/', 1) AS UNSIGNED) = 1")
                     elif desired_room_type == "투룸":
@@ -393,6 +403,10 @@ def recommend_properties(
                     conditions.append("room_type = '빌라'")
                 elif desired_room_type == "주택":
                     conditions.append("room_type IN ('단독/다가구','상가주택','한옥주택','전원주택')")
+            # 계약 유형 필터링
+            if desired_contract_type:
+                conditions.append("contract_type = :contractType")
+                params["contractType"] = desired_contract_type
             if conditions:
                 query += " AND " + " AND ".join(conditions)
             query = text(query)
@@ -405,19 +419,19 @@ def recommend_properties(
             session.close()
         
         if not filtered_property_ids:
-            logger.warning("[recommend_properties] 가격/방 유형 필터 조건에 맞는 매물이 없습니다.")
+            logger.warning("[recommend_properties] 가격/방 및 계약 유형 필터 조건에 맞는 매물이 없습니다.")
             return {
                 "recommendedProperties": [],
                 "maxType": None
             }
-        # property_ids 리스트에서 필터 조건에 맞는 매물들만 선택
+        # 기존 property_ids 리스트에서 필터 조건에 맞는 인덱스 추출
         filtered_indices = [idx for idx, pid in enumerate(property_ids) if pid in filtered_property_ids]
         property_array = property_array[filtered_indices, :]
         property_ids = [property_ids[i] for i in filtered_indices]
         logger.info("[recommend_properties] 필터링 후 매물 개수: %d", len(property_ids))
     # ===== 필터링 끝 =====
 
-    # 4) 정규화
+    # 4) 정규화 (minmax 또는 zscore)
     if normalization_method == 'minmax':
         min_max_values = get_category_min_max_values()
         if not min_max_values:
