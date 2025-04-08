@@ -22,13 +22,13 @@ import centroidData from "../../../assets/data/seoul_dong_centroids_from_geojson
 const Map = () => {
   function getDongIdFromGeojsonDongName(admNm) {
     const clickedDongName = admNm.trim(); // 예: "가회동"
-  
+
     const match = centroidData.find((item) => {
       const nameDong = item.name.trim().split(" ").pop(); // 예: "서울특별시 종로구 가회동" → "가회동"
       return nameDong === clickedDongName;
     });
-    console.log(match.dongId)
-  
+    console.log(match.dongId);
+
     return match?.dongId ?? null;
   }
 
@@ -130,7 +130,7 @@ const Map = () => {
             location.state.lat,
             location.state.lng
           );
-          level = 3;
+          level = 4;
         }
 
         const options = {
@@ -262,7 +262,8 @@ const Map = () => {
                 window.kakao.maps.event.addListener(polygon, "click", () => {
                   const clickedDongId = feature.properties.ADM_CD;
                   const dongNameFromGeojson = feature.properties.ADM_NM;
-                  const dongId = getDongIdFromGeojsonDongName(dongNameFromGeojson);
+                  const dongId =
+                    getDongIdFromGeojsonDongName(dongNameFromGeojson);
                   // 이미 선택된 동이면 → 토글 방식으로 선택 해제
                   if (selectedDongIdRef.current === clickedDongId) {
                     if (overlayRef.current) overlayRef.current.setMap(null);
@@ -317,7 +318,7 @@ const Map = () => {
 
                   const root = ReactDOM.createRoot(content);
                   if (dongId) {
-                    console.log(dongId)
+                    console.log(dongId);
                     root.render(
                       <Provider store={store}>
                         <DetailRegion dongId={dongId} />
@@ -354,14 +355,18 @@ const Map = () => {
                   selectedPolygonRef.current = polygon;
                 });
 
-                window.kakao.maps.event.addListener(polygon, "mouseover", () => {
-                  if (selectedPolygonRef.current === polygon) return;
-                  polygon.setOptions({
-                    strokeOpacity: 1,
-                    fillOpacity: 0.5,
-                    fillColor: "#F1FAD3",
-                  });
-                });
+                window.kakao.maps.event.addListener(
+                  polygon,
+                  "mouseover",
+                  () => {
+                    if (selectedPolygonRef.current === polygon) return;
+                    polygon.setOptions({
+                      strokeOpacity: 1,
+                      fillOpacity: 0.5,
+                      fillColor: "#F1FAD3",
+                    });
+                  }
+                );
 
                 window.kakao.maps.event.addListener(polygon, "mouseout", () => {
                   if (selectedPolygonRef.current === polygon) return;
@@ -401,7 +406,7 @@ const Map = () => {
     const { lat, lng } = location.state;
     if (lat && lng) {
       const moveLatLng = new window.kakao.maps.LatLng(lat, lng);
-      map.setLevel(3);
+      map.setLevel(5);
       map.setCenter(moveLatLng);
     }
   }, [map, location.state]);

@@ -16,8 +16,7 @@ import { likeProperty, unlikeProperty } from "../../../common/api/api";
 import { useRef } from "react";
 
 const RoomList = () => {
-
-  const roomListRef = useRef(null); 
+  const roomListRef = useRef(null);
 
   const reduxSelectedRoomType = useSelector(
     (state) => state.roomList.selectedRoomType
@@ -44,11 +43,33 @@ const RoomList = () => {
   } = useSelector((state) => state.roomList);
 
   useEffect(() => {
+    if (!selectedPropertyId || rooms.length === 0) return;
+    console.log("여기야?");
+
+    const index = rooms.findIndex((r) => r.propertyId === selectedPropertyId);
+    if (index === -1) return;
+
+    const page = Math.floor(index / pageSize) + 1;
+    if (currentPage !== page) {
+      dispatch(setCurrentPage(page));
+    }
+  }, [selectedPropertyId, rooms, pageSize, currentPage]);
+
+  useEffect(() => {
+    if (!selectedPropertyId) return;
+
+    const el = document.querySelector(`[data-id='${selectedPropertyId}']`);
+    if (el) {
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [selectedPropertyId, currentPage]);
+
+  useEffect(() => {
     const handleClickOutside = (e) => {
-      if (
-        roomListRef.current &&
-        !roomListRef.current.contains(e.target)
-      ) {
+      if (roomListRef.current && !roomListRef.current.contains(e.target)) {
         // 외부 클릭이면 RoomDetail 닫기
         dispatch(setSelectedPropertyId(null));
       }
@@ -120,7 +141,7 @@ const RoomList = () => {
     }
   };
 
-  // Modified: 
+  // Modified:
   // keyword가 비어있지 않고 (null이 아니고) keyword와 currentDongName이 다르면 무조건 currentDongName 사용
   // 그렇지 않으면 keyword가 있으면 keyword, 없으면 currentDongName 사용
   const displayKeyword =
@@ -175,27 +196,32 @@ const RoomList = () => {
           {currentRooms.map((room) => (
             <div
               key={room.propertyId}
+              data-id={room.propertyId} // ✅ 여기!
               className={`room-item ${
                 selectedPropertyId === room.propertyId ? "selected" : ""
               }`}
               onClick={() => {
+                if (room.latitude && room.longitude) {
+                  window.setHoverMarker(room.latitude, room.longitude);
+                }
                 if (selectedPropertyId === room.propertyId) {
                   console.log("끕니다");
                   dispatch(setSelectedPropertyId(null)); // 다시 클릭 → 닫기
+                  window.clearHoverMarker();
                 } else {
                   console.log(selectedPropertyId, room.propertyId);
                   console.log("켜요요");
                   dispatch(setSelectedPropertyId(room.propertyId)); // 다른 매물 → 열기
                 }
               }}
-              onMouseEnter={() => {
-                if (room.latitude && room.longitude) {
-                  window.setHoverMarker(room.latitude, room.longitude);
-                }
-              }}
-              onMouseLeave={() => {
-                window.clearHoverMarker();
-              }}
+              // onMouseEnter={() => {
+              //   if (room.latitude && room.longitude) {
+              //     window.setHoverMarker(room.latitude, room.longitude);
+              //   }
+              // }}
+              // onMouseLeave={() => {
+              //   window.clearHoverMarker();
+              // }}
             >
               <img src={room.imageUrl || defaultImage} alt="매물 이미지" />
               <div className="room-info">
