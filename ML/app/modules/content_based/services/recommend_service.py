@@ -212,13 +212,10 @@ def get_demographic_weight_adjustments(gender, age_group):
     조정표 = {
         ('male', '20s'): np.array([0.0, +0.2, -0.2, +0.1, -0.1, +0.3, +0.4]),
         ('female', '20s'): np.array([+0.1, +0.1, -0.1, 0.0, +0.5, 0.0, +0.2]),
-
         ('male', '30s'): np.array([-0.2, +0.1, 0.0, 0.0, 0.0, +0.1, +0.2]),
         ('female', '30s'): np.array([-0.1, 0.0, +0.1, +0.1, +0.3, -0.1, +0.1]),
-
         ('male', '40s'): np.array([-0.2, 0.0, +0.2, 0.0, -0.1, 0.0, +0.1]),
         ('female', '40s'): np.array([-0.1, 0.0, +0.3, +0.1, +0.1, -0.1, 0.0]),
-
         ('male', '50s_plus'): np.array([-0.1, -0.1, +0.5, +0.1, -0.2, -0.2, +0.2]),
         ('female', '50s_plus'): np.array([0.0, -0.1, +0.5, +0.2, 0.0, -0.2, 0.0])
     }
@@ -241,7 +238,7 @@ def get_user_preference_weights(user_id):
         return USER_PREFERENCE_CACHE[user_id]
     
     기본_선호도 = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
-
+    
     if not user_id:
         logger.info("[get_user_preference_weights] user_id가 없으므로 기본 선호도 사용.")
         return 기본_선호도
@@ -281,6 +278,7 @@ def get_user_preference_weights(user_id):
         return 기본_선호도
     finally:
         session.close()
+
 
 def get_category_priority(gender, age_group):
     if isinstance(gender, int):
@@ -329,9 +327,9 @@ def recommend_properties(
     # 1) raw user_scores 확인
     logger.info("[DEBUG] user_scores raw: %s", user_scores)
 
-    category_names = ['transport', 'restaurant', 'health', 'convenience', 'cafe', 'chicken', 'leisure'] 
+    category_names = ['transport', 'restaurant', 'health', 'convenience', 'cafe', 'chicken', 'leisure']
 
-    # 2) 매물 벡터 로드
+    # 2) 매물 벡터 로드 (property_score 테이블 기반)
     property_array, property_ids = load_property_vectors()
     if property_array is None or property_array.shape[0] == 0:
         logger.warning("[recommend_properties] 매물 정보가 없으므로 빈 리스트([]) 반환합니다.")
@@ -343,10 +341,10 @@ def recommend_properties(
     logger.info("[DEBUG] property_array shape: %s", property_array.shape)
     logger.info("[DEBUG] property_array[0]: %s", property_array[0] if property_array.shape[0] > 0 else "No data")
 
-    # 3) 카테고리별 기본 가중치
+    # 3) 기본 카테고리 가중치 설정
     category_weights = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
 
-    # 성별/연령대별 가중치
+    # 성별/연령대별 가중치 적용
     if gender is not None and age is not None:
         age_group = get_age_group(age)
         logger.info("[recommend_properties] 나이 → 연령대 변환: %s → %s, 성별=%s", age, age_group, gender)
@@ -356,7 +354,7 @@ def recommend_properties(
     else:
         logger.info("[recommend_properties] 성별 또는 나이가 입력되지 않아 추가 가중치 적용 안 함.")
     
-    # 사용자 ID 추출 (선호도)
+    # 사용자 ID 추출 (선호도 적용용)
     user_id = None
     if user_scores and isinstance(user_scores, dict):
         user_id = user_scores.get("user_id") or user_scores.get("userId")
@@ -369,6 +367,56 @@ def recommend_properties(
     else:
         logger.info("[recommend_properties] user_id가 없어, 사용자 선호도 가중치 적용 안 함.")
 
+    # ===== Modified: 추가된 필터링 (가격 및 방 유형) =====
+    # 입력 조건은 user_scores에 "priceRange" (예: [min, max])와 "roomType" (예: "원룸", "투룸", "빌라", "주택") 필드가 있다고 가정합니다.
+    price_range = user_scores.get("priceRange")
+    desired_room_type = user_scores.get("roomType")
+    if price_range or desired_room_type:
+        session = SessionLocal()
+        try:
+            # property_score에 있는 매물 ID에 한해서, property 테이블과 조인 없이 조건에 맞는 매물만 조회한다.
+            query = "SELECT property_id FROM property WHERE property_id IN :ids"
+            params = {"ids": tuple(property_ids)}
+            conditions = []
+            if price_range:
+                conditions.append("price BETWEEN :min_price AND :max_price")
+                params["min_price"] = price_range[0]
+                params["max_price"] = price_range[1]
+            if desired_room_type:
+                if desired_room_type in ["원룸", "투룸"]:
+                    # room_bath_count 컬럼에서 "/" 앞의 숫자 추출하여 필터링
+                    if desired_room_type == "원룸":
+                        conditions.append("CAST(SUBSTRING_INDEX(room_bath_count, '/', 1) AS UNSIGNED) = 1")
+                    elif desired_room_type == "투룸":
+                        conditions.append("CAST(SUBSTRING_INDEX(room_bath_count, '/', 1) AS UNSIGNED) = 2")
+                elif desired_room_type == "빌라":
+                    conditions.append("room_type = '빌라'")
+                elif desired_room_type == "주택":
+                    conditions.append("room_type IN ('단독/다가구','상가주택','한옥주택','전원주택')")
+            if conditions:
+                query += " AND " + " AND ".join(conditions)
+            query = text(query)
+            results = session.execute(query, params).fetchall()
+            filtered_property_ids = {row._mapping["property_id"] for row in results}
+        except Exception as ex:
+            logger.error("[recommend_properties] 필터링 쿼리 실행 중 오류 발생: %s", ex)
+            filtered_property_ids = set()
+        finally:
+            session.close()
+        
+        if not filtered_property_ids:
+            logger.warning("[recommend_properties] 가격/방 유형 필터 조건에 맞는 매물이 없습니다.")
+            return {
+                "recommendedProperties": [],
+                "maxType": None
+            }
+        # property_ids 리스트에서 필터 조건에 맞는 매물들만 선택
+        filtered_indices = [idx for idx, pid in enumerate(property_ids) if pid in filtered_property_ids]
+        property_array = property_array[filtered_indices, :]
+        property_ids = [property_ids[i] for i in filtered_indices]
+        logger.info("[recommend_properties] 필터링 후 매물 개수: %d", len(property_ids))
+    # ===== 필터링 끝 =====
+
     # 4) 정규화
     if normalization_method == 'minmax':
         min_max_values = get_category_min_max_values()
@@ -378,7 +426,6 @@ def recommend_properties(
                 "recommendedProperties": [],
                 "maxType": None
             }
-        
         mins = np.array([
             min_max_values["transport_score"][0],
             min_max_values["restaurant_score"][0],
@@ -398,11 +445,9 @@ def recommend_properties(
             min_max_values["leisure_score"][1],
         ])
         denom = maxs - mins
-        denom[denom == 0] = 1  # 분모가 0이 되지 않도록
+        denom[denom == 0] = 1  # 분모 0 방지
         norm_array = (property_array - mins) / denom
-        
         logger.info("[recommend_properties] min-max 정규화 수행 완료.")
-        
         user_vals = np.array([
             user_scores.get("transportScore", 0),
             user_scores.get("restaurantScore", 0),
@@ -414,7 +459,6 @@ def recommend_properties(
         ])
         logger.info("[DEBUG] user_vals (minmax before reshape): %s", user_vals)
         user_vector = user_vals.reshape(1, -1)
-
     elif normalization_method == 'zscore':
         mean_std_values = get_category_mean_std_values()
         if not mean_std_values:
@@ -423,7 +467,6 @@ def recommend_properties(
                 "recommendedProperties": [],
                 "maxType": None
             }
-        
         means = np.array([
             mean_std_values["transport_score"][0],
             mean_std_values["restaurant_score"][0],
@@ -444,9 +487,7 @@ def recommend_properties(
         ])
         stds[stds == 0] = 1
         norm_array = (property_array - means) / stds
-        
         logger.info("[recommend_properties] z-score 정규화 수행 완료.")
-        
         user_vals = np.array([
             user_scores.get("transport_score", 0),
             user_scores.get("restaurant_score", 0),
@@ -466,11 +507,8 @@ def recommend_properties(
         }
 
     logger.info("[DEBUG] user_vector before weighting: %s", user_vector)
-
-    # 5) 가중치 적용
     norm_array = norm_array * category_weights
     user_vector = user_vector * category_weights
-    
     logger.info("[DEBUG] user_vector after weighting: %s", user_vector)
     if len(norm_array) > 0:
         logger.info("[DEBUG] 첫 번째 매물 벡터(정규화+가중치): %s", norm_array[0])
@@ -480,56 +518,39 @@ def recommend_properties(
     logger.info("[DEBUG] similarities[:10]: %s", similarities[:10] if len(similarities) > 10 else similarities)
     logger.info("[recommend_properties] 총 %d개 매물에 대한 유사도를 계산했습니다.", len(similarities))
 
-    # 상위 후보군 필터링
     top_k = min(1000, len(similarities))
-    candidate_order = np.argsort(similarities)[-top_k:].tolist()  # 가장 유사도가 높은 top_k
+    candidate_order = np.argsort(similarities)[-top_k:].tolist()
     candidate_similarities = np.array([similarities[i] for i in candidate_order])
     candidate_vectors = norm_array[candidate_order]
 
-    # ---------------------------
-    # MMR 적용 로직 (매물별 maxType 제거)
-    # ---------------------------
     if apply_mmr_flag:
         selected_candidate_indices = apply_mmr(candidate_similarities, candidate_vectors, top_n, diversity_lambda)
         final_selected_indices = [candidate_order[i] for i in selected_candidate_indices]
-
-        # 매물 정보만 넣고, maxType은 일단 넣지 않음
         top_properties = []
         for i in final_selected_indices:
             top_properties.append({
                 "propertyId": property_ids[i],
                 "similarity": float(similarities[i])
             })
-
-        logger.info("[recommend_properties] MMR 적용 후 추천 결과 (상위 %d개)", top_n)
+        logger.info("[recommend_properties] MMR 적용 후 추천 결과 (상위 %d)", top_n)
         if top_properties:
             logger.info("예: 첫번째 = %s", top_properties[0])
     else:
-        # MMR 미적용
-        properties_rec = [
-            {"propertyId": property_ids[i], "similarity": float(similarities[i])}
-            for i in range(len(similarities))
-        ]
+        properties_rec = [{"propertyId": property_ids[i], "similarity": float(similarities[i])}
+                          for i in range(len(similarities))]
         top_properties = sorted(properties_rec, key=lambda x: x["similarity"], reverse=True)[:top_n]
         logger.info("[recommend_properties] MMR 미적용. 상위 %d개 추천", top_n)
         if top_properties:
             logger.info("예: 첫번째 = %s", top_properties[0])
 
-    # ---------------------------
-    # 여기서 "한 번만" maxType 계산
-    # ---------------------------
     global_max_type = None
     if top_properties:
-        # 예: 가장 유사도가 높은 첫 번째 매물의 벡터를 이용해 maxType 계산
         best_pid = top_properties[0]["propertyId"]
-        best_index = property_ids.index(best_pid)  # property_ids에서 해당 pid의 인덱스
+        best_index = property_ids.index(best_pid)
         best_vec = norm_array[best_index]
-
         max_idx = np.argmax(best_vec)
         global_max_type = category_names[max_idx]
-        logger.info("[recommend_properties] 전체 결과 중 가장 유사도 높은 매물의 maxType=%s", global_max_type)
-
-    # 최종 결과가 비었는지 체크
+        logger.info("[recommend_properties] 전체 결과 중 가장 유사도가 높은 매물의 maxType=%s", global_max_type)
     if not top_properties:
         logger.warning("[recommend_properties] 최종 추천 결과가 비어 있습니다.")
     else:
@@ -537,9 +558,6 @@ def recommend_properties(
                     len(top_properties),
                     top_properties[0]["similarity"])
 
-    # ---------------------------
-    # 최종 반환 시, 매물 리스트 + 하나의 maxType
-    # ---------------------------
     return {
         "recommendedProperties": top_properties,
         "maxType": global_max_type
