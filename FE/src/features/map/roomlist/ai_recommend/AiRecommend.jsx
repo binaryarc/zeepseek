@@ -37,6 +37,11 @@ const AiRecommend = () => {
   // 선택된 매물 id Redux에서 가져오기(매물 상세 정보 창 관리용)
   const selectedPropertyId = useSelector(state => state.roomList.selectedPropertyId);
 
+  // 시설 사이드바 타입 설정용
+  const [selectedFacilityType, setSelectedFacilityType] = useState(null);
+
+
+  // 자동 스크롤 코드
   useEffect(() => {
     if (!selectedPropertyId) return;
   
@@ -117,14 +122,38 @@ const AiRecommend = () => {
     }
   };
   
-  // 상세 정보 닫힐 때도 마커 지우기
+  // // 상세 정보 닫힐 때도 마커 지우기
+  // useEffect(() => {
+  //   if (selectedPropertyId === null) {
+  //     clearMapOverlays(); // ✅ 상세 정보 창 닫힐 때도 제거
+  //   }
+  // }, [selectedPropertyId]);
+
+
+  // 이모지 통일용
+  const emojiMap = {
+    leisure: "🎮",
+    restaurant: "🍜",
+    health: "🏥",
+    convenience: "🏪",
+    transport: "🚌",
+    cafe: "☕",
+    chicken: "🍗",
+  };
+  
+  // const emoji = emojiMap[maxType] || "📍";
+
+  // 탭 이동 시 모든 마커 제거
   useEffect(() => {
-    if (selectedPropertyId === null) {
-      clearMapOverlays(); // ✅ 상세 정보 창 닫힐 때도 제거
-    }
-  }, [selectedPropertyId]);
-  
-  
+    return () => {
+      if (circleOverlayRef.current) circleOverlayRef.current.setMap(null);
+      circleOverlayRef.current = null;
+      nearbyMarkersRef.current.forEach((m) => m.setMap(null));
+      nearbyMarkersRef.current = [];
+      window.clearHoverMarker?.();
+    };
+  }, []);
+
 
   const handleRecommendClick = async () => {
     if (!isValidPriceRange(priceRange)) return;
@@ -190,11 +219,55 @@ const AiRecommend = () => {
   };
 
   const handleRetry = () => {
+    clearMapOverlays(); // ✅ 마커까지 정리
+    setSelectedRoom(null); // ✅ selectedRoom 상태도 초기화!
     setIsRecoDone(false);
     dispatch(setAiRecommendedList([]));
     dispatch(setSelectedPropertyId(null));
     dispatch(setSelectedPropertySource(null));
   };
+
+  // 사이드바 마커 갱신용 함수
+  const updateNearbyMarkers = async (room) => {
+    if (!room?.latitude || !room?.longitude) return;
+  
+    const effectiveFacilityType = selectedFacilityType || maxType;
+    const emoji = emojiMap[effectiveFacilityType] || "📍";
+  
+    try {
+      const response = await fetchNearbyPlaces(
+        effectiveFacilityType,
+        room.longitude,
+        room.latitude
+      );
+  
+      nearbyMarkersRef.current.forEach((marker) => marker.setMap(null));
+  
+      const newMarkers = (response.data || []).map(({ latitude, longitude }) => {
+        const content = `
+          <div style="font-size: 24px; transform: translate(-50%, -100%)">
+            ${emoji}
+          </div>`;
+        return new window.kakao.maps.CustomOverlay({
+          position: new window.kakao.maps.LatLng(latitude, longitude),
+          content,
+          yAnchor: 1,
+        });
+      });
+  
+      newMarkers.forEach((marker) => marker.setMap(window.map));
+      nearbyMarkersRef.current = newMarkers;
+    } catch (err) {
+      console.error("시설 마커 갱신 에러:", err);
+    }
+  };
+  
+  // 시설 타입 변경 시 마커만 갱신
+  useEffect(() => {
+    if (selectedRoom) {
+      updateNearbyMarkers(selectedRoom);
+    }
+  }, [selectedFacilityType]);
 
 
   const handleRoomClick = async (item) => {
@@ -239,18 +312,30 @@ const AiRecommend = () => {
     circleOverlayRef.current = circle;
 
     try {
-      const response = await fetchNearbyPlaces(maxType, item.longitude, item.latitude);
-      const imageSrc = `/images/icons/${maxType}.png`;
-      const imageSize = new window.kakao.maps.Size(30, 30);
-      const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize);
-      const newMarkers = (response.data || []).map(({ latitude, longitude, name }) =>
-        new window.kakao.maps.Marker({
-          position: new window.kakao.maps.LatLng(latitude, longitude),
-          map: window.map,
-          title: name,
-          image: markerImage,
-        })
+      const effectiveFacilityType = selectedFacilityType || maxType;
+      const emoji = emojiMap[effectiveFacilityType] || "📍";
+
+      const response = await fetchNearbyPlaces(
+        effectiveFacilityType,
+        item.longitude,
+        item.latitude
       );
+
+      // const imageSrc = `/images/icons/${maxType}.png`;
+      // const imageSize = new window.kakao.maps.Size(30, 30);
+      // const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize);
+
+      const newMarkers = (response.data || []).map(({ latitude, longitude }) => {
+        const content = `
+          <div style="font-size: 24px; transform: translate(-50%, -100%)">
+            ${emoji}
+          </div>`;
+        return new window.kakao.maps.CustomOverlay({
+          position: new window.kakao.maps.LatLng(latitude, longitude),
+          content,
+          yAnchor: 1,
+        });
+      });
       newMarkers.forEach((marker) => marker.setMap(window.map));
       nearbyMarkersRef.current = newMarkers;
     } catch (err) {
@@ -376,6 +461,29 @@ const AiRecommend = () => {
           <button className="re-recommend-search-btn" onClick={handleRetry}>
             추천 다시 받기
           </button>
+          <div className="facility-type-sidebar">
+            {[
+              { key: "leisure", label: "여가" },
+              { key: "restaurant", label: "식당" },
+              { key: "health", label: "의료" },
+              { key: "convenience", label: "편의" },
+              { key: "transport", label: "교통" },
+              { key: "cafe", label: "카페" },
+              { key: "chicken", label: "치킨집" },
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                className={`facility-button ${
+                  (selectedFacilityType || maxType) === key ? "active" : ""
+                }`}
+                onClick={() => {
+                  setSelectedFacilityType(key);
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
           <div className="recommend-results">
             <h4 className="result-title">
               추천 매물 목록
