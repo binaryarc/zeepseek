@@ -17,7 +17,5 @@ public class UserDto {
     private Integer age;
     private String nickname;
     private String provider;
-    private String refreshToken;
-
     private UserProfileDto profileInfo;
 }

@@ -157,11 +157,30 @@ public class UserServiceImpl implements UserService {
         processPreferences (pref, dto.getPreferences());
         userPreferencesRepository.save(pref);
 
+        // 프로필 정보(UserProfileDto) 생성
+        UserProfileDto profileDto = UserProfileDto.builder()
+                .gender(saved.getGender())
+                .age(saved.getAge())
+                .location(pref.getDestination())
+                .nickname(saved.getNickname())
+                .build();
+
+        // 선호도 정보 설정
+        List<String> preferences = new ArrayList<>();
+        if (pref.getSafe()        > 0) preferences.add("safe");
+        if (pref.getLeisure()     > 0) preferences.add("leisure");
+        if (pref.getRestaurant()  > 0) preferences.add("restaurant");
+        if (pref.getHealth()      > 0) preferences.add("health");
+        if (pref.getConvenience() > 0) preferences.add("convenience");
+        if (pref.getTransport()   > 0) preferences.add("transport");
+        if (pref.getCafe()        > 0) preferences.add("cafe");
+        profileDto.setPreferences(preferences);
+
         return UserDto.builder()
                 .idx(saved.getIdx()).nickname(saved.getNickname())
                 .gender(saved.getGender()).age(saved.getAge())
                 .isFirst(saved.getIsFirst()).isSeller(saved.getIsSeller())
-                .provider(saved.getProvider())
+                .provider(saved.getProvider()).profileInfo(profileDto)
                 .build();
     }
 
