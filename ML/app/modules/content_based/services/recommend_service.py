@@ -367,19 +367,23 @@ def recommend_properties(
     else:
         logger.info("[recommend_properties] user_id가 없어, 사용자 선호도 가중치 적용 안 함.")
 
-# ===== Modified: 추가된 필터링 (가격, 방 유형, 계약 유형) =====
-# 사용자 조건: "priceRange" (예: [min_price, max_price]),
-# "roomType" (예: "원룸", "투룸", "빌라", "주택"),
-# "contractType" (예: "단기임대", "월세", "전세", "매매")
-
+    # ===== Modified: 추가된 필터링 (가격, 방 유형, 계약 유형) =====
+    # 사용자 조건: "priceRange" (예: [min_price, max_price]),
+    # "roomType" (예: "원룸", "투룸", "빌라", "주택"),
+    # "contractType" (예: "단기임대", "월세", "전세", "매매")
     price_range = user_scores.get("priceRange")
     desired_room_type = user_scores.get("roomType")
     desired_contract_type = user_scores.get("contractType")
+    
+    # 로깅: 입력된 필터 조건들
+    logger.info("[recommend_properties] 필터 입력값: priceRange=%s, roomType=%s, contractType=%s",
+                price_range, desired_room_type, desired_contract_type)
+    
     if price_range or desired_room_type or desired_contract_type:
         session = SessionLocal()
         try:
             # property 테이블과 필터링: property 테이블에서 가격, 방유형, 계약유형 등의 정보를 조회
-            query = "SELECT property_id, price, room_type, room_bath_count, contract_type FROM property WHERE property_id IN :ids"
+            query_str = "SELECT property_id, price, room_type, room_bath_count, contract_type FROM property WHERE property_id IN :ids"
             params = {"ids": tuple(property_ids)}
             conditions = []
             # 가격 필터링
@@ -392,7 +396,6 @@ def recommend_properties(
                 elif desired_contract_type in ["전세", "매매"]:
                     conditions.append("CAST(REPLACE(TRIM(SUBSTRING_INDEX(price, '억', 1)), ',', '') AS UNSIGNED) BETWEEN :min_price AND :max_price")
                 else:
-                    # 그 외의 경우는 그대로 비교 (다만 형식이 일관되지 않으므로 주의)
                     conditions.append("CAST(REPLACE(TRIM(price), ',', '') AS UNSIGNED) BETWEEN :min_price AND :max_price")
                 params["min_price"] = price_range[0]
                 params["max_price"] = price_range[1]
@@ -410,12 +413,17 @@ def recommend_properties(
                     conditions.append("room_type IN ('단독/다가구','상가주택','한옥주택','전원주택')")
             # 계약 유형 필터링
             if desired_contract_type:
-                # 비교시 양쪽 공백 제거 후 소문자로 비교 (대소문자 및 공백 문제 방지)
+                # 양쪽 공백 제거 후 소문자로 비교
                 conditions.append("LOWER(TRIM(contract_type)) = LOWER(TRIM(:contractType))")
                 params["contractType"] = desired_contract_type
             if conditions:
-                query += " AND " + " AND ".join(conditions)
-            query = text(query)
+                query_str += " AND " + " AND ".join(conditions)
+            
+            # 최종 쿼리 및 파라미터 로깅
+            logger.info("[recommend_properties] 최종 필터링 쿼리: %s", query_str)
+            logger.info("[recommend_properties] 쿼리 파라미터: %s", params)
+            
+            query = text(query_str)
             results = session.execute(query, params).fetchall()
             filtered_property_ids = {row._mapping["property_id"] for row in results}
         except Exception as ex:
@@ -435,7 +443,7 @@ def recommend_properties(
         property_array = property_array[filtered_indices, :]
         property_ids = [property_ids[i] for i in filtered_indices]
         logger.info("[recommend_properties] 필터링 후 매물 개수: %d", len(property_ids))
-        # ===== 필터링 끝 =====
+    # ===== 필터링 끝 =====
 
     # 4) 정규화 (minmax 또는 zscore)
     if normalization_method == 'minmax':
