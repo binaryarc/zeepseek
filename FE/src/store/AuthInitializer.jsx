@@ -10,8 +10,8 @@ const AuthInitializer = () => {
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated");
-
-    if (isAuthenticated === "true") {
+    const hasAccessCookie = document.cookie.includes("refreshtoken");
+    if (isAuthenticated === "true" && hasAccessCookie) {
       refreshAccessToken()
         .then(async (res) => {
           const accessToken = res.data.accessToken;

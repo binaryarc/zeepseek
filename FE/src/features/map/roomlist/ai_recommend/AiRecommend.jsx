@@ -19,6 +19,9 @@ import {
 } from "../../../../store/slices/roomListSlice";
 
 const AiRecommend = () => {
+  const [roomType, setRoomType] = useState("원룸/투룸");
+  const [contractType, setContractType] = useState("월세");
+  const [priceRange, setPriceRange] = useState(["", ""]); // [최소, 최대]
   const dispatch = useDispatch();
 
   const [selectedRoom, setSelectedRoom] = useState(null); // 모달에 띄울 매물 상세 정보
@@ -56,6 +59,7 @@ const AiRecommend = () => {
   const [isRecoDone, setIsRecoDone] = useState(false);
 
   const aiRecommendedList = useSelector((state) => state.roomList.aiRecommendedList);
+  const [priceError, setPriceError] = useState("");
 
   const handleSliderChange = (label, value) => {
     dispatch(
@@ -66,11 +70,48 @@ const AiRecommend = () => {
     );
   };
 
+  const isValidPriceRange = ([minStr, maxStr]) => {
+    const min = Number(minStr);
+    const max = Number(maxStr);
+  
+    if (!minStr || !maxStr) {
+      setPriceError("가격을 모두 입력해주세요.");
+      return false;
+    }
+  
+    if (isNaN(min) || isNaN(max)) {
+      setPriceError("숫자만 입력 가능합니다.");
+      return false;
+    }
+  
+    if (min < 0 || max < 0) {
+      setPriceError("0원 이상만 입력 가능합니다.");
+      return false;
+    }
+  
+    if (min > max) {
+      setPriceError("최소값은 최대값보다 작아야 합니다.");
+      return false;
+    }
+  
+    setPriceError("");
+    return true;
+  };
+  
+
   const handleRecommendClick = async () => {
+    if (!isValidPriceRange(priceRange)) return;
+
     const preferenceData = {
       userId: user.idx,
       age: user.age,
       gender: user.gender,
+      roomType,
+      contractType,
+      priceRange: [
+        Number(priceRange[0]),
+        Number(priceRange[1]),
+      ],
       transportScore: filterValues["대중교통"] / 100,
       restaurantScore: filterValues["식당"] / 100,
       healthScore: filterValues["의료"] / 100,
@@ -104,8 +145,8 @@ const AiRecommend = () => {
           rawList.map(async (item) => {
             const detail = await getPropertyDetail(item.propertyId);
             return {
-              ...item,     // AI 추천 점수 등
-              ...detail,   // 상세 정보 (contractType, price 등)
+              ...item, // AI 추천 점수 등
+              ...detail, // 상세 정보 (contractType, price 등)
             };
           })
         );
@@ -200,6 +241,72 @@ const AiRecommend = () => {
       {!isRecoDone && !isLoading && (
         <div className="slider-section">
           <h3 className="recommend-title">나랑 딱 맞는 매물 찾기</h3>
+          <div className="option-section">
+            <div className="button-select-group">
+              <label>방 종류</label>
+              <div className="button-row">
+                {["원룸/투룸", "오피스텔", "주택/빌라"].map((type) => (
+                  <button
+                    key={type}
+                    className={`toggle-button ${
+                      roomType === type ? "active" : ""
+                    }`}
+                    onClick={() => setRoomType(type)}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="button-select-group">
+              <label>계약 방식</label>
+              <div className="button-row">
+                {["월세", "전세", "매매"].map((type) => (
+                  <button
+                    key={type}
+                    className={`toggle-button ${
+                      contractType === type ? "active" : ""
+                    }`}
+                    onClick={() => setContractType(type)}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="price-range-group">
+            {priceError && <p className="price-error">{priceError}</p>}
+              <label>가격 범위 (단위: 만원)</label>
+              <div style={{ display: "flex", gap: "1rem" }}>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={priceRange[0]}
+                  onChange={(e) =>
+                    setPriceRange([Number(e.target.value), priceRange[1]])
+                  }
+                  placeholder="최소"
+                  // min={0}
+                />
+                <p>~</p>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={priceRange[1]}
+                  onChange={(e) =>
+                    setPriceRange([priceRange[0], e.target.value])
+                  }
+                  placeholder="최대"
+                  // min={priceRange[0]}
+                />
+                <span>만원</span>
+              </div>
+            </div>
+          </div>
+          {/* <hr /> */}
+          <p className="filter-title">내 집 근처에는?</p>
           {filters.map((label) => (
             <div key={label} className={`slider-block slider-${label}`}>
               <div className="slider-label-row">
