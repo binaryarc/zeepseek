@@ -201,23 +201,27 @@ const RoomList = () => {
                 selectedPropertyId === room.propertyId ? "selected" : ""
               }`}
               onClick={() => {
+                if (room.latitude && room.longitude) {
+                  window.setHoverMarker(room.latitude, room.longitude);
+                }
                 if (selectedPropertyId === room.propertyId) {
                   console.log("끕니다");
                   dispatch(setSelectedPropertyId(null)); // 다시 클릭 → 닫기
+                  window.clearHoverMarker();
                 } else {
                   console.log(selectedPropertyId, room.propertyId);
                   console.log("켜요요");
                   dispatch(setSelectedPropertyId(room.propertyId)); // 다른 매물 → 열기
                 }
               }}
-              onMouseEnter={() => {
-                if (room.latitude && room.longitude) {
-                  window.setHoverMarker(room.latitude, room.longitude);
-                }
-              }}
-              onMouseLeave={() => {
-                window.clearHoverMarker();
-              }}
+              // onMouseEnter={() => {
+              //   if (room.latitude && room.longitude) {
+              //     window.setHoverMarker(room.latitude, room.longitude);
+              //   }
+              // }}
+              // onMouseLeave={() => {
+              //   window.clearHoverMarker();
+              // }}
             >
               <img src={room.imageUrl || defaultImage} alt="매물 이미지" />
               <div className="room-info">
