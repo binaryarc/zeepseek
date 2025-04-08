@@ -12,6 +12,7 @@ import com.zeepseek.backend.domain.property.model.Property;
 import com.zeepseek.backend.domain.property.model.PropertyScore;
 import com.zeepseek.backend.domain.property.repository.PropertyRepository;
 import com.zeepseek.backend.domain.property.repository.PropertyScoreRepository;
+import com.zeepseek.backend.domain.ranking.service.RankingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,20 +30,26 @@ public class PropertyServiceImpl implements PropertyService {
     private static final Logger logger = LoggerFactory.getLogger(PropertyServiceImpl.class);
     private final PropertyRepository propertyRepository;
     private final PropertyScoreRepository propertyScoreRepository;
+    private final RankingService rankingService;
 
     @Autowired
-    public PropertyServiceImpl(PropertyRepository propertyRepository,  PropertyScoreRepository propertyScoreRepository) {
+    public PropertyServiceImpl(PropertyRepository propertyRepository,  PropertyScoreRepository propertyScoreRepository, RankingService rankingService) {
         this.propertyRepository = propertyRepository;
         this.propertyScoreRepository = propertyScoreRepository;
+        this.rankingService = rankingService;
     }
 
     @Override
     public Property getPropertyDetail(Long id) {
-        return propertyRepository.findById(id)
+        Property property = propertyRepository.findById(id)
                 .orElseThrow(() -> {
+                    // 존재하지 않으면 예외 처리
                     logger.warn("Property not found with id: {}", id);
                     return new PropertyNotFoundException("Property with id " + id + " not found.");
                 });
+        // property의 dongId와 propertyId를 이용해 ranking score 증가
+        rankingService.incrementPropertyCount(property.getDongId(), property.getPropertyId());
+        return property;
     }
 
     @Override

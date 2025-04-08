@@ -17,6 +17,9 @@ services:
       # 기본 캐시용 Redis (primary)
       - SPRING_REDIS_PRIMARY_HOST=property_redis
       - SPRING_REDIS_PRIMARY_PORT=6379
+      # 랭킹 데이터 전용 Redis (ranking_redis)
+      - SPRING_REDIS_RANKING_HOST=ranking_redis
+      - SPRING_REDIS_RANKING_PORT=6378
       - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -33,6 +36,14 @@ services:
     networks:
       - e203
 
+  ranking_redis:
+    image: redis:7-alpine
+    container_name: ranking_redis_container
+    ports:
+      - "6382:6378"   # 외부 포트 6382, 내부는 6378
+    restart: always
+    networks:
+      - e203
 
 
 networks:
