@@ -48,6 +48,21 @@ const ZzimList = () => {
     cafe: "☕",
     restaurant: "🍜"
   };
+
+  useEffect(() => {
+    if (!selectedPropertyId) return;
+  
+    const el = document.querySelector(
+      `[data-property-id='${selectedPropertyId}']`
+    );
+    if (el) {
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [selectedPropertyId]);
+
   
   useEffect(() => {
     return () => {
