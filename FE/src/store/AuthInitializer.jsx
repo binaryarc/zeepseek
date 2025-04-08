@@ -3,15 +3,15 @@ import { useDispatch } from "react-redux";
 import { setAccessToken, logout, setUser } from "./slices/authSlice";
 import { refreshAccessToken } from "../common/api/authApi";
 import { fetchLikedRegions } from "../common/api/api";
-import { setDongLikes} from "./slices/dongLikeSlice";
+import { setDongLikes } from "./slices/dongLikeSlice";
 
 const AuthInitializer = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated");
-    const hasAccessCookie = document.cookie.includes("refreshtoken");
-    if (isAuthenticated === "true" && hasAccessCookie) {
+    // const hasAccessCookie = document.cookie.includes("refreshtoken");
+    if (isAuthenticated === "true") {
       refreshAccessToken()
         .then(async (res) => {
           const accessToken = res.data.accessToken;
@@ -22,8 +22,8 @@ const AuthInitializer = () => {
           // ✅ user는 없음 → setUser 생략
 
           // ✅ 찜한 동네 정보 가져오기
-        const likedDongRes = await fetchLikedRegions(user.idx);
-        dispatch(setDongLikes(likedDongRes.data));
+          const likedDongRes = await fetchLikedRegions(user.idx);
+          dispatch(setDongLikes(likedDongRes.data));
         })
         .catch((err) => {
           console.error("refresh 실패:", err);
