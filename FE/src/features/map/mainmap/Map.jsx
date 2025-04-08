@@ -143,6 +143,27 @@ const Map = () => {
         setMap(mapInstance); // 상태에 저장
         dispatch(setMapReady(true)); // 지도 준비 완료 처리
 
+        window.kakao.maps.event.addListener(mapInstance, "zoom_changed", () => {
+          if (overlayRef.current) {
+            overlayRef.current.setMap(null);
+            overlayRef.current = null;
+          }
+          if (markerRef.current) {
+            markerRef.current.setMap(null);
+            markerRef.current = null;
+          }
+          if (selectedPolygonRef.current) {
+            selectedPolygonRef.current.setOptions({
+              strokeOpacity: 0,
+              fillOpacity: 0.02,
+            });
+            selectedPolygonRef.current = null;
+          }
+          selectedDongIdRef.current = null;
+          isDongSelectedRef.current = false;
+        });
+        
+
         // idle 이벤트 시 실행될 업데이트 함수: debounce로 호출 빈도 제한, 폴리곤 재사용 적용
         const updateMapElements = () => {
           // 맵 최초 준비 체크
