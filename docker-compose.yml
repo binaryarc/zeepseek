@@ -41,6 +41,7 @@ services:
     container_name: ranking_redis_container
     ports:
       - "6382:6378"   # 외부 포트 6382, 내부는 6378
+    command: ["redis-server", "--port", "6378"]
     restart: always
     networks:
       - e203
