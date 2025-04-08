@@ -32,18 +32,14 @@ PROPERTY_IDS_CACHE = None
 PROPERTY_CACHE_TIMESTAMP = 0
 
 def fetch_logs_from_es(days: int = 30, size: int = 10000):
-    """
-    Elasticsearch에서 최근 'days' 일간 로그를 가져와
-    [userId, propertyId, action, dongId] -> ACTION_SCORE 매핑 후 DataFrame 반환.
-    propertyId가 -1인 데이터는 제거합니다.
-    """
+    # _source에 computedRoomType, age, gender 추가 (로그에 해당 정보가 있다면)
     query = {
         "query": {
             "range": {
                 "time": {"gte": f"now-{days}d/d"}
             }
         },
-        "_source": ["userId", "propertyId", "action", "dongId"]
+        "_source": ["userId", "propertyId", "action", "dongId", "computedRoomType", "age", "gender"]
     }
     result = es.search(
         index="logs",
@@ -55,12 +51,11 @@ def fetch_logs_from_es(days: int = 30, size: int = 10000):
     df = pd.DataFrame(docs)
     if df.empty:
         logger.info("No logs found from ES.")
-        return pd.DataFrame(columns=["userId", "propertyId", "action", "dongId"])
+        return pd.DataFrame(columns=["userId", "propertyId", "action", "dongId", "computedRoomType", "age", "gender"])
     df["score"] = df["action"].map(ACTION_SCORE).fillna(0)
-    # -1인 propertyId 제거
     df = df[df["propertyId"] != -1]
     logger.info("[fetch_logs_from_es] Retrieved %d logs after filtering propertyId=-1", len(df))
-    return df[["userId", "propertyId", "score", "dongId"]]
+    return df[["userId", "propertyId", "score", "dongId", "computedRoomType", "age", "gender"]]
 
 def train_model():
     """
@@ -83,6 +78,42 @@ def train_model():
         logger.info("SVD model training completed.")
     except ValueError as e:
         logger.error("Error in model training: %s", e)
+
+def get_dominant_computed_room_type(userId: int):
+    """
+    최근 100개 로그에서 computedRoomType의 빈도를 집계하여
+    5건 이상 등장한 dominant computedRoomType을 반환한다.
+    """
+    logger.info("Fetching computedRoomType for user %d...", userId)
+    query = {
+        "query": {
+            "bool": {
+                "must": [
+                    {"term": {"userId": userId}}
+                ]
+            }
+        },
+        "size": 100,
+        "sort": [{"time": {"order": "desc"}}],
+        "_source": ["computedRoomType"]
+    }
+    try:
+        res = es.search(index="logs", body=query, scroll="2m")
+    except Exception as e:
+        logger.warning("Elasticsearch error (computedRoomType): %s", e)
+        return None
+    docs = [doc["_source"] for doc in res["hits"]["hits"] if doc["_source"].get("computedRoomType")]
+    if len(docs) < 5:
+        logger.info("Insufficient computedRoomType logs for user %d.", userId)
+        return None
+    df = pd.DataFrame(docs)
+    dominant = df['computedRoomType'].value_counts()
+    if dominant.iloc[0] >= 5:
+        dominant_type = dominant.idxmax()
+        logger.info("User %d dominant computedRoomType: %s", userId, dominant_type)
+        return dominant_type
+    logger.info("No dominant computedRoomType for user %d.", userId)
+    return None
 
 def get_most_frequent_dong_for_user(userId: int):
     """
@@ -153,12 +184,15 @@ def recommend_by_dong(userId: int, top_k=10):
     logger.info("Dong-based recommendations for user %d: %s", userId, recommended)
     return recommended
 
-def recommend(userId: int, top_k=10, dong_id: int = None):
+def recommend(userId: int, top_k=10, dong_id: int = None, computed_room_type: str = None):
     logger.info("Starting default SVD recommendation for user %d...", userId)
     df = fetch_logs_from_es(days=30)
-    # dong_id가 주어지면 해당 동으로 필터링
+    # dong_id 필터링
     if dong_id is not None:
         df = df[df['dongId'] == dong_id]
+    # computedRoomType 필터링
+    if computed_room_type:
+        df = df[df['computedRoomType'] == computed_room_type]
     seen = df[df['userId'] == userId]['propertyId'].unique()
     all_items = df['propertyId'].unique()
     unseen = [pid for pid in all_items if pid not in seen]
@@ -170,7 +204,6 @@ def recommend(userId: int, top_k=10, dong_id: int = None):
     recommended = [int(pid) for pid, _ in predictions[:top_k]]
     logger.info("Default recommendations for user %d: %s", userId, recommended)
     return recommended
-
 
 def get_user_preferences_from_db(userId: int):
     session = SessionLocal()
@@ -191,11 +224,13 @@ def get_user_preferences_from_db(userId: int):
     finally:
         session.close()
 
-def hybrid_recommend(user_id: int, top_k=5, dong_id: int = None) -> list:
+def hybrid_recommend(user_id: int, top_k=5, dong_id: int = None):
     logger.info("Starting hybrid recommendation for user %d...", user_id)
+    # dominant computedRoomType 결정
+    dominant_computed_room_type = get_dominant_computed_room_type(user_id)
+    # SVD 추천은 dominant computedRoomType 혹은 dong_id가 있으면 해당 조건으로 필터링
     try:
-        # dong_id 전달하여 SVD 추천도 해당 동에 한정되도록 함
-        rec_svd = recommend(user_id, top_k, dong_id=dong_id)
+        rec_svd = recommend(user_id, top_k, dong_id=dong_id, computed_room_type=dominant_computed_room_type)
     except ValueError as e:
         logger.warning("SVD model not trained: %s. Skipping SVD recommendation.", e)
         rec_svd = []
@@ -206,8 +241,7 @@ def hybrid_recommend(user_id: int, top_k=5, dong_id: int = None) -> list:
         logger.error("Content based recommendation failed: %s", e)
         rec_cb = []
     combined = rec_svd + rec_cb
-    merged = list(dict.fromkeys(combined))
-    merged = merged[:top_k]
+    merged = list(dict.fromkeys(combined))[:top_k]
     logger.info("Hybrid recommendation for user %d: %s", user_id, merged)
     return merged
 
@@ -226,11 +260,12 @@ def recommend_for_mainpage(userId: int, top_k=10):
         
     targetDong = get_most_frequent_dong_for_user(userId)
     # targetDong이 없으면 fallback 사용
-    finalDong = targetDong if targetDong is not None else fallbackDong
+    final_dong = targetDong if targetDong is not None else fallbackDong
+    # SVD 추천 부분에 dong_id를 전달하여 해당 동의 매물만 추천
     if not targetDong:
         logger.info("No dong logs => fallback hybrid recommendation using user_preference dong_id=%s", fallbackDong)
         recs = hybrid_recommend(userId, top_k, dong_id=fallbackDong)
-        final_output = {"dongId": finalDong, "propertyIds": recs}
+        final_output = {"dongId": final_dong, "propertyIds": recs}
         logger.info("Final mainpage recommendation: %s", final_output)
         return final_output
     recs = recommend_by_dong(userId, top_k)
@@ -240,10 +275,9 @@ def recommend_for_mainpage(userId: int, top_k=10):
         final_output = {"dongId": fallbackDong, "propertyIds": recs}
         logger.info("Final mainpage recommendation: %s", final_output)
         return final_output
-    final_output = {"dongId": fallbackDong, "propertyIds": recs}
+    final_output = {"dongId": targetDong, "propertyIds": recs}
     logger.info("Final mainpage recommendation: %s", final_output)
     return final_output
-
 
 def load_property_vectors():
     global PROPERTY_VECTORS_CACHE, PROPERTY_IDS_CACHE, PROPERTY_CACHE_TIMESTAMP
