@@ -249,8 +249,8 @@
   cursor: pointer;
 }
 
-/* 🏥 보건 */
-.slider-보건 input[type="range"]::-webkit-slider-thumb {
+/* 🏥 의료 */
+.slider-의료 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   background-color: transparent;
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🏥</text></svg>');
