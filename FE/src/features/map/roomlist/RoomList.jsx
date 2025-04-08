@@ -44,6 +44,19 @@ const RoomList = () => {
   } = useSelector((state) => state.roomList);
 
   useEffect(() => {
+    if (!selectedPropertyId || rooms.length === 0) return;
+    console.log('여기야?')
+  
+    const index = rooms.findIndex(r => r.propertyId === selectedPropertyId);
+    if (index === -1) return;
+  
+    const page = Math.floor(index / pageSize) + 1;
+    if (currentPage !== page) {
+      dispatch(setCurrentPage(page));
+    }
+  }, [selectedPropertyId, rooms, pageSize, currentPage]);
+
+  useEffect(() => {
     const handleClickOutside = (e) => {
       if (
         roomListRef.current &&
@@ -175,6 +188,7 @@ const RoomList = () => {
           {currentRooms.map((room) => (
             <div
               key={room.propertyId}
+              data-id={room.propertyId} // ✅ 여기!
               className={`room-item ${
                 selectedPropertyId === room.propertyId ? "selected" : ""
               }`}
