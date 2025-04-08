@@ -3,7 +3,7 @@ import "./ListingCard.css";
 import "../../mypage/zzim/Zzim.css";
 import defaultImg from "../../../assets/logo/512image.png";
 
-const ListingCard = ({ image, address, contractType, price, roomType, description, roomBathCount }) => {
+const ListingCard = ({ image, address, contractType, price, roomType, description, roomBathCount, onClick }) => {
   const getRoomType = (roomBathCount) => {
     const roomTypeMapping = {
       "1": "원룸",
@@ -21,7 +21,7 @@ const ListingCard = ({ image, address, contractType, price, roomType, descriptio
 
   return (
     <div className="zzim-list">
-      <div className="zzim-card">
+      <div className="zzim-card" onClick={onClick}>
         <img
           src={image || defaultImg}
           alt="매물 이미지"
