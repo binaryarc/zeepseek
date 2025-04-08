@@ -30,28 +30,28 @@ function CurrentLocationLabel({ map }) {
       const center = map.getCenter();
       const level = map.getLevel();
       const geocoder = new window.kakao.maps.services.Geocoder();
-  
+
       geocoder.coord2RegionCode(
         center.getLng(),
         center.getLat(),
         (result, status) => {
           if (status !== window.kakao.maps.services.Status.OK) return;
-  
+
           const regionData = result[1];
           const guName = regionData.region_2depth_name;
           const dongName = regionData.region_3depth_name.replaceAll(".", "·");
-  
+
           setLocationName(level >= 6 ? guName : dongName);
         }
       );
     };
-  
+
     return () => {
       // 페이지 나갈 때 정리
       delete window.updateCurrentLocationLabel;
     };
   }, [map]);
-  
+
   useEffect(() => {
     if (location?.state?.selectedPropertyId) {
       console.log('여기들어옴?')
@@ -102,7 +102,7 @@ function CurrentLocationLabel({ map }) {
         return;
       }
 
-      console.log("✅ idle 이벤트 발생!", map.getCenter());
+      // console.log("✅ idle 이벤트 발생!", map.getCenter());
       const center = map.getCenter();
       const level = map.getLevel();
 
@@ -110,7 +110,7 @@ function CurrentLocationLabel({ map }) {
         center.getLng(),
         center.getLat(),
         (result, status) => {
-          console.log("📍역지오코딩 결과", result, status); // 이거 추가!
+          // console.log("📍역지오코딩 결과", result, status); // 이거 추가!
           if (status !== window.kakao.maps.services.Status.OK) return;
 
           const regionData = result[1];

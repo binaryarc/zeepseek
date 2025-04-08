@@ -34,7 +34,7 @@ export const loginOAuth = async (authorizationCode, provider) => {
 
 // 로그아웃
 export const logoutOAuth = async (accessToken) => {
-  console.log("로그아웃 요청 accessToken:", accessToken);
+  // console.log("로그아웃 요청 accessToken:", accessToken);
   return await authApi.delete("/auth/sessions", {
     headers: {
       Authorization: `Bearer ${accessToken}`,

@@ -54,7 +54,7 @@ function SaleCountMarkers({ map }) {
         countData = await fetchGuPropertyCounts(filterKey);
       } else if (currentLevel < 6 && currentLevel >= 3) {
         if (!filterKey) return;
-        console.log("dhsl?");
+        // console.log("dhsl?");
         countData = await fetchDongPropertyCounts(filterKey); // ✅ 파라미터 전달
       }
 
@@ -77,13 +77,13 @@ function SaleCountMarkers({ map }) {
         const position = new window.kakao.maps.LatLng(region.lat, region.lng);
         const splitName = region.name.trim().split(" ");
         const displayName = splitName[splitName.length - 1];
-      
+
         let count = 0;
         let labelContent = "";
         if (currentLevel >= 6) {
           // 구 단위: 하트 표시 X
           count = countMap[region.name] || 0;
-      
+
           labelContent = `
             <div class="marker-container">
               <div class="circle-count">${count}</div>
@@ -95,7 +95,7 @@ function SaleCountMarkers({ map }) {
           const dongId = region.dongId;
           count = countMap[dongId] || 0;
           const isLiked = likedDongs[String(dongId)];
-      
+
           labelContent = `
           <div class="marker-container">
             <div class="circle-count">${count}</div>
@@ -104,7 +104,7 @@ function SaleCountMarkers({ map }) {
           </div>
         `;
         }
-      
+
         const contentDiv = document.createElement("div");
         contentDiv.className = "marker-wrapper";
         contentDiv.innerHTML = labelContent;
