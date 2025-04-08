@@ -16,6 +16,7 @@ import { useSelector } from "react-redux";
 import MainListingSection from "./recommend/MainListingSection";
 import SurveyPopup from "../../common/component/SurveyPopup";
 import { useEffect, useState } from "react";
+import { FaChevronDown } from "react-icons/fa"; // 위에서 import 추가
 
 function MainPage() {
   const navigate = useNavigate();
@@ -29,6 +30,36 @@ function MainPage() {
     }
   }, [user]);
   
+  const [showArrow, setShowArrow] = useState(true);
+
+  const handleScrollToBottom = () => {
+    window.scrollTo({
+      top: document.body.scrollHeight,
+      behavior: "smooth",
+    });
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const listingSection = document.getElementById("listing-section");
+      if (!listingSection) return;
+  
+      const rect = listingSection.getBoundingClientRect();
+      setShowArrow(() => {
+        const threshold = window.innerHeight * 0.8;
+      
+        // 추천 섹션이 거의 화면 아래쪽에 위치할 경우 숨김
+        if (rect.top < threshold && rect.bottom > 0) return false;
+      
+        // 추천 섹션이 화면 위/아래로 벗어난 경우 표시
+        return true;
+      });
+    };
+  
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const handleMoveToMap = (roomType) => {
     dispatch(setSelectedRoomType(roomType));
     navigate("/map");
@@ -116,7 +147,16 @@ function MainPage() {
         </div>
       </section>
 
-      <MainListingSection />
+      {/* 매물 추천 섹션 */}
+      <div id="listing-section">
+        <MainListingSection />
+      </div>
+      {showArrow && (
+        <div className="double-arrow" onClick={handleScrollToBottom}>
+          <FaChevronDown className="arrow-icon" />
+          {/* <FaChevronDown className="arrow-icon" /> */}
+        </div>
+      )}
     </div>
   );
 }

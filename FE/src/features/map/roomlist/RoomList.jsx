@@ -83,7 +83,7 @@ const RoomList = () => {
     };
   }, [selectedPropertyId]);
 
-  let level = null;
+  let level = 5;
   if (window.isMapReady && typeof window.map?.getLevel === "function") {
     level = window.map.getLevel();
   } else {
@@ -112,6 +112,7 @@ const RoomList = () => {
   };
 
   const handleTabClick = (tab) => {
+    dispatch(setSelectedPropertyId(null));
     setSelectedTab(tab);
     dispatch(setSelectedRoomType(tab));
 
@@ -162,6 +163,7 @@ const RoomList = () => {
 
   const goToPage = (page) => {
     window.scrollTo({ top: 0, behavior: "smooth" });
+    dispatch(setSelectedPropertyId(null)); // ✅ 현재 선택된 매물 초기화
     dispatch(setCurrentPage(page));
   };
 

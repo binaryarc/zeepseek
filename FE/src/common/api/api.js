@@ -12,16 +12,16 @@ const zeepApi = axios.create({
 //   withCredentials: false,
 // });
 
-// ✅ 요청 인터셉터 (모든 요청에 `accessToken` 자동 추가)
-  zeepApi.interceptors.request.use((config) => {
-  const token = store.getState().auth.accessToken;
-  if (token) {
-    console.log('어세스토큰 추가')
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  // console.log(config)
-  return config;
-  });
+// // ✅ 요청 인터셉터 (모든 요청에 `accessToken` 자동 추가)
+//   zeepApi.interceptors.request.use((config) => {
+//   const token = store.getState().auth.accessToken;
+//   if (token) {
+//     console.log('어세스토큰 추가')
+//     config.headers.Authorization = `Bearer ${token}`;
+//   }
+//   // console.log(config)
+//   return config;
+//   });
 
 // 🔹 매물 개수 조회 - 구 단위
 export const fetchGuPropertyCounts = async (filterKey) => {
