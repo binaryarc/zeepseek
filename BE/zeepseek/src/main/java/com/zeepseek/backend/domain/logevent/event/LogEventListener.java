@@ -1,6 +1,8 @@
 package com.zeepseek.backend.domain.logevent.event;
 
 import com.zeepseek.backend.domain.logevent.service.LogService;
+import com.zeepseek.backend.domain.property.model.Property;
+import com.zeepseek.backend.domain.property.service.PropertyService;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -11,9 +13,11 @@ import java.util.List;
 public class LogEventListener {
 
     private final LogService logService;
+    private final PropertyService propertyService;
 
-    public LogEventListener(LogService logService) {
+    public LogEventListener(LogService logService, PropertyService propertyService) {
         this.logService = logService;
+        this.propertyService = propertyService;
     }
 
     @Async
@@ -41,6 +45,8 @@ public class LogEventListener {
             }
         } else if (propertyIds != null) {
             for(Integer id: propertyIds) {
+                Property property = propertyService.getPropertyDetail((long) id);
+
                 logService.logAction(
                         event.getAction(),
                         event.getType(),
@@ -48,7 +54,7 @@ public class LogEventListener {
                         age,
                         gender,
                         id,
-                        dongId
+                        property.getDongId()
                 );
             }
         } else {
