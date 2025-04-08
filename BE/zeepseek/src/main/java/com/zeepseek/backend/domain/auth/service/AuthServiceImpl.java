@@ -70,45 +70,53 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("리프레시 토큰이 유효하지 않습니다.");
         }
 
-        try {
-            // 토큰에서 Authentication 객체 얻기
-            Authentication authentication = tokenProvider.getAuthentication(refreshToken);
-            String userId = authentication.getName();
-            Integer userIdInt = Integer.parseInt(userId);
+        // 방법 1: 리프레시 토큰으로 직접 사용자 조회
+        Optional<User> userOptional = userRepository.findByRefreshToken(refreshToken);
 
-            // ID로 사용자 조회
-            Optional<User> userOptional = userRepository.findById(userIdInt);
+        if (userOptional.isEmpty()) {
+            // 방법 2: 토큰에서 Claims을 파싱하여 사용자 ID 추출
+            try {
+                // 토큰에서 Authentication 객체 얻기
+                Authentication authentication = tokenProvider.getAuthentication(refreshToken);
+                String userId = authentication.getName();
+                Integer userIdInt = Integer.parseInt(userId);
 
-            if (userOptional.isEmpty()) {
-                throw new RuntimeException("존재하지 않는 사용자입니다.");
+                // ID로 사용자 조회
+                userOptional = userRepository.findById(userIdInt);
+
+                if (userOptional.isEmpty()) {
+                    throw new RuntimeException("존재하지 않는 사용자입니다.");
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("리프레시 토큰 처리 중 오류 발생: " + e.getMessage());
             }
-
-            User user = userOptional.get();
-
-            // DB에 저장된 리프레시 토큰과 일치하는지 확인하는 부분 제거
-            // 토큰 자체의 유효성만 검증 (이미 위에서 했음)
-
-            // 인증 객체 생성
-            UserPrincipal userPrincipal = UserPrincipal.create(user);
-            Authentication newAuthentication = new UsernamePasswordAuthenticationToken(
-                    userPrincipal, null, userPrincipal.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(newAuthentication);
-
-            // 새 토큰 생성
-            TokenDto tokenDto = tokenProvider.generateToken(newAuthentication);
-
-            // 새 리프레시 토큰 저장
-            user.setRefreshToken(tokenDto.getRefreshToken());
-            userRepository.save(user);
-
-            // 유저 정보를 가져와서 TokenDto에 설정
-            UserDto userDto = userService.getUserById(user.getIdx());
-            tokenDto.setUser(userDto);
-
-            return tokenDto;
-        } catch (Exception e) {
-            throw new RuntimeException("리프레시 토큰 처리 중 오류 발생: " + e.getMessage());
         }
+
+        User user = userOptional.get();
+
+        // DB에 저장된 리프레시 토큰과 일치하는지 확인
+        if (user.getRefreshToken() == null || !user.getRefreshToken().equals(refreshToken)) {
+            throw new RuntimeException("저장된 리프레시 토큰과 일치하지 않습니다.");
+        }
+
+        // 인증 객체 생성
+        UserPrincipal userPrincipal = UserPrincipal.create(user);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userPrincipal, null, userPrincipal.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // 새 토큰 생성
+        TokenDto tokenDto = tokenProvider.generateToken(authentication);
+
+        // 새 리프레시 토큰 저장
+        user.setRefreshToken(tokenDto.getRefreshToken());
+        userRepository.save(user);
+
+        // 유저 정보를 가져와서 TokenDto에 설정
+        UserDto userDto = userService.getUserById(user.getIdx());
+        tokenDto.setUser(userDto);
+
+        return tokenDto;
     }
 
     @Override
