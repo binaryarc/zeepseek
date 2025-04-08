@@ -4,7 +4,7 @@ import store from "../../store/store";
 
 const zeepApi = axios.create({
   baseURL: `https://j12e203.p.ssafy.io/api/v1`, // ✅ API 서버 주소
-  withCredentials: false, // ✅ 쿠키 포함 요청
+  withCredentials: true, // ✅ 쿠키 포함 요청
 });
 
 // const authApi = axios.create({
