@@ -136,16 +136,20 @@ const MainListingSection = () => {
               roomType={item.roomType}
               description={item.description}
               roomBathCount={item.roomBathCount}
-              onClick={() =>
+              onClick={() =>{
+                const type = item.roomType;
+                const normalizedRoomType =
+                  type === "원룸/투룸" || type === "오피스텔" ? type : "주택/빌라";
+
                 navigate("/map", {
                   state: {
                     lat: item.latitude,
                     lng: item.longitude,
-                    roomType: item.roomType,
+                    roomType: normalizedRoomType, // ✅ 정제된 룸타입
                     selectedPropertyId: item.propertyId,
                   },
-                })
-              }
+                });
+              }}
             />
           ))}
         </ul>
