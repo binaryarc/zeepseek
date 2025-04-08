@@ -236,7 +236,7 @@ def recommend_for_mainpage(userId: int, top_k=10):
     recs = recommend_by_dong(userId, top_k)
     if not recs:
         logger.info("dong-based recommendation empty => fallback hybrid recommendation using user_preference dong_id=%s", fallbackDong)
-        recs = hybrid_recommend(userId, top_k, dong_id=targetDong)
+        recs = hybrid_recommend(userId, top_k, dong_id=finalDong)
         final_output = {"dongId": finalDong, "propertyIds": recs}
         logger.info("Final mainpage recommendation: %s", final_output)
         return final_output
