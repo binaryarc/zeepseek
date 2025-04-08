@@ -14,7 +14,7 @@ function Navbar() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [showDropdown, setShowDropdown] = useState(false);
-  const user =useSelector((state) => state.auth.user)
+  const user = useSelector((state) => state.auth.user)
   const nickname = user?.nickname || '로그인 유저';
   const accessToken = useSelector((state) => state.auth.accessToken);
   const isLoggedIn = !!accessToken;
@@ -40,16 +40,16 @@ function Navbar() {
 
 
   const handleClickRecommendButton = () => {
-      if (!user) {
-        alert("로그인 후 이용해주세요.");
-        return;
-      }
-      dispatch(setSelectedRoomType("AI 추천")); // ✅ Redux에 탭 상태 저장
-      navigate("/map");
-    };
+    if (!user) {
+      alert("로그인 후 이용해주세요.");
+      return;
+    }
+    dispatch(setSelectedRoomType("AI 추천")); // ✅ Redux에 탭 상태 저장
+    navigate("/map");
+  };
 
   useEffect(() => {
-    console.log("accessToken:", accessToken);
+    // console.log("accessToken:", accessToken);
   })
 
   return (

@@ -98,7 +98,7 @@ const RoomList = () => {
   if (window.isMapReady && typeof window.map?.getLevel === "function") {
     level = window.map.getLevel();
   } else {
-    console.warn("❗맵이 아직 준비되지 않았습니다.");
+    // console.warn("❗맵이 아직 준비되지 않았습니다.");
   }
   const user = useSelector((state) => state.auth.user);
 
@@ -164,8 +164,8 @@ const RoomList = () => {
     keyword && keyword.trim() !== "" && keyword !== currentDongName
       ? currentDongName
       : keyword && keyword.trim() !== ""
-      ? keyword
-      : currentDongName;
+        ? keyword
+        : currentDongName;
 
   const totalPages = Math.ceil(rooms.length / pageSize);
   const maxPageButtons = 3; // 페이지 버튼 최대 노출 수
@@ -214,9 +214,8 @@ const RoomList = () => {
             <div
               key={room.propertyId}
               data-id={room.propertyId} // ✅ 여기!
-              className={`room-item ${
-                selectedPropertyId === room.propertyId ? "selected" : ""
-              }`}
+              className={`room-item ${selectedPropertyId === room.propertyId ? "selected" : ""
+                }`}
               onClick={() => {
                 if (room.latitude && room.longitude) {
                   window.setHoverMarker(room.latitude, room.longitude);
@@ -231,14 +230,14 @@ const RoomList = () => {
                   dispatch(setSelectedPropertyId(room.propertyId)); // 다른 매물 → 열기
                 }
               }}
-              // onMouseEnter={() => {
-              //   if (room.latitude && room.longitude) {
-              //     window.setHoverMarker(room.latitude, room.longitude);
-              //   }
-              // }}
-              // onMouseLeave={() => {
-              //   window.clearHoverMarker();
-              // }}
+            // onMouseEnter={() => {
+            //   if (room.latitude && room.longitude) {
+            //     window.setHoverMarker(room.latitude, room.longitude);
+            //   }
+            // }}
+            // onMouseLeave={() => {
+            //   window.clearHoverMarker();
+            // }}
             >
               <img src={room.imageUrl || defaultImage} alt="매물 이미지" />
               <div className="room-info">
