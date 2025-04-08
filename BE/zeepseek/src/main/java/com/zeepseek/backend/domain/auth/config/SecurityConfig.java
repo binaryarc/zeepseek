@@ -19,6 +19,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -39,43 +40,12 @@ public class SecurityConfig {
                 .formLogin(formLogin -> formLogin.disable())
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        // 로그인 불필요 엔드포인트 - 인증없이 접근 가능
-
-                        // 인증 관련 엔드포인트
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/sessions").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/auth/redirect").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/auth/random-nickname").permitAll()
-
-                        // property 하위 모든 엔드포인트 허용
-                        .requestMatchers("/api/v1/property/**").permitAll()
-
-                        // search 하위 모든 엔드포인트 허용
-                        .requestMatchers("/api/v1/search/**").permitAll()
-
-                        // viewer 엔드포인트 허용
-                        .requestMatchers("/api/v1/viewer/**").permitAll()
-
-                        // dong/{dongId} 엔드포인트만 허용 (구체적인 패턴을 먼저 매칭)
-                        .requestMatchers(HttpMethod.GET, "/api/v1/dong/{dongId}").permitAll()
-
-                        // OAuth2 엔드포인트
-                        .requestMatchers("/oauth2/**").permitAll()
-                        .requestMatchers("/auth/**").permitAll()
-
-                        // Swagger UI 및 개발용 엔드포인트
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-
-                        // 기타 정적 리소스
-                        .requestMatchers("/", "/error", "/favicon.ico").permitAll()
-                        .requestMatchers("/resources/**").permitAll()
-                        .requestMatchers("/*.png", "/*.gif", "/*.svg", "/*.jpg", "/*.html", "/*.css", "/*.js").permitAll()
-
-                        // 그 외 모든 요청은 인증 필요
-                        .anyRequest().authenticated()
+                        // 개발 중이므로 모든 요청 허용
+                        .anyRequest().permitAll()
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(endpoint -> endpoint.baseUri("/oauth2/authorize"))
-                        .redirectionEndpoint(endpoint -> endpoint.baseUri("/auth/*"))
+                        .redirectionEndpoint(endpoint -> endpoint.baseUri("/auth/*/callback"))
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler(oAuth2AuthenticationSuccessHandler)
                         .failureHandler(oAuth2AuthenticationFailureHandler)
