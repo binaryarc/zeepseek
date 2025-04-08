@@ -1,7 +1,7 @@
 // import zeepApi from "./api";
 import axios from "axios";
 // const authApi = axios.create({
-//   baseURL: `http://localhost:8081/api/v1`, // ✅ API 서버 주소
+//   baseURL: `http://localhost:8082/api/v1`, // ✅ API 서버 주소
 //   withCredentials: true, // ✅ 쿠키 포함 요청
 // });
 
@@ -61,12 +61,11 @@ export const deleteOAuth = async (idx, accessToken) => {
 // 매물 비교 용 api(아직 안됨, 다시 만들어야 함)
 export const adminLogin = async (id, password) => {
   try {
-    const res = await authApi.post("/auth/admin",
-      {
-        id: id,
-        password: password
-      });
-    console.log("어드민 유저 로그인 성공: ", res)
+    const res = await authApi.post("/auth/admin", {
+      id: id,
+      password: password,
+    });
+    console.log("어드민 유저 로그인 성공: ", res);
     return res.data;
   } catch (err) {
     console.error("어드민 유저 로그인 실패:", err);
