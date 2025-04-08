@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.util.AbstractMap;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -20,11 +21,21 @@ public class UserRecommendationRequestDto {
     private Integer age;
     private Integer gender;
 
+    // # 추가된 필터 조건: 가격범위, 방 유형, 계약 유형
+    private List<Integer> priceRange; // 예: [500000, 1000000]
+    private String roomType;          // 예: "원룸", "투룸", "빌라", "주택"
+    private String contractType;      // 예: "단기임대", "월세", "전세", "매매"
+
     /**
      * 캐시 키 생성 메서드
-     * (userId와 각 선호도 점수를 연결하여 고유한 키 생성)
+     * (userId, 각 선호도 점수와 추가 필터 조건들을 연결하여 고유한 키 생성)
      */
     public String getCacheKey() {
+        // 각 값이 null이면 빈 문자열("")로 대체하여 연결합니다.
+        String priceRangeKey = (priceRange != null && !priceRange.isEmpty()) ? priceRange.toString() : "";
+        String roomTypeKey = (roomType != null) ? roomType : "";
+        String contractTypeKey = (contractType != null) ? contractType : "";
+
         return userId + "_" +
                 transportScore + "_" +
                 restaurantScore + "_" +
@@ -32,7 +43,10 @@ public class UserRecommendationRequestDto {
                 convenienceScore + "_" +
                 cafeScore + "_" +
                 chickenScore + "_" +
-                leisureScore;
+                leisureScore + "_" +
+                priceRangeKey + "_" +
+                roomTypeKey + "_" +
+                contractTypeKey;
     }
 
     /**
