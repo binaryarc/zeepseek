@@ -300,10 +300,18 @@ public class AuthServiceImpl implements AuthService {
         if (userOptional.isPresent()) {
             // 기존 사용자
             user = userOptional.get();
-            // 필요한 경우 사용자 정보 업데이트
-            if (!user.getNickname().equals(nickname)) {
-                user.setNickname(nickname);
-                user = userRepository.save(user);
+
+            // 사용자가 이미 설문을 완료했는지 확인 (isFirst = 0)
+            if (user.getIsFirst() == 1) {
+                // 아직 설문을 완료하지 않은 사용자만 소셜 닉네임으로 업데이트
+                if (!user.getNickname().equals(nickname)) {
+                    log.info("사용자 닉네임 업데이트 (설문 미완료): {} -> {}", user.getNickname(), nickname);
+                    user.setNickname(nickname);
+                    user = userRepository.save(user);
+                }
+            } else {
+                // 이미 설문을 완료한 사용자는 닉네임을 업데이트하지 않음
+                log.info("사용자가 이미 설문을 완료했으므로 닉네임 유지: {}", user.getNickname());
             }
         } else {
             // 새 사용자 생성
@@ -419,10 +427,18 @@ public class AuthServiceImpl implements AuthService {
         if (userOptional.isPresent()) {
             // 기존 사용자
             user = userOptional.get();
-            // 필요한 경우 사용자 정보 업데이트
-            if (!user.getNickname().equals(nickname)) {
-                user.setNickname(nickname);
-                user = userRepository.save(user);
+
+            // 사용자가 이미 설문을 완료했는지 확인 (isFirst = 0)
+            if (user.getIsFirst() == 1) {
+                // 아직 설문을 완료하지 않은 사용자만 소셜 닉네임으로 업데이트
+                if (!user.getNickname().equals(nickname)) {
+                    log.info("사용자 닉네임 업데이트 (설문 미완료): {} -> {}", user.getNickname(), nickname);
+                    user.setNickname(nickname);
+                    user = userRepository.save(user);
+                }
+            } else {
+                // 이미 설문을 완료한 사용자는 닉네임을 업데이트하지 않음
+                log.info("사용자가 이미 설문을 완료했으므로 닉네임 유지: {}", user.getNickname());
             }
         } else {
             // 새 사용자 생성
