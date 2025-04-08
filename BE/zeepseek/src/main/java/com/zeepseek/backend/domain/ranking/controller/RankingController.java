@@ -1,0 +1,39 @@
+package com.zeepseek.backend.domain.ranking.controller;
+
+import com.zeepseek.backend.domain.ranking.dto.RankingResponse;
+import com.zeepseek.backend.domain.ranking.service.RankingService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/v1/rankings")
+@RequiredArgsConstructor
+public class RankingController {
+
+    private final RankingService rankingService;
+
+    /**
+     * 특정 dongId에 대해 ranking score가 높은 상위 5개 propertyId와 score를 조회합니다.
+     *
+     * @param dongId 동 아이디
+     * @return 상위 5개 property의 랭킹 정보
+     */
+    @GetMapping("/{dongId}")
+    public ResponseEntity<List<RankingResponse>> getTop5Ranking(@PathVariable String dongId) {
+        Set<org.springframework.data.redis.core.ZSetOperations.TypedTuple<Object>> topProperties =
+                rankingService.getTop5PropertiesByDongId(dongId);
+        // DTO 매핑: propertyId(문자열을 Long으로 변환)와 score를 포함
+        List<RankingResponse> responses = topProperties.stream()
+                .map(tuple -> new RankingResponse(Integer.valueOf(tuple.getValue().toString()), tuple.getScore()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
+    }
+}
