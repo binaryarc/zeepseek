@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 import logging
 from fastapi import APIRouter, HTTPException, Body, Query
 from pydantic import BaseModel
@@ -30,6 +30,10 @@ class UserCategoryScore(BaseModel):
     gender: Optional[int] = None
     age: Optional[int] = None
     userId: Optional[int] = None
+    # 필터링 필드 추가
+    priceRange: Optional[List[int]] = None
+    roomType: Optional[str] = None
+    contractType: Optional[str] = None
 
     class Config:
         allow_population_by_field_name = True
@@ -39,7 +43,7 @@ class UserCategoryScore(BaseModel):
 def recommend_properties_endpoint(user_scores: UserCategoryScore):
     # 1) Pydantic 모델 → dict 변환
     user_data = user_scores.dict()
-
+    logger.info("사용자 요청 데이터: %s", user_data)
     # 2) 함수 호출
     recommendations = recommend_properties(
         user_scores=user_data,
