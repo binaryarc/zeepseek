@@ -279,7 +279,6 @@ def get_user_preference_weights(user_id):
     finally:
         session.close()
 
-
 def get_category_priority(gender, age_group):
     if isinstance(gender, int):
         gender = convert_gender_code(gender)
@@ -292,13 +291,10 @@ def get_category_priority(gender, age_group):
     우선순위_표 = {
         ('male', '20s'): np.array([3, 5, 1, 2, 4, 6, 7]),
         ('female', '20s'): np.array([3, 4, 1, 2, 7, 5, 6]),
-        
         ('male', '30s'): np.array([2, 5, 3, 4, 6, 1, 7]),
         ('female', '30s'): np.array([2, 4, 5, 3, 7, 1, 6]),
-        
         ('male', '40s'): np.array([2, 4, 7, 3, 1, 5, 6]),
         ('female', '40s'): np.array([2, 3, 7, 5, 6, 1, 4]),
-        
         ('male', '50s_plus'): np.array([3, 2, 7, 5, 1, 4, 6]),
         ('female', '50s_plus'): np.array([3, 2, 7, 6, 4, 1, 5])
     }
@@ -310,7 +306,6 @@ def get_category_priority(gender, age_group):
     else:
         logger.warning("[get_category_priority] 정의되지 않은 (성별, 연령대) → 기본 우선순위 사용: (%s, %s)", gender, age_group)
         return 기본_우선순위
-
 
 def recommend_properties(
     user_scores: dict,
@@ -379,40 +374,37 @@ def recommend_properties(
     logger.info("[recommend_properties] 필터 입력값: priceRange=%s, roomType=%s, contractType=%s",
                 price_range, desired_room_type, desired_contract_type)
     
-    # 필터링 부분 수정
     if price_range or desired_room_type or desired_contract_type:
         session = SessionLocal()
         try:
-            # 기본 쿼리 준비
+            # 기본 쿼리 준비 (property 테이블 기준 조회)
             query_str = "SELECT property_id FROM property WHERE property_id IN :ids"
+            # property_ids가 1개만 있는 경우 튜플 형식으로 변환 처리
             params = {"ids": tuple(property_ids) if len(property_ids) > 1 else (property_ids[0],)}
             conditions = []
             
-            # 계약 유형 필터링 (먼저 처리)
+            # 계약 유형 필터링 (먼저 처리하여 가격 전처리에 영향을 주게 함)
             if desired_contract_type:
-                conditions.append("contract_type LIKE :contractType")
+                conditions.append("LOWER(TRIM(contract_type)) LIKE LOWER(TRIM(:contractType))")
                 params["contractType"] = f"%{desired_contract_type}%"
                 
             # 가격 필터링 (계약 유형 후에 처리)
             if price_range:
                 min_price, max_price = price_range
-                
-                # 전세/매매인 경우 억 단위 처리
                 if desired_contract_type in ["전세", "매매"]:
+                    # "x억 ..." 형태 → '억' 앞의 숫자를 추출하여 억 단위를 만원으로 환산 후 비교
                     conditions.append("""
                         (CAST(REPLACE(TRIM(SUBSTRING_INDEX(price, '억', 1)), ',', '') AS UNSIGNED) * 10000) 
                         BETWEEN :min_price AND :max_price
                     """)
-                # 월세/단기임대인 경우 보증금 처리
                 elif desired_contract_type in ["월세", "단기임대"]:
+                    # 월세인 경우, "/" 뒤의 값을 월세로 사용하여 비교
                     conditions.append("""
-                        CAST(REPLACE(TRIM(SUBSTRING_INDEX(price, '/', 1)), ',', '') AS UNSIGNED) 
+                        CAST(REPLACE(TRIM(SUBSTRING_INDEX(price, '/', -1)), ',', '') AS UNSIGNED) 
                         BETWEEN :min_price AND :max_price
                     """)
                 else:
-                    # 기본 가격 필터
                     conditions.append("CAST(REPLACE(TRIM(price), ',', '') AS UNSIGNED) BETWEEN :min_price AND :max_price")
-                    
                 params["min_price"] = min_price
                 params["max_price"] = max_price
                 
@@ -427,49 +419,35 @@ def recommend_properties(
                 elif desired_room_type == "주택":
                     conditions.append("room_type IN ('단독/다가구','상가주택','한옥주택','전원주택')")
                     
-            # 조건 추가
             if conditions:
                 query_str += " AND " + " AND ".join(conditions)
-                
-            # 디버깅용 로깅
-            logger.info("[recommend_properties] 필터링 쿼리: %s", query_str)
+            
+            # 최종 쿼리 및 파라미터 로깅
+            logger.info("[recommend_properties] 최종 필터링 쿼리: %s", query_str)
             logger.info("[recommend_properties] 쿼리 파라미터: %s", params)
             
-            # 쿼리 실행
             query = text(query_str)
             results = session.execute(query, params).fetchall()
-            
-            # 결과 처리
             filtered_property_ids = {row._mapping["property_id"] for row in results}
             logger.info("[recommend_properties] 필터링 전 매물 ID 수: %d", len(property_ids))
             logger.info("[recommend_properties] 필터링 후 매물 ID 수: %d", len(filtered_property_ids))
             
-            # 샘플링 로깅 (최대 5개)
             if filtered_property_ids:
                 sample_ids = list(filtered_property_ids)[:5]
                 logger.info("[recommend_properties] 필터링 후 매물 ID 샘플: %s", sample_ids)
-                
-                # 이러한 ID들의 계약 유형 확인
-                if desired_contract_type:
-                    check_query = text("SELECT property_id, contract_type FROM property WHERE property_id IN :ids")
-                    check_results = session.execute(check_query, {"ids": tuple(sample_ids)}).fetchall()
-                    for row in check_results:
-                        logger.info("매물 ID %s의 계약 유형: %s", row._mapping["property_id"], row._mapping["contract_type"])
         except Exception as ex:
             logger.error("[recommend_properties] 필터링 쿼리 실행 중 오류 발생: %s", ex)
             filtered_property_ids = set()
         finally:
             session.close()
         
-        # 필터링 결과가 없을 경우 처리
         if not filtered_property_ids:
-            logger.warning("[recommend_properties] 필터 조건에 맞는 매물이 없습니다.")
+            logger.warning("[recommend_properties] 가격/방 및 계약 유형 필터 조건에 맞는 매물이 없습니다.")
             return {
                 "recommendedProperties": [],
                 "maxType": None
             }
-            
-        # 필터링된 ID로 배열 재구성
+        # 기존 property_ids 리스트에서 필터 조건에 맞는 인덱스 추출
         filtered_indices = [idx for idx, pid in enumerate(property_ids) if pid in filtered_property_ids]
         property_array = property_array[filtered_indices, :]
         property_ids = [property_ids[i] for i in filtered_indices]
@@ -548,13 +526,13 @@ def recommend_properties(
         norm_array = (property_array - means) / stds
         logger.info("[recommend_properties] z-score 정규화 수행 완료.")
         user_vals = np.array([
-            user_scores.get("transport_score", 0),
-            user_scores.get("restaurant_score", 0),
-            user_scores.get("health_score", 0),
-            user_scores.get("convenience_score", 0),
-            user_scores.get("cafe_score", 0),
-            user_scores.get("chicken_score", 0),
-            user_scores.get("leisure_score", 0),
+            user_scores.get("transportScore", 0),
+            user_scores.get("restaurantScore", 0),
+            user_scores.get("healthScore", 0),
+            user_scores.get("convenienceScore", 0),
+            user_scores.get("cafeScore", 0),
+            user_scores.get("chickenScore", 0),
+            user_scores.get("leisureScore", 0),
         ])
         logger.info("[DEBUG] user_vals (zscore before reshape): %s", user_vals)
         user_vector = ((user_vals - means) / stds).reshape(1, -1)
