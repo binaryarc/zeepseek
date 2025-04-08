@@ -16,8 +16,7 @@ import { likeProperty, unlikeProperty } from "../../../common/api/api";
 import { useRef } from "react";
 
 const RoomList = () => {
-
-  const roomListRef = useRef(null); 
+  const roomListRef = useRef(null);
 
   const reduxSelectedRoomType = useSelector(
     (state) => state.roomList.selectedRoomType
@@ -45,11 +44,11 @@ const RoomList = () => {
 
   useEffect(() => {
     if (!selectedPropertyId || rooms.length === 0) return;
-    console.log('여기야?')
-  
-    const index = rooms.findIndex(r => r.propertyId === selectedPropertyId);
+    console.log("여기야?");
+
+    const index = rooms.findIndex((r) => r.propertyId === selectedPropertyId);
     if (index === -1) return;
-  
+
     const page = Math.floor(index / pageSize) + 1;
     if (currentPage !== page) {
       dispatch(setCurrentPage(page));
@@ -57,11 +56,20 @@ const RoomList = () => {
   }, [selectedPropertyId, rooms, pageSize, currentPage]);
 
   useEffect(() => {
+    if (!selectedPropertyId) return;
+
+    const el = document.querySelector(`[data-id='${selectedPropertyId}']`);
+    if (el) {
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [selectedPropertyId, currentPage]);
+
+  useEffect(() => {
     const handleClickOutside = (e) => {
-      if (
-        roomListRef.current &&
-        !roomListRef.current.contains(e.target)
-      ) {
+      if (roomListRef.current && !roomListRef.current.contains(e.target)) {
         // 외부 클릭이면 RoomDetail 닫기
         dispatch(setSelectedPropertyId(null));
       }
@@ -133,7 +141,7 @@ const RoomList = () => {
     }
   };
 
-  // Modified: 
+  // Modified:
   // keyword가 비어있지 않고 (null이 아니고) keyword와 currentDongName이 다르면 무조건 currentDongName 사용
   // 그렇지 않으면 keyword가 있으면 keyword, 없으면 currentDongName 사용
   const displayKeyword =
