@@ -26,6 +26,17 @@ const RoomList = () => {
     reduxSelectedRoomType || "원룸/투룸"
   );
 
+  const clearAllMapOverlays = () => {
+    // 공통 마커 제거 함수
+    if (window.clearHoverMarker) {
+      window.clearHoverMarker();
+    }
+  
+    // 다른 컴포넌트에서 만든 circle/marker ref는 접근 불가 → 전역에서 관리하거나,
+    // 각 컴포넌트 언마운트 시 자동 정리되도록 해야 함
+  };
+  
+
   useEffect(() => {
     setSelectedTab(reduxSelectedRoomType);
   }, [reduxSelectedRoomType]);
@@ -112,6 +123,10 @@ const RoomList = () => {
   };
 
   const handleTabClick = (tab) => {
+
+    // 🔥 탭 바뀌면 지도 마커 정리!
+    if (window.clearHoverMarker) window.clearHoverMarker();
+    
     dispatch(setSelectedPropertyId(null));
     setSelectedTab(tab);
     dispatch(setSelectedRoomType(tab));

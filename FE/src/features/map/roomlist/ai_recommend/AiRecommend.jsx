@@ -117,14 +117,25 @@ const AiRecommend = () => {
     }
   };
   
-  // 상세 정보 닫힐 때도 마커 지우기
+  // // 상세 정보 닫힐 때도 마커 지우기
+  // useEffect(() => {
+  //   if (selectedPropertyId === null) {
+  //     clearMapOverlays(); // ✅ 상세 정보 창 닫힐 때도 제거
+  //   }
+  // }, [selectedPropertyId]);
+
+
+  // 탭 이동 시 모든 마커 제거
   useEffect(() => {
-    if (selectedPropertyId === null) {
-      clearMapOverlays(); // ✅ 상세 정보 창 닫힐 때도 제거
-    }
-  }, [selectedPropertyId]);
-  
-  
+    return () => {
+      if (circleOverlayRef.current) circleOverlayRef.current.setMap(null);
+      circleOverlayRef.current = null;
+      nearbyMarkersRef.current.forEach((m) => m.setMap(null));
+      nearbyMarkersRef.current = [];
+      window.clearHoverMarker?.();
+    };
+  }, []);
+
 
   const handleRecommendClick = async () => {
     if (!isValidPriceRange(priceRange)) return;
