@@ -121,10 +121,13 @@ const RoomDetail = ({ propertyId }) => {
           )}
 
           {/* ✅ AI 추천 그래프 컴포넌트 */}
-          {source === "recommend" && (
-            <AiGraphPanel room={detail} values={filterValues} />
+          {aiRecommendedRoom && (
+            <>
+              <hr />
+              <AiGraphPanel room={detail} values={filterValues} />
+            </>
           )}
-
+          
           <hr />
 
           <div className="detail-line">
