@@ -19,7 +19,7 @@ services:
       - SPRING_REDIS_PRIMARY_PORT=6379
       # 랭킹 데이터 전용 Redis (ranking_redis)
       - SPRING_REDIS_RANKING_HOST=ranking_redis
-      - SPRING_REDIS_RANKING_PORT=6378
+      - SPRING_REDIS_RANKING_PORT=6379
       - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}
     extra_hosts:
       - "host.docker.internal:host-gateway"
