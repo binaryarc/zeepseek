@@ -7,6 +7,7 @@ import com.zeepseek.backend.domain.auth.security.oauth2.provider.KakaoOAuth2User
 import com.zeepseek.backend.domain.auth.security.oauth2.provider.NaverOAuth2UserInfo;
 import com.zeepseek.backend.domain.auth.security.oauth2.provider.OAuth2UserInfo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -20,6 +21,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
@@ -65,10 +67,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         if (userOptional.isPresent()) {
             user = userOptional.get();
 
-            // 필요시 사용자 정보 업데이트
-            if (!user.getNickname().equals(oAuth2UserInfo.getNickname())) {
-                user.setNickname(oAuth2UserInfo.getNickname());
-                userRepository.save(user);
+            // 사용자가 이미 설문을 완료했는지 확인 (isFirst = 0)
+            if (user.getIsFirst() == 1) {
+                // 아직 설문을 완료하지 않은 사용자만 소셜 닉네임으로 업데이트
+                if (!user.getNickname().equals(oAuth2UserInfo.getNickname())) {
+                    log.info("사용자 닉네임 업데이트 (설문 미완료): {} -> {}", user.getNickname(), oAuth2UserInfo.getNickname());
+                    user.setNickname(oAuth2UserInfo.getNickname());
+                    userRepository.save(user);
+                }
+            } else {
+                // 이미 설문을 완료한 사용자는 닉네임을 업데이트하지 않음
+                log.info("사용자가 이미 설문을 완료했으므로 닉네임 유지: {}", user.getNickname());
             }
         } else {
             // 새 사용자 생성
