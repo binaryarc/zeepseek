@@ -125,6 +125,19 @@ const AiRecommend = () => {
   // }, [selectedPropertyId]);
 
 
+  // 이모지 통일용
+  const emojiMap = {
+    leisure: "🎮",
+    restaurant: "🍜",
+    health: "🏥",
+    convenience: "🏪",
+    transport: "🚌",
+    cafe: "☕",
+    chicken: "🍗",
+  };
+  
+  const emoji = emojiMap[maxType] || "📍";
+
   // 탭 이동 시 모든 마커 제거
   useEffect(() => {
     return () => {
@@ -251,17 +264,21 @@ const AiRecommend = () => {
 
     try {
       const response = await fetchNearbyPlaces(maxType, item.longitude, item.latitude);
-      const imageSrc = `/images/icons/${maxType}.png`;
-      const imageSize = new window.kakao.maps.Size(30, 30);
-      const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize);
-      const newMarkers = (response.data || []).map(({ latitude, longitude, name }) =>
-        new window.kakao.maps.Marker({
+      // const imageSrc = `/images/icons/${maxType}.png`;
+      // const imageSize = new window.kakao.maps.Size(30, 30);
+      // const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize);
+
+      const newMarkers = (response.data || []).map(({ latitude, longitude }) => {
+        const content = `
+          <div style="font-size: 24px; transform: translate(-50%, -100%)">
+            ${emoji}
+          </div>`;
+        return new window.kakao.maps.CustomOverlay({
           position: new window.kakao.maps.LatLng(latitude, longitude),
-          map: window.map,
-          title: name,
-          image: markerImage,
-        })
-      );
+          content,
+          yAnchor: 1,
+        });
+      });
       newMarkers.forEach((marker) => marker.setMap(window.map));
       nearbyMarkersRef.current = newMarkers;
     } catch (err) {
