@@ -12,16 +12,83 @@ const zeepApi = axios.create({
 //   withCredentials: false,
 // });
 
-// // ✅ 요청 인터셉터 (모든 요청에 `accessToken` 자동 추가)
-//   zeepApi.interceptors.request.use((config) => {
-//   const token = store.getState().auth.accessToken;
-//   if (token) {
-//     console.log('어세스토큰 추가')
-//     config.headers.Authorization = `Bearer ${token}`;
-//   }
-//   // console.log(config)
-//   return config;
-//   });
+// 요청 인터셉터 - accessToken이 있으면 Authorization 헤더에 추가
+zeepApi.interceptors.request.use((config) => {
+  const token = store.getState().auth.accessToken;
+  if (token) {
+    // 모든 요청에 accessToken을 헤더에 추가합니다.
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+
+// refresh 작업을 위한 상태 변수와 실패 큐
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+// 응답 인터셉터 - 403 혹은 인증 관련 에러 발생시 refresh 후 재시도
+zeepApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const originalRequest = error.config;
+
+    // refresh 요청이 여러 번 반복되지 않도록 플래그를 사용
+    if (error.response && error.response.status === 403 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // 이미 refresh 요청 진행 중이면 큐에 넣어두고, refresh 완료 후 재시도
+        return new Promise(function (resolve, reject) {
+          failedQueue.push({ resolve, reject });
+        }).then((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return zeepApi(originalRequest);
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      // refresh 요청: 쿠키(withCredentials)를 함께 보내므로 별도의 토큰 헤더는 필요 없음
+      return new Promise((resolve, reject) => {
+        zeepApi
+          .post("/auth/refresh")
+          .then(({ data }) => {
+            const newAccessToken = data.accessToken;
+            // store 업데이트
+            store.dispatch(setAccessToken(newAccessToken));
+            // 기본 헤더에도 갱신된 토큰을 설정
+            zeepApi.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
+            processQueue(null, newAccessToken);
+            // 원래 요청 재시도
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+            resolve(zeepApi(originalRequest));
+          })
+          .catch((err) => {
+            processQueue(err, null);
+            // refresh 실패 시 로그아웃 처리
+            store.dispatch(logout());
+            reject(err);
+          })
+          .finally(() => {
+            isRefreshing = false;
+          });
+      });
+    }
+    return Promise.reject(error);
+  }
+);
+
 
 // 🔹 매물 개수 조회 - 구 단위
 export const fetchGuPropertyCounts = async (filterKey) => {
