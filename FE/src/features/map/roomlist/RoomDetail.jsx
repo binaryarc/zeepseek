@@ -2,21 +2,21 @@ import { useEffect, useState, useRef } from "react";
 import "./RoomDetail.css";
 import { getPropertyDetail, fetchCommuteTime } from "../../../common/api/api";
 import defaultImage from "../../../assets/logo/192image.png";
-import { useDispatch } from "react-redux";
-import { setSelectedPropertyId } from "../../../store/slices/roomListSlice";
+// import { useDispatch } from "react-redux";
+// import { setSelectedPropertyId } from "../../../store/slices/roomListSlice";
 import date from "../../../assets/images/detail_png/date.png";
 import floor from "../../../assets/images/detail_png/floor.png";
 import room from "../../../assets/images/detail_png/room.png";
 import size from "../../../assets/images/detail_png/size.png";
 import direction from "../../../assets/images/detail_png/direction.png";
-import close from "../../../assets/images/detail_png/close.png";
+// import close from "../../../assets/images/detail_png/close.png";
 // import phone from "../../../assets/images/detail_png/phone.png";
 // import chat from "../../../assets/images/detail_png/chat.png";
 import { useSelector } from "react-redux"; // ✅ 사용자 정보 가져오기
 
 const RoomDetail = ({ propertyId }) => {
   const [detail, setDetail] = useState(null);
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
   const detailRef = useRef(null); // ✅ 이 ref로 RoomDetail 영역 추적
 
   const [commute, setCommute] = useState(null); // ⬅️ 통근 시간 상태

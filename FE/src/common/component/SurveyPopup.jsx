@@ -119,17 +119,28 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
           value={nickname}
           onChange={(e) => {
             setNickname(e.target.value);
-            dispatch(setUser({ ...user, nickname: e.target.value })); // 🧠 Redux 반영
+            dispatch(setUser({ ...user, nickname: e.target.value }));
           }}
           placeholder="닉네임을 입력하세요"
           className="nickname-input"
+          readOnly={mode === "edit"} // 👈 수정 모드에서는 읽기 전용
         />
-          <button type="button" onClick={handleRandomNickname} className="surveyserachbtn">
-            랜덤 생성
-          </button>
+
+        <button
+          type="button"
+          onClick={handleRandomNickname}
+          className="surveyserachbtn"
+          disabled={mode === "edit"} // 👈 수정 모드일 땐 버튼 비활성화
+        >
+          랜덤 생성
+        </button>
         </div>
-
-
+        
+        {mode === "edit" && (
+          <p style={{ fontSize: "0.9rem", color: "gray", marginTop: "0.2rem" }}>
+            닉네임은 수정할 수 없어요.
+          </p>
+        )}
 
         <label>성별</label>
         <select value={gender} onChange={(e) => setGender(e.target.value)}>

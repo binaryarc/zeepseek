@@ -163,7 +163,9 @@ const RoomList = () => {
       ) : selectedTab === "찜" ? (
         <ZzimList />
       ) : loading ? (
-        <div className="loading-message">🔄 매물 불러오는 중...</div>
+        <div className="loading-message">
+          <span className="room-spinner" /> 매물 로딩 중...
+        </div>
       ) : currentRooms.length === 0 ? (
         <div className="no-result-message">
           ❗ "{displayKeyword}"에 대한 매물이 없습니다.
