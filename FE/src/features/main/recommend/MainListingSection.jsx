@@ -5,12 +5,14 @@ import { aiRecommendByUserId } from "../../../common/api/api";
 import { useSelector } from "react-redux";
 import { TfiArrowCircleLeft, TfiArrowCircleRight } from "react-icons/tfi";
 import defaultImg from "../../../assets/logo/512image.png"
+import { useNavigate } from "react-router-dom";
 
 const MainListingSection = () => {
   const user = useSelector((state) => state.auth.user);
   const [dongName, setDongName] = useState("");
   const [recommendList, setRecommendList] = useState([]);
   const containerRef = useRef(null);
+  const navigate = useNavigate();
 
   // 더미 데이터: 로그인하지 않은 경우에도 표시할 데이터
   const dummyData = [
@@ -134,6 +136,20 @@ const MainListingSection = () => {
               roomType={item.roomType}
               description={item.description}
               roomBathCount={item.roomBathCount}
+              onClick={() =>{
+                const type = item.roomType;
+                const normalizedRoomType =
+                  type === "원룸/투룸" || type === "오피스텔" ? type : "주택/빌라";
+
+                navigate("/map", {
+                  state: {
+                    lat: item.latitude,
+                    lng: item.longitude,
+                    roomType: normalizedRoomType, // ✅ 정제된 룸타입
+                    selectedPropertyId: item.propertyId,
+                  },
+                });
+              }}
             />
           ))}
         </ul>

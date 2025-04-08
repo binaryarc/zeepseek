@@ -57,3 +57,18 @@ export const deleteOAuth = async (idx, accessToken) => {
     withCredentials: true,
   });
 };
+
+// 매물 비교 용 api(아직 안됨, 다시 만들어야 함)
+export const adminLogin = async (id, password) => {
+  try {
+    const res = await authApi.post("/auth/admin", {
+      id: id,
+      password: password,
+    });
+    console.log("어드민 유저 로그인 성공: ", res);
+    return res.data;
+  } catch (err) {
+    console.error("어드민 유저 로그인 실패:", err);
+    return null;
+  }
+};
