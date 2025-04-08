@@ -379,70 +379,101 @@ def recommend_properties(
     logger.info("[recommend_properties] 필터 입력값: priceRange=%s, roomType=%s, contractType=%s",
                 price_range, desired_room_type, desired_contract_type)
     
+    # 필터링 부분 수정
     if price_range or desired_room_type or desired_contract_type:
         session = SessionLocal()
         try:
-            # property 테이블과 필터링: property 테이블에서 가격, 방유형, 계약유형 등의 정보를 조회
-            query_str = "SELECT property_id, price, room_type, room_bath_count, contract_type FROM property WHERE property_id IN :ids"
-            params = {"ids": tuple(property_ids)}
+            # 기본 쿼리 준비
+            query_str = "SELECT property_id FROM property WHERE property_id IN :ids"
+            params = {"ids": tuple(property_ids) if len(property_ids) > 1 else (property_ids[0],)}
             conditions = []
-            # 가격 필터링
+            
+            # 계약 유형 필터링 (먼저 처리)
+            if desired_contract_type:
+                conditions.append("contract_type LIKE :contractType")
+                params["contractType"] = f"%{desired_contract_type}%"
+                
+            # 가격 필터링 (계약 유형 후에 처리)
             if price_range:
-                # 계약 유형에 따라 가격 전처리
-                # - 단기임대, 월세: 보증금/월세 형태 → "/" 앞의 숫자 (보증금) 추출. 쉼표와 공백 제거.
-                if desired_contract_type in ["단기임대", "월세"]:
-                    conditions.append("CAST(REPLACE(TRIM(SUBSTRING_INDEX(price, '/', 1)), ',', '') AS UNSIGNED) BETWEEN :min_price AND :max_price")
-                # - 전세, 매매: "x억 ..." 형태 → "억" 앞의 숫자 추출. 쉼표와 공백 제거.
-                elif desired_contract_type in ["전세", "매매"]:
-                    conditions.append("CAST(REPLACE(TRIM(SUBSTRING_INDEX(price, '억', 1)), ',', '') AS UNSIGNED) BETWEEN :min_price AND :max_price")
+                min_price, max_price = price_range
+                
+                # 전세/매매인 경우 억 단위 처리
+                if desired_contract_type in ["전세", "매매"]:
+                    conditions.append("""
+                        (CAST(REPLACE(TRIM(SUBSTRING_INDEX(price, '억', 1)), ',', '') AS UNSIGNED) * 10000) 
+                        BETWEEN :min_price AND :max_price
+                    """)
+                # 월세/단기임대인 경우 보증금 처리
+                elif desired_contract_type in ["월세", "단기임대"]:
+                    conditions.append("""
+                        CAST(REPLACE(TRIM(SUBSTRING_INDEX(price, '/', 1)), ',', '') AS UNSIGNED) 
+                        BETWEEN :min_price AND :max_price
+                    """)
                 else:
+                    # 기본 가격 필터
                     conditions.append("CAST(REPLACE(TRIM(price), ',', '') AS UNSIGNED) BETWEEN :min_price AND :max_price")
-                params["min_price"] = price_range[0]
-                params["max_price"] = price_range[1]
+                    
+                params["min_price"] = min_price
+                params["max_price"] = max_price
+                
             # 방 유형 필터링
             if desired_room_type:
                 if desired_room_type in ["원룸", "투룸"]:
-                    # room_bath_count 컬럼에서 "/" 앞의 숫자를 추출하여 필터링 (원룸: 1, 투룸: 2)
-                    if desired_room_type == "원룸":
-                        conditions.append("CAST(TRIM(SUBSTRING_INDEX(room_bath_count, '/', 1)) AS UNSIGNED) = 1")
-                    elif desired_room_type == "투룸":
-                        conditions.append("CAST(TRIM(SUBSTRING_INDEX(room_bath_count, '/', 1)) AS UNSIGNED) = 2")
+                    room_count = 1 if desired_room_type == "원룸" else 2
+                    conditions.append("CAST(TRIM(SUBSTRING_INDEX(room_bath_count, '/', 1)) AS UNSIGNED) = :room_count")
+                    params["room_count"] = room_count
                 elif desired_room_type == "빌라":
                     conditions.append("room_type = '빌라'")
                 elif desired_room_type == "주택":
                     conditions.append("room_type IN ('단독/다가구','상가주택','한옥주택','전원주택')")
-            # 계약 유형 필터링
-            if desired_contract_type:
-                # 양쪽 공백 제거 후 소문자로 비교
-                conditions.append("LOWER(TRIM(contract_type)) = LOWER(TRIM(:contractType))")
-                params["contractType"] = desired_contract_type
+                    
+            # 조건 추가
             if conditions:
                 query_str += " AND " + " AND ".join(conditions)
-            
-            # 최종 쿼리 및 파라미터 로깅
-            logger.info("[recommend_properties] 최종 필터링 쿼리: %s", query_str)
+                
+            # 디버깅용 로깅
+            logger.info("[recommend_properties] 필터링 쿼리: %s", query_str)
             logger.info("[recommend_properties] 쿼리 파라미터: %s", params)
             
+            # 쿼리 실행
             query = text(query_str)
             results = session.execute(query, params).fetchall()
+            
+            # 결과 처리
             filtered_property_ids = {row._mapping["property_id"] for row in results}
+            logger.info("[recommend_properties] 필터링 전 매물 ID 수: %d", len(property_ids))
+            logger.info("[recommend_properties] 필터링 후 매물 ID 수: %d", len(filtered_property_ids))
+            
+            # 샘플링 로깅 (최대 5개)
+            if filtered_property_ids:
+                sample_ids = list(filtered_property_ids)[:5]
+                logger.info("[recommend_properties] 필터링 후 매물 ID 샘플: %s", sample_ids)
+                
+                # 이러한 ID들의 계약 유형 확인
+                if desired_contract_type:
+                    check_query = text("SELECT property_id, contract_type FROM property WHERE property_id IN :ids")
+                    check_results = session.execute(check_query, {"ids": tuple(sample_ids)}).fetchall()
+                    for row in check_results:
+                        logger.info("매물 ID %s의 계약 유형: %s", row._mapping["property_id"], row._mapping["contract_type"])
         except Exception as ex:
             logger.error("[recommend_properties] 필터링 쿼리 실행 중 오류 발생: %s", ex)
             filtered_property_ids = set()
         finally:
             session.close()
         
+        # 필터링 결과가 없을 경우 처리
         if not filtered_property_ids:
-            logger.warning("[recommend_properties] 가격/방 및 계약 유형 필터 조건에 맞는 매물이 없습니다.")
+            logger.warning("[recommend_properties] 필터 조건에 맞는 매물이 없습니다.")
             return {
                 "recommendedProperties": [],
                 "maxType": None
             }
-        # 기존 property_ids 리스트에서 필터 조건에 맞는 인덱스 추출
+            
+        # 필터링된 ID로 배열 재구성
         filtered_indices = [idx for idx, pid in enumerate(property_ids) if pid in filtered_property_ids]
         property_array = property_array[filtered_indices, :]
         property_ids = [property_ids[i] for i in filtered_indices]
-        logger.info("[recommend_properties] 필터링 후 매물 개수: %d", len(property_ids))
+        logger.info("[recommend_properties] 최종 필터링 후 매물 개수: %d", len(property_ids))
     # ===== 필터링 끝 =====
 
     # 4) 정규화 (minmax 또는 zscore)
