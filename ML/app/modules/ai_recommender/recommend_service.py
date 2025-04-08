@@ -153,9 +153,12 @@ def recommend_by_dong(userId: int, top_k=10):
     logger.info("Dong-based recommendations for user %d: %s", userId, recommended)
     return recommended
 
-def recommend(userId: int, top_k=10):
+def recommend(userId: int, top_k=10, dong_id: int = None):
     logger.info("Starting default SVD recommendation for user %d...", userId)
     df = fetch_logs_from_es(days=30)
+    # dong_id가 주어지면 해당 동으로 필터링
+    if dong_id is not None:
+        df = df[df['dongId'] == dong_id]
     seen = df[df['userId'] == userId]['propertyId'].unique()
     all_items = df['propertyId'].unique()
     unseen = [pid for pid in all_items if pid not in seen]
@@ -167,6 +170,7 @@ def recommend(userId: int, top_k=10):
     recommended = [int(pid) for pid, _ in predictions[:top_k]]
     logger.info("Default recommendations for user %d: %s", userId, recommended)
     return recommended
+
 
 def get_user_preferences_from_db(userId: int):
     session = SessionLocal()
@@ -187,10 +191,11 @@ def get_user_preferences_from_db(userId: int):
     finally:
         session.close()
 
-def hybrid_recommend(user_id: int, top_k=5) -> list:
+def hybrid_recommend(user_id: int, top_k=5, dong_id: int = None) -> list:
     logger.info("Starting hybrid recommendation for user %d...", user_id)
     try:
-        rec_svd = recommend(user_id, top_k)
+        # dong_id 전달하여 SVD 추천도 해당 동에 한정되도록 함
+        rec_svd = recommend(user_id, top_k, dong_id=dong_id)
     except ValueError as e:
         logger.warning("SVD model not trained: %s. Skipping SVD recommendation.", e)
         rec_svd = []
@@ -206,6 +211,7 @@ def hybrid_recommend(user_id: int, top_k=5) -> list:
     logger.info("Hybrid recommendation for user %d: %s", user_id, merged)
     return merged
 
+
 def recommend_for_mainpage(userId: int, top_k=10):
     logger.info("Starting mainpage recommendation for user %d...", userId)
     session = SessionLocal()
@@ -217,23 +223,27 @@ def recommend_for_mainpage(userId: int, top_k=10):
         fallbackDong = row._mapping["dong_id"] if row else None
     finally:
         session.close()
+        
     targetDong = get_most_frequent_dong_for_user(userId)
+    # targetDong이 없으면 fallback 사용
+    finalDong = targetDong if targetDong is not None else fallbackDong
     if not targetDong:
         logger.info("No dong logs => fallback hybrid recommendation using user_preference dong_id=%s", fallbackDong)
-        recs = hybrid_recommend(userId, top_k)
-        final_output = {"dongId": fallbackDong, "propertyIds": recs}
+        recs = hybrid_recommend(userId, top_k, dong_id=fallbackDong)
+        final_output = {"dongId": finalDong, "propertyIds": recs}
         logger.info("Final mainpage recommendation: %s", final_output)
         return final_output
     recs = recommend_by_dong(userId, top_k)
     if not recs:
         logger.info("dong-based recommendation empty => fallback hybrid recommendation using user_preference dong_id=%s", fallbackDong)
-        recs = hybrid_recommend(userId, top_k)
-        final_output = {"dongId": fallbackDong, "propertyIds": recs}
+        recs = hybrid_recommend(userId, top_k, dong_id=targetDong)
+        final_output = {"dongId": finalDong, "propertyIds": recs}
         logger.info("Final mainpage recommendation: %s", final_output)
         return final_output
-    final_output = {"dongId": targetDong, "propertyIds": recs}
+    final_output = {"dongId": finalDong, "propertyIds": recs}
     logger.info("Final mainpage recommendation: %s", final_output)
     return final_output
+
 
 def load_property_vectors():
     global PROPERTY_VECTORS_CACHE, PROPERTY_IDS_CACHE, PROPERTY_CACHE_TIMESTAMP
