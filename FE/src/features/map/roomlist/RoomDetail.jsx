@@ -6,7 +6,7 @@ import defaultImage from "../../../assets/logo/192image.png";
 // import { setSelectedPropertyId } from "../../../store/slices/roomListSlice";
 import date from "../../../assets/images/detail_png/date.png";
 import floor from "../../../assets/images/detail_png/floor.png";
-import rooms from "../../../assets/images/detail_png/room.png";
+import room from "../../../assets/images/detail_png/room.png";
 import size from "../../../assets/images/detail_png/size.png";
 import direction from "../../../assets/images/detail_png/direction.png";
 // import close from "../../../assets/images/detail_png/close.png";
@@ -14,26 +14,15 @@ import direction from "../../../assets/images/detail_png/direction.png";
 // import chat from "../../../assets/images/detail_png/chat.png";
 import { useSelector } from "react-redux"; // ✅ 사용자 정보 가져오기
 
-const RoomDetail = ({ propertyId: propId }) => {
+const RoomDetail = ({ propertyId }) => {
   const [detail, setDetail] = useState(null);
   // const dispatch = useDispatch();
   const detailRef = useRef(null); // ✅ 이 ref로 RoomDetail 영역 추적
 
   const [commute, setCommute] = useState(null); // ⬅️ 통근 시간 상태
-  const [roomDetail, setRoomDetail] = useState(null);
 
   const user = useSelector((state) => state.auth.user); // ⬅️ 사용자 정보
 
-  const selectedId = useSelector((state) => state.roomList.selectedPropertyId);
-  const source = useSelector((state) => state.roomList.selectedPropertySource);
-  const propertyId = propId ?? selectedId;
-  // const source = useSelector((state) => state.roomList.selectedPropertySource);
-
-  const room = useSelector((state) =>
-    source === "recommend"
-      ? state.roomList.aiRecommendedList.find((r) => r.propertyId === propertyId)
-      : state.roomList.rooms.find((r) => r.propertyId === propertyId)
-  );
 
   // 다른 곳 클릭했을 때, RoomDetail 닫기
   // useEffect(() => {
@@ -50,65 +39,59 @@ const RoomDetail = ({ propertyId: propId }) => {
   // }, []);
 
   useEffect(() => {
-    if (!room) return;
+    console.log("받은 propertyId:", propertyId);
+    const fetchDetail = async () => {
+      console.log("RoomDetail에서 받은 propertyId:", propertyId);
+      const data = await getPropertyDetail(propertyId);
+      console.log("받은 상세 데이터:", data);
+      if (data) setDetail(data);
+      console.log("요청 보낼 정보:", user?.idx, data?.latitude, data?.longitude);
 
-    if (source === "recommend") {
-      setRoomDetail(room);
-    } else {
-      const fetchDetail = async () => {
-        try {
-          const detail = await getPropertyDetail(room.propertyId);
-          setRoomDetail({ ...room, ...detail });
-        } catch (err) {
-          console.error("매물 상세 정보 불러오기 실패:", err);
-          setRoomDetail(room); // fallback
-        }
-      };
-      fetchDetail();
-    }
-  }, [room, source]);
+      // ✅ 통근 시간 요청 (userId + 매물 좌표)
+      if (user.idx && data.latitude && data.longitude) {
+        console.log('여기옴?')
 
-  useEffect(() => {
-    if (!roomDetail || !user?.idx || !roomDetail.latitude || !roomDetail.longitude) return;
-
-    const fetchCommute = async () => {
-      try {
         const commuteData = await fetchCommuteTime({
           userId: user.idx,
-          lat: roomDetail.latitude,
-          lon: roomDetail.longitude,
+          lat: data.latitude,
+          lon: data.longitude,
         });
         setCommute(commuteData);
-      } catch (error) {
-        console.error("통근 시간 가져오기 실패:", error);
       }
     };
-    fetchCommute();
-  }, [roomDetail, user]);
+    fetchDetail();
+  }, [propertyId]);
+
 
   const formatFee = (fee) => {
     if (!fee || fee === 0) return "없음";
     return `${Math.round(fee / 10000)}만원`;
   };
 
-  if (!roomDetail) return null;
+  if (!detail) return null; // 아직 로딩 중
 
   return (
     <div className="room-detail" ref={detailRef}>
+        {/* <img
+        src={close}
+        alt="닫기"
+        onClick={() => dispatch(setSelectedPropertyId(null))}
+        className="close-btn"
+        /> */}
       <div className="detail-scrollable">
         <img
-          src={roomDetail.imageUrl || defaultImage}
+          src={detail.imageUrl || defaultImage}
           alt="매물 이미지"
           className="detail-image"
         />
 
         <div className="detail-info">
-          <p className="detail-address">{roomDetail.address}</p>
+          <p className="detail-address">{detail.address}</p>
           <h2>
-            {roomDetail.contractType} {roomDetail.price}
+            {detail.contractType} {detail.price}
           </h2>
-          <p>관리비 {formatFee(roomDetail.maintenanceFee)}</p>
-          <div className="detail-description">{roomDetail.description}</div>
+          <p>관리비 {formatFee(detail.maintenanceFee)}</p>
+          <div className="detail-description">{detail.description}</div>
 
           {commute ? (
             <div className="commute-section">
@@ -140,26 +123,30 @@ const RoomDetail = ({ propertyId: propId }) => {
 
           <div className="detail-line">
             <img src={date} alt="날짜 아이콘" className="detail-icons" />
-            <p>{roomDetail.moveInDate || "-"}</p>
+            <p>{detail.moveInDate || "-"}</p>
           </div>
 
           <div className="detail-line">
             <img src={size} alt="면적 아이콘" className="detail-icons" />
-            <p>{roomDetail.area || "-"}</p>
+            <p>{detail.area || "-"}</p>
           </div>
 
           <div className="detail-line">
             <img src={floor} alt="층수 아이콘" className="detail-icons" />
-            <p>{roomDetail.floorInfo || "-"}</p>
+            <p>{detail.floorInfo || "-"}</p>
           </div>
           <div className="detail-line">
-            <img src={rooms} alt="방욕실 아이콘" className="detail-icons" />
-            <p>{roomDetail.roomBathCount || "-"}</p>
+            <img src={room} alt="방욕실 아이콘" className="detail-icons" />
+            <p>{detail.roomBathCount || "-"}</p>
           </div>
           <div className="detail-line">
             <img src={direction} alt="방향" className="detail-icons" />
-            <p>{roomDetail.direction || "-"}</p>
+            <p>{detail.direction || "-"}</p>
           </div>
+            {/* <div className="detail-fixed-footer">
+            <img src={phone} alt="전화" />
+            <img src={chat} alt="메시지" />
+            </div> */}
         </div>
       </div>
     </div>
