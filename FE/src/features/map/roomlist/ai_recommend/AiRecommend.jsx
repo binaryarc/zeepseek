@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "./AiRecommend.css";
 import {
   fetchAIRecommendedProperties,
@@ -25,9 +25,7 @@ const AiRecommend = () => {
   const dispatch = useDispatch();
 
   const [selectedRoom, setSelectedRoom] = useState(null); // 모달에 띄울 매물 상세 정보
-  const [sliderValues, setSliderValues] = useState(null);
 
-  const hoverRequestIdRef = useRef(0);  // 최신 마커 관리용 useRef
   const circleOverlayRef = useRef(null);  // 최신 원 마커 관리용 useRef
   const nearbyMarkersRef = useRef([]); // 마커들 ref에 보관
 
@@ -35,6 +33,9 @@ const AiRecommend = () => {
 
   const user = useSelector((state) => state.auth.user);
   const filterValues = useSelector((state) => state.roomList.filterValues);
+
+  // 선택된 매물 id Redux에서 가져오기(매물 상세 정보 창 관리용)
+  const selectedPropertyId = useSelector(state => state.roomList.selectedPropertyId);
 
   const filters = [
     "여가",
@@ -46,15 +47,7 @@ const AiRecommend = () => {
     "치킨집",
   ];
 
-  // 상태를 key-value 형태로 관리
-  // const [filterValues, setFilterValues] = useState(
-  //   filters.reduce((acc, label) => {
-  //     acc[label] = 50; // 초기값 50
-  //     return acc;
-  //   }, {})
-  // );
 
-  const [recommendedList, setRecommendedList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRecoDone, setIsRecoDone] = useState(false);
 
@@ -97,6 +90,26 @@ const AiRecommend = () => {
     setPriceError("");
     return true;
   };
+
+
+  // 원 마커 지우는 함수
+  const clearMapOverlays = () => {
+    window.clearHoverMarker?.();
+    nearbyMarkersRef.current.forEach((marker) => marker.setMap(null));
+    nearbyMarkersRef.current = [];
+    if (circleOverlayRef.current) {
+      circleOverlayRef.current.setMap(null);
+      circleOverlayRef.current = null;
+    }
+  };
+  
+  // 상세 정보 닫힐 때도 마커 지우기
+  useEffect(() => {
+    if (selectedPropertyId === null) {
+      clearMapOverlays(); // ✅ 상세 정보 창 닫힐 때도 제거
+    }
+  }, [selectedPropertyId]);
+  
   
 
   const handleRecommendClick = async () => {
@@ -120,16 +133,6 @@ const AiRecommend = () => {
       chickenScore: filterValues["치킨집"] / 100,
       leisureScore: filterValues["여가"] / 100,
     };
-
-    // setSliderValues({
-    //   transportScore: filterValues["대중교통"],
-    //   restaurantScore: filterValues["식당"],
-    //   healthScore: filterValues["의료"],
-    //   convenienceScore: filterValues["편의"],
-    //   cafeScore: filterValues["카페"],
-    //   chickenScore: filterValues["치킨집"],
-    //   leisureScore: filterValues["여가"],
-    // })
 
     console.log("request data: ", preferenceData);
 
@@ -177,13 +180,22 @@ const AiRecommend = () => {
     dispatch(setAiRecommendedList([]));
     dispatch(setSelectedPropertyId(null));
     dispatch(setSelectedPropertySource(null));
-    // setRecommendedList([]);
-    // setSelectedRoom(null)
   };
 
+
   const handleRoomClick = async (item) => {
+
+    if (selectedPropertyId === item.propertyId) {
+      dispatch(setSelectedPropertyId(null));
+      dispatch(setSelectedPropertySource(null));
+      clearMapOverlays(); // ✅ 같은 매물 클릭 시 제거
+      return;
+    }
+  
     dispatch(setSelectedPropertyId(item.propertyId));
     dispatch(setSelectedPropertySource("recommend"));
+
+    clearMapOverlays(); // ✅ 기존 마커 제거
 
     window.clearHoverMarker();
     nearbyMarkersRef.current.forEach((marker) => marker.setMap(null));
@@ -358,7 +370,9 @@ const AiRecommend = () => {
               {aiRecommendedList.map((item) => (
                 <li
                   key={item.propertyId}
-                  className="room-item"
+                  className={`room-item ${
+                    selectedPropertyId === item.propertyId ? "selected" : ""
+                  }`}
                   onClick={() => handleRoomClick(item)}
                 >
                   <img src={item.imageUrl || defaultImage} alt="매물 이미지" />
