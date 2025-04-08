@@ -27,6 +27,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -468,5 +469,20 @@ public class AuthServiceImpl implements AuthService {
         tokenDto.setUser(userDto);
 
         return tokenDto;
+    }
+
+    public TokenDto processAdminLogin(String id, String nickname) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", id);
+        response.put("nickname", nickname);
+
+        Map<String, Object> userAttributes = new HashMap<>();
+        userAttributes.put("response", response);
+
+        // 3. 사용자 정보로 DB 사용자 조회 또는 생성
+        User user = processNaverUser(userAttributes);
+
+        // 4. JWT 토큰 생성
+        return generateTokenForUser(user);
     }
 }
