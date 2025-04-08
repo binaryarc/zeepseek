@@ -1,6 +1,7 @@
 package com.zeepseek.backend.domain.logevent.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
@@ -31,6 +32,31 @@ public class LogService {
         logData.put("gender", gender);
         logData.put("propertyId", propertyId);
         logData.put("dongId", dongId);
+
+        // 추가: properties 인덱스에서 propertyId에 해당하는 문서를 조회
+        try {
+            // propertyId를 _id로 사용하여 properties 인덱스에서 해당 문서를 가져옵니다.
+            GetResponse<Map<String, Object>> propertyResponse = elasticsearchClient.get(g -> g
+                            .index("properties")
+                            .id(String.valueOf(propertyId))
+                    , (Class<Map<String, Object>>)(Class<?>) Map.class);
+
+            if (propertyResponse.found()) {
+                Map<String, Object> propertyData = propertyResponse.source();
+                // 예를 들어, properties 인덱스에 "specificField"라는 필드가 있다고 가정합시다.
+                if (propertyData != null && propertyData.containsKey("computedRoomType")) {
+                    logData.put("computedRoomType", propertyData.get("computedRoomType"));
+                }
+                if (propertyData != null && propertyData.containsKey("roomType")) {
+                    logData.put("roomType", propertyData.get("roomType"));
+                }
+            } else {
+                System.out.println("properties 인덱스에 propertyId " + propertyId + "에 해당하는 문서가 없습니다.");
+            }
+        } catch (Exception e) {
+            // 조회 실패 시 예외 처리 (필요에 따라 기본값 설정 가능)
+            e.printStackTrace();
+        }
 
         try {
             IndexResponse response = elasticsearchClient.index(i -> i

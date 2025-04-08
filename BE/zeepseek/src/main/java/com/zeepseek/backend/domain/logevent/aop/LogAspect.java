@@ -5,6 +5,8 @@ import com.zeepseek.backend.domain.logevent.annotation.Loggable;
 import com.zeepseek.backend.domain.logevent.event.LogEvent;
 import com.zeepseek.backend.domain.property.model.Property;
 import com.zeepseek.backend.domain.property.service.PropertyService;
+import com.zeepseek.backend.domain.search.dto.response.KeywordResponse;
+import com.zeepseek.backend.domain.search.service.SearchService;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -32,11 +34,17 @@ public class LogAspect {
     private final ApplicationEventPublisher eventPublisher;
     private final DongService dongService; // dong 테이블 조회를 위한 서비스
     private final PropertyService propertyService;
+    private final SearchService searchService;
 
-    public LogAspect(ApplicationEventPublisher eventPublisher, DongService dongService, PropertyService propertyService) {
+    public LogAspect(
+            ApplicationEventPublisher eventPublisher,
+            DongService dongService,
+            PropertyService propertyService,
+            SearchService searchService) {
         this.eventPublisher = eventPublisher;
         this.dongService = dongService;
         this.propertyService = propertyService;
+        this.searchService = searchService;
     }
 
     @Around("@annotation(com.zeepseek.backend.domain.logevent.annotation.Loggable)")
