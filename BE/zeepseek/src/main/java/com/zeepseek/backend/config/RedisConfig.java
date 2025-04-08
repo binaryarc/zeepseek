@@ -53,7 +53,7 @@ public class RedisConfig {
     public RedisConnectionFactory rankingRedisConnectionFactory() {
         // Docker Compose에 정의된 ranking_redis 서비스를 사용합니다.
         // 내부 포트는 6378로 지정되어 있습니다.
-        return new LettuceConnectionFactory("ranking_redis", 6379);
+        return new LettuceConnectionFactory("ranking_redis", 6378);
     }
 
     /**
