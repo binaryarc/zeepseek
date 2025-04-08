@@ -14,4 +14,16 @@
     margin-top: 2.5%;
     display: flex;
     flex-direction: column;
-  }
+}
+
+.admin-login-trigger {
+    text-decoration: underline;
+    color: #a5ad63; /* 원하는 색상으로 변경 가능 */
+    cursor: pointer;
+    transition: color 0.2s ease;
+    text-align: center;
+}
+
+.admin-login-trigger:hover {
+    color: #6e8514;
+}
