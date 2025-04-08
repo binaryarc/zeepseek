@@ -27,4 +27,6 @@ public interface AuthService {
      * (내부적으로 UserService.getUserById()를 호출)
      */
     UserDto getCurrentUserByToken(String accessToken);
+
+    public TokenDto processAdminLogin(String id, String nickname);
 }

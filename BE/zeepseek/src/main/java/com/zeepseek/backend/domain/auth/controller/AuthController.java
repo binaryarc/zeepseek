@@ -149,4 +149,43 @@ public class AuthController {
             log.info("=== 소셜 로그인 리다이렉트 종료 ===");
         }
     }
+
+    @PostMapping("/api/v1/auth/admin")
+    public ResponseEntity<?> adminLogin(
+            @RequestBody AdminRequest adminRequest,
+            HttpServletResponse response) {
+
+        if(!"ssafy".equals(adminRequest.getId()) || !"ssafyssafy".equals(adminRequest.getPassword())){
+            return ResponseEntity.status(401).body("관계자 계정이 아닙니다!");
+        }
+
+        String id = "ssafy";
+        String nickname = "ssafy";
+
+        try {
+            // 인가 코드를 사용하여 로그인 처리
+            TokenDto tokenDto = authService.processAdminLogin(id, nickname);
+
+            // 사용자 정보 및 리프레시 토큰을 쿠키에 저장
+            if (tokenDto.getUser() != null && tokenDto.getUser().getIdx() != null) {
+                // 여기서 불필요하게 userService를 통해 사용자 정보를 다시 조회하지 않음
+                // UserDto userDto = userService.getUserById(tokenDto.getUser().getIdx());
+
+                // 직접 TokenDto에서 얻은 User 객체를 사용
+                CookieUtils.addAllUserCookies(response, tokenDto.getUser(), tokenDto.getRefreshToken());
+            }
+
+            log.info("로그인 성공! 토큰 생성됨: accessToken={}, refreshToken={}",
+                    tokenDto.getAccessToken().substring(0, 10) + "...",
+                    tokenDto.getRefreshToken().substring(0, 10) + "...");
+
+            return ResponseEntity.ok(ApiResponse.success(tokenDto));
+        } catch (Exception e) {
+            log.error("소셜 로그인 처리 중 오류 발생", e);
+            throw e;
+        } finally {
+            log.info("=== 소셜 로그인 리다이렉트 종료 ===");
+        }
+
+    }
 }
