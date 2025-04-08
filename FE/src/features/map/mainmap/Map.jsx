@@ -380,7 +380,7 @@ const Map = () => {
     const { lat, lng } = location.state;
     if (lat && lng) {
       const moveLatLng = new window.kakao.maps.LatLng(lat, lng);
-      map.setLevel(3);
+      map.setLevel(5);
       map.setCenter(moveLatLng);
     }
   }, [map, location.state]);
