@@ -219,6 +219,8 @@ const AiRecommend = () => {
   };
 
   const handleRetry = () => {
+    clearMapOverlays(); // ✅ 마커까지 정리
+    setSelectedRoom(null); // ✅ selectedRoom 상태도 초기화!
     setIsRecoDone(false);
     dispatch(setAiRecommendedList([]));
     dispatch(setSelectedPropertyId(null));
