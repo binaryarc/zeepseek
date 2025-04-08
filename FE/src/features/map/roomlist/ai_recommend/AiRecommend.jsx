@@ -10,9 +10,16 @@ import DongNameMarkers from "../../mainmap/salecountmarkers/DongNameMarkers/Dong
 import GuNameMarkers from "../../mainmap/salecountmarkers/GuNameMarkers/GuNameMarkers";
 import AiRecommendList from "./AiRecommendList/AiRecommendList";
 import zeepai from "../../../../assets/images/zeepai.png";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  setSelectedPropertyId,
+  setSelectedPropertySource,
+  setAiRecommendedList,
+  setFilterValues,
+} from "../../../../store/slices/roomListSlice";
 
 const AiRecommend = () => {
+  const dispatch = useDispatch();
 
   const [selectedRoom, setSelectedRoom] = useState(null); // 모달에 띄울 매물 상세 정보
   const [sliderValues, setSliderValues] = useState(null);
@@ -24,6 +31,7 @@ const AiRecommend = () => {
   const [maxType, setMaxType] = useState(null);
 
   const user = useSelector((state) => state.auth.user);
+  const filterValues = useSelector((state) => state.roomList.filterValues);
 
   const filters = [
     "여가",
@@ -36,22 +44,26 @@ const AiRecommend = () => {
   ];
 
   // 상태를 key-value 형태로 관리
-  const [filterValues, setFilterValues] = useState(
-    filters.reduce((acc, label) => {
-      acc[label] = 50; // 초기값 50
-      return acc;
-    }, {})
-  );
+  // const [filterValues, setFilterValues] = useState(
+  //   filters.reduce((acc, label) => {
+  //     acc[label] = 50; // 초기값 50
+  //     return acc;
+  //   }, {})
+  // );
 
   const [recommendedList, setRecommendedList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRecoDone, setIsRecoDone] = useState(false);
 
+  const aiRecommendedList = useSelector((state) => state.roomList.aiRecommendedList);
+
   const handleSliderChange = (label, value) => {
-    setFilterValues((prev) => ({
-      ...prev,
-      [label]: value,
-    }));
+    dispatch(
+      setFilterValues({
+        ...filterValues,
+        [label]: value,
+      })
+    );
   };
 
   const handleRecommendClick = async () => {
@@ -68,15 +80,15 @@ const AiRecommend = () => {
       leisureScore: filterValues["여가"] / 100,
     };
 
-    setSliderValues({
-      transportScore: filterValues["대중교통"],
-      restaurantScore: filterValues["식당"],
-      healthScore: filterValues["의료"],
-      convenienceScore: filterValues["편의"],
-      cafeScore: filterValues["카페"],
-      chickenScore: filterValues["치킨집"],
-      leisureScore: filterValues["여가"],
-    })
+    // setSliderValues({
+    //   transportScore: filterValues["대중교통"],
+    //   restaurantScore: filterValues["식당"],
+    //   healthScore: filterValues["의료"],
+    //   convenienceScore: filterValues["편의"],
+    //   cafeScore: filterValues["카페"],
+    //   chickenScore: filterValues["치킨집"],
+    //   leisureScore: filterValues["여가"],
+    // })
 
     console.log("request data: ", preferenceData);
 
@@ -98,10 +110,16 @@ const AiRecommend = () => {
           })
         );
 
+        
+
         console.log("전체 추천 결과: ", result);
         console.log("추천 매물 목록:", result.recommendedProperties);
         console.log("detailedList: ", detailedList)
-        setRecommendedList(detailedList);
+
+        dispatch(setAiRecommendedList(detailedList));
+        dispatch(setFilterValues({ ...filterValues }));
+
+        // setRecommendedList(detailedList);
         setIsRecoDone(true);
         setMaxType(result.maxType);
         console.log("user정보: ", user);
@@ -115,11 +133,17 @@ const AiRecommend = () => {
 
   const handleRetry = () => {
     setIsRecoDone(false);
-    setRecommendedList([]);
-    setSelectedRoom(null)
+    dispatch(setAiRecommendedList([]));
+    dispatch(setSelectedPropertyId(null));
+    dispatch(setSelectedPropertySource(null));
+    // setRecommendedList([]);
+    // setSelectedRoom(null)
   };
 
   const handleRoomClick = async (item) => {
+    dispatch(setSelectedPropertyId(item.propertyId));
+    dispatch(setSelectedPropertySource("recommend"));
+
     window.clearHoverMarker();
     nearbyMarkersRef.current.forEach((marker) => marker.setMap(null));
     nearbyMarkersRef.current = [];
@@ -221,10 +245,10 @@ const AiRecommend = () => {
           </button>
           <div className="recommend-results">
             <h4 className="result-title">
-              추천 매물 목록 ({recommendedList.length}건)
+              추천 매물 목록
             </h4>
             <ul className="result-list">
-              {recommendedList.map((item) => (
+              {aiRecommendedList.map((item) => (
                 <li
                   key={item.propertyId}
                   className="room-item"
@@ -232,9 +256,7 @@ const AiRecommend = () => {
                 >
                   <img src={item.imageUrl || defaultImage} alt="매물 이미지" />
                   <div className="room-info">
-                    <p className="room-title">
-                      {item.contractType} {item.price}
-                    </p>
+                    <p className="room-title">{item.contractType} {item.price}</p>
                     <p className="room-description">{item.description}</p>
                     <p className="room-address">{item.address}</p>
                   </div>
@@ -243,9 +265,6 @@ const AiRecommend = () => {
             </ul>
           </div>
         </div>
-      )}
-      {selectedRoom && (
-        <AiRecommendList room={selectedRoom} values={sliderValues} onClose={() => setSelectedRoom(null)} />
       )}
     </div>
   );

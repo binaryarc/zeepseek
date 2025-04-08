@@ -47,6 +47,19 @@ const roomListSlice = createSlice({
     currentDongName: null,
     keyword: null,
     mapReady: false, // ✅ 지도 준비 상태 추가
+
+    // ✅ AI 추천 관련 상태
+    selectedPropertySource: null, // 'list' | 'recommend'
+    aiRecommendedList: [],
+    filterValues: {
+      여가: 50,
+      식당: 50,
+      의료: 50,
+      편의: 50,
+      대중교통: 50,
+      카페: 50,
+      치킨집: 50,
+    },
   },
   reducers: {
     setCurrentPage: (state, action) => {
@@ -88,6 +101,17 @@ const roomListSlice = createSlice({
     setMapReady: (state, action) => {
       state.mapReady = action.payload;
     },
+
+    // ✅ AI 추천 관련 추가 리듀서들
+    setSelectedPropertySource: (state, action) => {
+      state.selectedPropertySource = action.payload;
+    },
+    setAiRecommendedList: (state, action) => {
+      state.aiRecommendedList = action.payload;
+    },
+    setFilterValues: (state, action) => {
+      state.filterValues = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -128,5 +152,8 @@ export const {
   setKeyword,
   setRoomList,
   setMapReady,
+  setSelectedPropertySource,
+  setAiRecommendedList,
+  setFilterValues,
 } = roomListSlice.actions;
 export default roomListSlice.reducer;

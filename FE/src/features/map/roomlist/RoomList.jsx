@@ -83,7 +83,7 @@ const RoomList = () => {
     };
   }, [selectedPropertyId]);
 
-  let level = null;
+  let level = 5;
   if (window.isMapReady && typeof window.map?.getLevel === "function") {
     level = window.map.getLevel();
   } else {
