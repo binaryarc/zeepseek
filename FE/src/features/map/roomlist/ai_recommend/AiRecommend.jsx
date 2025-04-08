@@ -37,6 +37,20 @@ const AiRecommend = () => {
   // 선택된 매물 id Redux에서 가져오기(매물 상세 정보 창 관리용)
   const selectedPropertyId = useSelector(state => state.roomList.selectedPropertyId);
 
+  useEffect(() => {
+    if (!selectedPropertyId) return;
+  
+    const el = document.querySelector(
+      `[data-id='${selectedPropertyId}']`
+    );
+    if (el) {
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [selectedPropertyId]);
+
   const filters = [
     "여가",
     "식당",
@@ -370,6 +384,7 @@ const AiRecommend = () => {
               {aiRecommendedList.map((item) => (
                 <li
                   key={item.propertyId}
+                  data-id={item.propertyId} // ✅ 이거 추가!!
                   className={`room-item ${
                     selectedPropertyId === item.propertyId ? "selected" : ""
                   }`}
