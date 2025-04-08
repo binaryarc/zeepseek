@@ -71,11 +71,11 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
     };
       
     const surveyData = {
-      nickname: nickname,
       gender: genderValue,
       age: ageValue,
       location,
       preferences: selectedConsiders.map((item) => preferenceMap[item]).filter(Boolean),
+      nickname: nickname,
     };
   
     try {
@@ -210,7 +210,10 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
 
 
 
-        {/* <button className="survey-close-btn" onClick={onClose}>✖</button> */}
+        {mode === "edit" && (
+          <button className="survey-close-btn" onClick={onClose}>✖</button>
+        )}
+
       </div>
       {showAlert && (
         <AlertModal
