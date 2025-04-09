@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import { TfiArrowCircleLeft, TfiArrowCircleRight } from "react-icons/tfi";
 import defaultImg from "../../../assets/logo/512image.png"
 import { useNavigate } from "react-router-dom";
+import zeepai from "../../../assets/images/zeepai.png"
 
 const MainListingSection = () => {
   const user = useSelector((state) => state.auth.user);
@@ -114,8 +115,24 @@ const MainListingSection = () => {
 
   return (
     <section className="main-listing-section">
-      <h1>ZEEPSEEK <strong>AI</strong>가 추천하는 매물</h1>
-      <p>{user ? `"${dongName}"을 자주보셔서 추천해 드려요!!!🔥` : `로그인이 필요한 서비스 입니다!`}</p>
+    <p className="main-listing-subtitle">
+      {user ? (
+        <>
+          <h1><img className="zeepai-main" src= {zeepai} alt="zeepai" />ZEEPSEEK <span className="highlight-ai">AI</span>가 추천하는 매물</h1>
+          <strong> {user.nickname}</strong> 님과 같은&ensp;
+          <span className="user-tag">
+            {Math.floor(user.age / 10) * 10}대  {user.gender === 1 ? "남성" : "여성"}
+          </span>
+          이 많이 본&ensp;
+          <span className="user-tag">
+            {dongName}
+          </span>
+          &ensp;매물
+        </>
+      ) : (
+        "로그인이 필요한 서비스입니다!"
+      )}
+    </p>
       <div className="listing-container-wrapper">
         <button className="scroll-button left" onClick={handleScrollLeft}>
           <TfiArrowCircleLeft size={32} color="#333" />
