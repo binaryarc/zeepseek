@@ -34,6 +34,44 @@ function SaleCountMarkers({ map }) {
       const currentLevel = map.getLevel();
       setLevel(currentLevel);
 
+      if (currentLevel >= 9) {
+        // 기존 오버레이 제거
+        overlaysRef.current.forEach((o) => o.setMap(null));
+        overlaysRef.current = [];
+      
+        // 필터별 전체 매물 수
+        const totalCounts = {
+          "one-room": 49055,
+          "house": 73188,
+          "office": 13589,
+        };
+      
+        const count = totalCounts[filterKey];
+        if (!count) return;
+      
+        const position = new window.kakao.maps.LatLng(37.5405, 126.978); // 서울 시청 위치
+      
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "marker-wrapper";
+        contentDiv.innerHTML = `
+          <div class="marker-container">
+            <div class="circle-count">${count}</div>
+            <div class="region-label">서울시</div>
+          </div>
+        `;
+      
+        const overlay = new window.kakao.maps.CustomOverlay({
+          position,
+          content: contentDiv,
+          yAnchor: 1,
+          map,
+        });
+      
+        overlaysRef.current.push(overlay);
+        return; // ✅ 여기서 종료 (구/동 마커 안 그리게)
+      }
+      
+
       if (currentLevel <= 3) {
         // ✅ 기존 오버레이 모두 제거
         overlaysRef.current.forEach((o) => o.setMap(null));
