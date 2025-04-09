@@ -87,8 +87,8 @@ const Top5ListingSection = () => {
       try {
         const res = await fetchTop5Property(user.idx);
         console.log("top5 매물: ", res)
-        // setDongName(res.data.dongName);
-        // setRecommendList(res.data.recommendedProperties);
+        setDongName(res.data.name);
+        setRecommendList(res.data.properties);
       } catch (error) {
         console.error("추천 매물 정보를 불러오는데 실패했습니다:", error);
       }
