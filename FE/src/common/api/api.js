@@ -389,7 +389,11 @@ export const patchSurvey = async (userId, surveyData, accessToken) => {
 export const fetchNearbyPlaces = async (type, lng, lat) => {
   try {
     const response = await zeepApi.get(
-      `/places/search?type=${type}&x=${lng}&y=${lat}`
+      `/places/search?type=${type}&x=${lng}&y=${lat}`, {
+        headers: {
+          Authorization: `Bearer ${store.getState().auth.accessToken}`,
+        },
+      }
     );
     console.log("추천 매물 반경 위치 정보 요청 성공: ", response);
     return response;
