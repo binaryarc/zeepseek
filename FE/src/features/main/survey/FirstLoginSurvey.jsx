@@ -30,6 +30,7 @@ const FirstLoginSurvey = () => {
   const user = useSelector((state) => state.auth.user);
   const nickname = user?.nickname || "로그인 유저";
   const handleAddressSelect = (data) => {
+    console.log(data);
     // Modified: 주소가 "서울"로 시작하지 않으면 경고 메시지를 띄웁니다.
     if (!data.address.startsWith("서울")) {
       alert("서울지역만 서비스 중입니다!");
