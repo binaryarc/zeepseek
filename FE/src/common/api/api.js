@@ -501,7 +501,7 @@ export const fetchRandomNickname = async () => {
   return response.data.data;
 };
 
-export const fetchTop5Property = async () => {
+export const fetchTop5Property = async (userId) => {
   try {
     const res = await zeepApi.get(`/rankings/${userId}`);
     console.log(res);

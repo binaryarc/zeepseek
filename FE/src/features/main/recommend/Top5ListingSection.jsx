@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import ListingCard from "./ListingCard";
 import "./MainListingSection.css"; // 섹션 관련 스타일
-import { aiRecommendByUserId } from "../../../common/api/api";
+import { fetchTop5Property } from "../../../common/api/api";
 import { useSelector } from "react-redux";
 import { TfiArrowCircleLeft, TfiArrowCircleRight } from "react-icons/tfi";
 import defaultImg from "../../../assets/logo/512image.png"
@@ -87,8 +87,8 @@ const Top5ListingSection = () => {
       try {
         const res = await fetchTop5Property(user.idx);
         console.log("top5 매물: ", res)
-        setDongName(res.data.dongName);
-        setRecommendList(res.data.recommendedProperties);
+        setDongName(res.data.name);
+        setRecommendList(res.data.properties);
       } catch (error) {
         console.error("추천 매물 정보를 불러오는데 실패했습니다:", error);
       }
@@ -115,8 +115,7 @@ const Top5ListingSection = () => {
 
   return (
     <section className="main-listing-section">
-      <h1>ZEEPSEEK <strong>AI</strong>가 추천하는 매물</h1>
-      <p>{user ? `"${dongName}"을 자주보셔서 추천해 드려요!!!🔥` : `로그인이 필요한 서비스 입니다!`}</p>
+      <h1>{user ? `"${dongName}"의 인기매물!!!!🔥` : `로그인이 필요한 서비스 입니다!`}</h1>
       <div className="listing-container-wrapper">
         <button className="scroll-button left" onClick={handleScrollLeft}>
           <TfiArrowCircleLeft size={32} color="#333" />
