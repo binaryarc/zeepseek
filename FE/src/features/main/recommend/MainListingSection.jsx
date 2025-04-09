@@ -114,7 +114,7 @@ const MainListingSection = () => {
 
   return (
     <section className="main-listing-section">
-      <h1>ZEEPSEEK AI가 추천하는 매물</h1>
+      <h1>ZEEPSEEK <strong>AI</strong>가 추천하는 매물</h1>
       <p>{user ? `"${dongName}"을 자주보셔서 추천해 드려요!!!🔥` : `로그인이 필요한 서비스 입니다!`}</p>
       <div className="listing-container-wrapper">
         <button className="scroll-button left" onClick={handleScrollLeft}>
