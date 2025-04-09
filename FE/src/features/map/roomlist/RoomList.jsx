@@ -55,7 +55,6 @@ const RoomList = () => {
 
   useEffect(() => {
     if (!selectedPropertyId || rooms.length === 0) return;
-    console.log("여기야?");
 
     const index = rooms.findIndex((r) => r.propertyId === selectedPropertyId);
     if (index === -1) return;
@@ -80,8 +79,14 @@ const RoomList = () => {
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (roomListRef.current && !roomListRef.current.contains(e.target)) {
-        // 외부 클릭이면 RoomDetail 닫기
+      const clickedElement = e.target;
+    
+      // RoomList 영역도 아니고, RoomDetail도 아닌 경우에만 닫기
+      if (
+        roomListRef.current &&
+        !roomListRef.current.contains(clickedElement) &&
+        !clickedElement.closest(".room-detail") // ✅ RoomDetail도 예외 처리
+      ) {
         dispatch(setSelectedPropertyId(null));
       }
     };
@@ -97,9 +102,7 @@ const RoomList = () => {
   let level = 5;
   if (window.isMapReady && typeof window.map?.getLevel === "function") {
     level = window.map.getLevel();
-  } else {
-    console.warn("❗맵이 아직 준비되지 않았습니다.");
-  }
+  } 
   const user = useSelector((state) => state.auth.user);
 
   const toggleLike = async (room) => {
