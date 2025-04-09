@@ -5,6 +5,7 @@ import com.zeepseek.backend.domain.auth.security.jwt.JwtTokenProvider;
 import com.zeepseek.backend.domain.auth.security.oauth2.CustomOAuth2UserService;
 import com.zeepseek.backend.domain.auth.security.oauth2.OAuth2AuthenticationFailureHandler;
 import com.zeepseek.backend.domain.auth.security.oauth2.OAuth2AuthenticationSuccessHandler;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -73,6 +74,22 @@ public class SecurityConfig {
 
                         // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()
+                )
+                // 인증 예외 처리 설정 추가
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            // 요청이 AJAX/API 요청인지 확인
+                            if (request.getHeader("Accept") != null &&
+                                    request.getHeader("Accept").contains("application/json")) {
+                                // API 요청은 401 상태 코드 반환
+                                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                                response.setContentType("application/json;charset=UTF-8");
+                                response.getWriter().write("{\"error\":\"인증이 필요합니다\"}");
+                            } else {
+                                // 웹 페이지 요청은 HTTPS 로그인 페이지로 리다이렉트
+                                response.sendRedirect("https://j12e203.p.ssafy.io/login");
+                            }
+                        })
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(endpoint -> endpoint.baseUri("/oauth2/authorize"))
