@@ -66,7 +66,7 @@ zeepApi.interceptors.response.use(
         zeepApi
           .post("/auth/refresh")
           .then(({ data }) => {
-            const newAccessToken = data.accessToken;
+            const newAccessToken = data.data.accessToken;
             // store 업데이트
             store.dispatch(setAccessToken(newAccessToken));
             // 기본 헤더에도 갱신된 토큰을 설정
