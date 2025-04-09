@@ -62,6 +62,9 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
     if (selectedConsiders.length === 0) {
       return alert("최소 1개의 고려사항을 선택해주세요.");
     }
+    if (!location.startsWith("서울")) {
+      return alert("서울지역만 입력 가능합니다.");
+    }
   
     const genderValue = gender === "남자" ? 1 : 0;
     const ageValue = parseInt(age);
