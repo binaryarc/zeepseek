@@ -3,6 +3,8 @@ package com.zeepseek.backend.domain.ranking.controller;
 import com.zeepseek.backend.domain.dong.document.DongInfoDocs;
 import com.zeepseek.backend.domain.dong.entity.DongInfo;
 import com.zeepseek.backend.domain.dong.service.DongService;
+import com.zeepseek.backend.domain.property.model.Property;
+import com.zeepseek.backend.domain.property.service.PropertyService;
 import com.zeepseek.backend.domain.ranking.dto.RankingResponse;
 import com.zeepseek.backend.domain.ranking.service.RankingService;
 import com.zeepseek.backend.domain.search.document.LogDocument;
@@ -14,10 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,6 +27,7 @@ public class RankingController {
     private final RankingService rankingService;
     private final LogSearchService logSearchService;
     private final DongService dongService;
+    private final PropertyService propertyService;
     /**
      * 특정 dongId에 대해 ranking score가 높은 상위 5개 propertyId와 score를 조회합니다.
      *
@@ -49,9 +49,16 @@ public class RankingController {
                 .map(tuple -> new RankingResponse(Integer.valueOf(tuple.getValue().toString()), tuple.getScore()))
                 .collect(Collectors.toList());
 
+        List<Property> properties = new ArrayList<>();
+
+        for(RankingResponse rank : responses) {
+            Property property = propertyService.getPropertyDetail((long) rank.getPropertyId());
+            properties.add(property);
+        }
+
         Map<String, Object> response = new HashMap<>();
         response.put("name", dongInfo.getName());
-        response.put("list", responses);
+        response.put("properties", properties);
 
         return ResponseEntity.ok(response);
     }
