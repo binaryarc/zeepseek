@@ -72,6 +72,8 @@ public class SecurityConfig {
                         .requestMatchers("/resources/**").permitAll()
                         .requestMatchers("/*.png", "/*.gif", "/*.svg", "/*.jpg", "/*.html", "/*.css", "/*.js").permitAll()
 
+                        // 찜 페이지 관련 오픈
+                        .requestMatchers(HttpMethod.GET, "/api/v1/places").permitAll()
                         // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()
                 )
