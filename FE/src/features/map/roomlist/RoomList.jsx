@@ -205,6 +205,7 @@ const RoomList = () => {
         ))}
       </nav>
 
+      <div className="room-scroll-container">
       {selectedTab === "ZEEPSEEK추천" ? (
         <AiRecommend />
       ) : selectedTab === "찜" ? (
@@ -305,6 +306,7 @@ const RoomList = () => {
           </div>
         </>
       )}
+      </div>
     </div>
   );
 };
