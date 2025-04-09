@@ -296,14 +296,14 @@
   font-family: KOROAD;
 }
 
-.dropdown-group,
+
 .price-range-group {
   display: flex;
   flex-direction: column;
   margin-top: 20px;
 }
 
-.dropdown-group select,
+
 .price-range-group input {
   margin-top: 10px;
   padding: 0.4rem;
@@ -325,9 +325,11 @@
 
 .button-row {
   display: flex;
-  gap: 1rem;
-  justify-content: space-between;
+  gap: 0.5rem;
+  justify-content: flex-start; /* 기존: space-between → 좌측 정렬로 변경 */
+  /* margin-bottom: 0.1rem; 줄 간 간격 추가 */
 }
+
 
 .toggle-button {
   padding: 0.6rem 1.2rem;
