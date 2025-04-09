@@ -501,4 +501,15 @@ export const fetchRandomNickname = async () => {
   return response.data.data;
 };
 
+export const fetchTop5Property = async () => {
+  try {
+    const res = await zeepApi.get(`/rankings/${userId}`);
+    console.log(res);
+    return res;
+  } catch (err) {
+    console.error("Top5 매물물 실패: ", err);
+    throw err;
+  }
+}
+
 export default zeepApi;
