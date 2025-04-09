@@ -391,7 +391,7 @@ export const fetchNearbyPlaces = async (type, lng, lat) => {
     const response = await zeepApi.get(
       `/places/search?type=${type}&x=${lng}&y=${lat}`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${store.getState().auth.accessToken}`,
         },
       }
     );
