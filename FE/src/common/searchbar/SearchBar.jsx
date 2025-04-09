@@ -117,7 +117,7 @@ function Searchbar() {
       <div className="nav-searchbox">
         <input
           type="text"
-          placeholder="지역, 매물번호를 검색하세요!"
+          placeholder="서울 내 지역, 매물번호를 검색하세요!"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           onKeyDown={handleKeyDown}

@@ -11,12 +11,11 @@ function MainSearchbar() {
 
   const dispatch = useDispatch();
 
-
   const handleSearch = () => {
     if (!searchText.trim()) return;
 
     dispatch(setKeyword(searchText)); // ✅ 검색어 Redux에 저장
-    navigate("/map"); 
+    navigate("/map");
   };
 
   const handleKeyDown = (e) => {
@@ -27,7 +26,7 @@ function MainSearchbar() {
     <div className="main-searchbox">
       <input
         type="text"
-        placeholder="지역, 매물번호를 검색하세요!"
+        placeholder="서울 내 지역, 매물번호를 검색하세요!"
         value={searchText}
         onChange={(e) => setSearchText(e.target.value)}
         onKeyDown={handleKeyDown}

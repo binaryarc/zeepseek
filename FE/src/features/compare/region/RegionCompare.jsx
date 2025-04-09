@@ -196,7 +196,7 @@ function RegionCompare() {
             <input
               className="search-input"
               type="text"
-              placeholder="동네 검색하기"
+              placeholder="서울 지역 검색하기"
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
             />
