@@ -89,6 +89,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  text-align: center;
   font-size: 1.2rem;
   color: #555;
   /* 필요하다면 border나 background-color도 줄 수 있음 */
