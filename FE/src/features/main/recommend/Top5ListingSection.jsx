@@ -34,61 +34,18 @@ const Top5ListingSection = () => {
       description: "더미 매물 설명",
       roomBathCount: "2/1",
     },
-    {
-      imageUrl: defaultImg,
-      contractType: "오피스텔",
-      price: "1,500만원",
-      address: "서울시 강동구",
-      roomType: "오피스텔",
-      description: "더미 매물 설명",
-      roomBathCount: "1/1",
-    },
-    {
-      imageUrl: defaultImg,
-      contractType: "주택",
-      price: "3,000만원",
-      address: "서울시 강북구",
-      roomType: "주택",
-      description: "더미 매물 설명",
-      roomBathCount: "3/2",
-    },
-    {
-      imageUrl: defaultImg,
-      contractType: "빌라",
-      price: "800만원",
-      address: "서울시 마포구",
-      roomType: "빌라",
-      description: "더미 매물 설명",
-      roomBathCount: "1/0",
-    },
-    {
-      imageUrl: defaultImg,
-      contractType: "빌라",
-      price: "800만원",
-      address: "서울시 마포구",
-      roomType: "빌라",
-      description: "더미 매물 설명",
-      roomBathCount: "1/0",
-    },
-    {
-      imageUrl: defaultImg,
-      contractType: "빌라",
-      price: "800만원",
-      address: "서울시 마포구",
-      roomType: "빌라",
-      description: "더미 매물 설명",
-      roomBathCount: "1/0",
-    },
+    // ...생략
   ];
 
   useEffect(() => {
     if (!user) return;
+
     const fetchRecommendations = async () => {
       try {
         const res = await fetchTop5Property(user.idx);
-        console.log("top5 매물: ", res)
-        // setDongName(res.data.dongName);
-        // setRecommendList(res.data.recommendedProperties);
+        console.log("top5 매물: ", res);
+        setDongName(res.data.name);
+        setRecommendList(res.data.properties);  // ★ 여기가 비어 있을 수 있음
       } catch (error) {
         console.error("추천 매물 정보를 불러오는데 실패했습니다:", error);
       }
@@ -115,51 +72,70 @@ const Top5ListingSection = () => {
 
   return (
     <section className="main-listing-section">
-      <h1>{user ? `"${dongName}"의 인기매물!!!!🔥` : `로그인이 필요한 서비스 입니다!`}</h1>
+      <h1>
+        {user
+          ? `"${dongName}"의 인기매물!!!!🔥`
+          : `로그인이 필요한 서비스 입니다!`}
+      </h1>
+
       <div className="listing-container-wrapper">
         <button className="scroll-button left" onClick={handleScrollLeft}>
           <TfiArrowCircleLeft size={32} color="#333" />
         </button>
-        {/* 로그인 안했을 경우 블러 효과 적용 */}
+
+        {/* 
+          ★ 이 부분이 핵심입니다:
+          1) user가 있으나 dataToRender가 빈 배열인 경우 = "아직 인기 매물이 없습니다" 
+          2) 그 외에는 ListingCard를 렌더링 
+        */}
         <ul
           className="main-listing-container"
           ref={containerRef}
           style={!user ? { filter: "blur(4px)" } : {}}
         >
-          {dataToRender.map((item, index) => (
-            <ListingCard
-              key={index}
-              image={item.imageUrl}
-              contractType={item.contractType}
-              price={item.price}
-              address={item.address}
-              roomType={item.roomType}
-              description={item.description}
-              roomBathCount={item.roomBathCount}
-              onClick={() =>{
-                const type = item.roomType;
-                const normalizedRoomType =
-                  type === "원룸/투룸" || type === "오피스텔" ? type : "주택/빌라";
+          {dataToRender.length > 0 ? (
+            dataToRender.map((item, index) => (
+              <ListingCard
+                key={index}
+                image={item.imageUrl}
+                contractType={item.contractType}
+                price={item.price}
+                address={item.address}
+                roomType={item.roomType}
+                description={item.description}
+                roomBathCount={item.roomBathCount}
+                onClick={() => {
+                  const type = item.roomType;
+                  const normalizedRoomType =
+                    type === "원룸/투룸" || type === "오피스텔" ? type : "주택/빌라";
 
-                navigate("/map", {
-                  state: {
-                    lat: item.latitude,
-                    lng: item.longitude,
-                    roomType: normalizedRoomType, // ✅ 정제된 룸타입
-                    selectedPropertyId: item.propertyId,
-                  },
-                });
-              }}
-            />
-          ))}
+                  navigate("/map", {
+                    state: {
+                      lat: item.latitude,
+                      lng: item.longitude,
+                      roomType: normalizedRoomType,
+                      selectedPropertyId: item.propertyId,
+                    },
+                  });
+                }}
+              />
+            ))
+          ) : (
+            /* user가 있는데 리스트가 비었을 때만 메시지 표시 (user 없으면 blur) */
+            <div className="no-listing-message">
+              아직 인기 매물이 없습니다
+            </div>
+          )}
         </ul>
+
         <button className="scroll-button right" onClick={handleScrollRight}>
           <TfiArrowCircleRight size={32} color="#333" />
         </button>
-        {/* 로그인하지 않은 경우 오버레이 메시지 표시 */}
+
         {!user && (
           <div className="login-overlay">
-            로그인을 해주세요!!<br />
+            로그인을 해주세요!!
+            <br />
             로그인을 하시면 추천을 받아보실 수 있습니다!
           </div>
         )}

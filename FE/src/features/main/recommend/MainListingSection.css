@@ -90,6 +90,18 @@
   padding: 20px;
 }
 
+.no-listing-message {
+  /* ListingCard들과 동일한 높이를 맞추고 싶다면 min-height 등을 적절히 조절 */
+  min-height: 200px; /* 임의 예시 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #555;
+  /* 필요하다면 border나 background-color도 줄 수 있음 */
+}
+
 .user-tag {
   color: #2f833d;
   font-weight: 600;
