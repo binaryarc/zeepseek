@@ -11,6 +11,8 @@ import com.zeepseek.backend.domain.property.service.PropertyService;
 import com.zeepseek.backend.domain.recommend.dto.request.UserRecommendationRequestDto;
 import com.zeepseek.backend.domain.recommend.dto.response.*;
 import com.zeepseek.backend.domain.recommend.exception.RecommendationException;
+import com.zeepseek.backend.domain.zzim.document.PropertyZzimDoc;
+import com.zeepseek.backend.domain.zzim.service.ZzimService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -23,6 +25,8 @@ import reactor.core.publisher.Mono;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class RecommendationServiceImpl implements RecommendationService {
@@ -31,20 +35,22 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final WebClient recommendationWebClient;
     private final PropertyService propertyService;
     private final MySQLDongRepository dongRepository;
+    private final ZzimService zzimService;
 
     public RecommendationServiceImpl(WebClient recommendationWebClient,
                                      PropertyService propertyService,
-                                     MySQLDongRepository dongRepository) {
+                                     MySQLDongRepository dongRepository,
+                                     ZzimService zzimService) {
         this.recommendationWebClient = recommendationWebClient;
         this.propertyService = propertyService;
         this.dongRepository = dongRepository;
+        this.zzimService = zzimService;
     }
 
-    // SpEL로 getCacheKey가 cacheKey로
     @Override
     @Cacheable(value = "recommendations", key = "#requestDto.cacheKey", unless = "#result == null")
     public DetailedRecommendationResponseDto getRecommendations(UserRecommendationRequestDto requestDto, HttpServletRequest request) {
-        // 1) 쿠키에서 age와 gender 정보 추출
+        // 1) 쿠키에서 age와 gender, userId 정보 추출
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("age".equals(cookie.getName())) {
@@ -60,6 +66,13 @@ public class RecommendationServiceImpl implements RecommendationService {
                         logger.info("사용자 성별 설정: {}", cookie.getValue());
                     } catch (NumberFormatException e) {
                         logger.warn("쿠키에서 성별 파싱 실패: {}", cookie.getValue());
+                    }
+                } else if ("userId".equals(cookie.getName())) {
+                    try {
+                        requestDto.setUserId(Long.parseLong(cookie.getValue()));
+                        logger.info("사용자 id 설정: {}", cookie.getValue());
+                    } catch (NumberFormatException e) {
+                        logger.warn("쿠키에서 id 파싱 실패: {}", cookie.getValue());
                     }
                 }
             }
@@ -77,11 +90,10 @@ public class RecommendationServiceImpl implements RecommendationService {
         logger.info("=== [FastAPI Raw JSON] ===\n{}", rawJson);
 
         // 3) rawJson을 Map으로 한번 파싱 (디버깅용)
-        //    어떤 구조와 키(key)가 넘어오는지 직접 확인 가능
         try {
             ObjectMapper mapper = new ObjectMapper();
             @SuppressWarnings("unchecked")
-            Map<String, Object> responseMap = mapper.readValue(rawJson, new TypeReference<Map<String, Object>>(){});
+            Map<String, Object> responseMap = mapper.readValue(rawJson, new TypeReference<Map<String, Object>>() {});
             logger.info("=== [Parsed as Map] ===\n{}", responseMap);
         } catch (Exception e) {
             logger.warn("rawJson -> Map 변환 실패", e);
@@ -97,7 +109,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             throw new RecommendationException("Parsing error: " + e.getMessage());
         }
 
-        // 5) 이제 originalResponse를 기존 로직처럼 처리
+        // 5) 추천 결과가 없으면 예외 처리
         if (originalResponse == null
                 || originalResponse.getRecommendedProperties() == null
                 || originalResponse.getRecommendedProperties().isEmpty()) {
@@ -105,14 +117,23 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
 
         List<RecommendationDto> recList = originalResponse.getRecommendedProperties();
+
+        // ★ 추가: zzimService를 통해 사용자가 찜한 property 목록을 가져와서 Set으로 변환
+        // userSelectPropertyList는 int 타입의 userId를 인자로 받으므로 적절히 변환해줍니다.
+        List<PropertyZzimDoc> zzimDocs = zzimService.userSelectPropertyList(requestDto.getUserId().intValue());
+        Set<Integer> likedPropertyIds = zzimDocs.stream()
+                .map(PropertyZzimDoc::getPropertyId)
+                .collect(Collectors.toSet());
+
         List<DetailedRecommendationDto> detailedList = new ArrayList<>();
 
+        // 6) 추천 리스트 반복: 각 property에 대해 상세정보 및 평점 조회 후 dto 생성
         for (RecommendationDto rec : recList) {
             try {
                 Property property = propertyService.getPropertyDetail(rec.getPropertyId());
                 PropertyScore score = propertyService.getPropertyScoreByPropertyId(Math.toIntExact(rec.getPropertyId()));
 
-                DetailedRecommendationDto dto = new DetailedRecommendationDto();
+                DetailedRecommendationWithLikedDto dto = new DetailedRecommendationWithLikedDto();
                 dto.setPropertyId(property.getPropertyId());
                 dto.setAddress(property.getAddress());
                 dto.setRoomType(property.getRoomType());
@@ -138,6 +159,9 @@ public class RecommendationServiceImpl implements RecommendationService {
                 dto.setLatitude(property.getLatitude());
                 dto.setLongitude(property.getLongitude());
                 dto.setSimilarity(rec.getSimilarity());
+
+                // ★ 추가: 추천 property가 찜 목록에 있으면 liked를 true로 설정
+                dto.setLiked(likedPropertyIds.contains(rec.getPropertyId()));
 
                 detailedList.add(dto);
             } catch (PropertyNotFoundException ex) {
