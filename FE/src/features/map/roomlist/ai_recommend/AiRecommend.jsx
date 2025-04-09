@@ -21,7 +21,7 @@ import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 
 const AiRecommend = () => {
-  const [roomType, setRoomType] = useState("원룸/투룸");
+  const [roomType, setRoomType] = useState("원룸");
   const [contractType, setContractType] = useState("월세");
   const [priceRange, setPriceRange] = useState(["", ""]); // [최소, 최대]
   const dispatch = useDispatch();
@@ -367,15 +367,28 @@ const AiRecommend = () => {
         <div className="slider-section">
           <h3 className="recommend-title">나랑 딱 맞는 매물 찾기</h3>
           <div className="option-section">
-            <div className="button-select-group">
+          <div className="button-select-group">
               <label>방 종류</label>
+
+              {/* 윗줄 */}
               <div className="button-row">
-                {["원룸/투룸", "오피스텔", "주택/빌라"].map((type) => (
+                {["원룸", "투룸", "주택"].map((type) => (
                   <button
                     key={type}
-                    className={`toggle-button ${
-                      roomType === type ? "active" : ""
-                    }`}
+                    className={`toggle-button ${roomType === type ? "active" : ""}`}
+                    onClick={() => setRoomType(type)}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+
+              {/* 아랫줄 */}
+              <div className="button-row">
+                {["오피스텔", "빌라"].map((type) => (
+                  <button
+                    key={type}
+                    className={`toggle-button ${roomType === type ? "active" : ""}`}
                     onClick={() => setRoomType(type)}
                   >
                     {type}
