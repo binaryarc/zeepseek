@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import ListingCard from "./ListingCard";
 import "./MainListingSection.css"; // 섹션 관련 스타일
-import { aiRecommendByUserId } from "../../../common/api/api";
+import { aiRecommendByUserId, fetchTop5Property } from "../../../common/api/api";
 import { useSelector } from "react-redux";
 import { TfiArrowCircleLeft, TfiArrowCircleRight } from "react-icons/tfi";
 import defaultImg from "../../../assets/logo/512image.png"
@@ -87,8 +87,8 @@ const Top5ListingSection = () => {
       try {
         const res = await fetchTop5Property(user.idx);
         console.log("top5 매물: ", res)
-        setDongName(res.data.dongName);
-        setRecommendList(res.data.recommendedProperties);
+        // setDongName(res.data.dongName);
+        // setRecommendList(res.data.recommendedProperties);
       } catch (error) {
         console.error("추천 매물 정보를 불러오는데 실패했습니다:", error);
       }
