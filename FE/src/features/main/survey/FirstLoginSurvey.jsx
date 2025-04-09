@@ -30,6 +30,7 @@ const FirstLoginSurvey = () => {
   const user = useSelector((state) => state.auth.user);
   const nickname = user?.nickname || "로그인 유저";
   const handleAddressSelect = (data) => {
+    console.log(data);
     // Modified: 주소가 "서울"로 시작하지 않으면 경고 메시지를 띄웁니다.
     if (!data.address.startsWith("서울")) {
       alert("서울지역만 서비스 중입니다!");
@@ -52,16 +53,22 @@ const FirstLoginSurvey = () => {
       alert("성별, 나이, 기준 위치를 모두 선택해주세요.");
       return;
     }
-
+    
+    // location이 서울로 시작하는지 확인 (서울이 아닐 경우 알림 후 전송 중단)
+    if (!location.startsWith("서울")) {
+      alert("서울지역만 입력 가능합니다.");
+      return;
+    }
+  
     if (selectedConsiders.length === 0) {
       alert("매물 고려사항을 최소 1개 이상 선택해주세요.");
       return;
     }
-
-    // ✅ 변환 및 포맷 정리
+  
+    // 변환 및 포맷 정리
     const genderValue = gender === "남자" ? 1 : 0;
     const ageValue = parseInt(age);
-
+  
     const preferenceMap = {
       안전: "safe",
       편의: "convenience",
@@ -72,20 +79,21 @@ const FirstLoginSurvey = () => {
       보건: "health",
       치킨집: "chicken",
     };
-
+  
     const surveyData = {
       gender: genderValue,
       age: ageValue,
       location: location,
+      nickname: nickname, // nickname 추가
       preferences: selectedConsiders.map((item) => preferenceMap[item] || item),
     };
-
+  
     try {
       console.log("보낼 surveyData:", JSON.stringify(surveyData));
       const response = await postSurvey(surveyData, accessToken);
       console.log("설문 응답 response", response);
       if (response.success) {
-        dispatch(setUser(response.data)); // ❗유저 정보 업데이트
+        dispatch(setUser(response.data)); // 유저 정보 업데이트
         navigate("/main");
       } else {
         alert("서베이 제출에 실패했습니다.");
