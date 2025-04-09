@@ -4,6 +4,8 @@ import {
   fetchAIRecommendedProperties,
   fetchNearbyPlaces,
   getPropertyDetail,
+  likeProperty,
+  unlikeProperty
 } from "../../../../common/api/api";
 import defaultImage from "../../../../assets/logo/192image.png";
 import DongNameMarkers from "../../mainmap/salecountmarkers/DongNameMarkers/DongNameMarkers";
@@ -543,6 +545,29 @@ const AiRecommend = () => {
                     <p className="room-description">{item.description}</p>
                     <p className="room-address">{item.address}</p>
                   </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+
+                      const isLiked = item.liked;
+                      const apiCall = isLiked ? unlikeProperty : likeProperty;
+
+                      apiCall(item.propertyId, user.idx)
+                        .then(() => {
+                          const updatedList = aiRecommendedList.map((r) =>
+                            r.propertyId === item.propertyId ? { ...r, liked: !isLiked } : r
+                          );
+                          dispatch(setAiRecommendedList(updatedList));
+                        })
+                        .catch((err) => {
+                          console.error("AI 추천 탭 찜 토글 에러:", err);
+                        });
+                    }}
+                    className={`like-btn ${item.liked ? "liked" : ""}`}
+                  >
+                    {item.liked ? "❤️" : "🤍"}
+                  </button>
+
                 </li>
               ))}
             </ul>

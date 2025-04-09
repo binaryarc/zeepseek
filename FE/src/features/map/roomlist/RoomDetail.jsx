@@ -94,28 +94,36 @@ const RoomDetail = ({ propertyId }) => {
           <p>관리비 {formatFee(detail.maintenanceFee)}</p>
           <div className="detail-description">{detail.description}</div>
 
-          {commute ? (
-            <div className="commute-section">
-              <div className="commute-title">🚩 {commute.destination}</div>
-              <div className="commute-all">
-                <div className="commute-line">
-                  <span>🚗</span>
-                  <span>{commute.drivingTimeString}</span>
-                </div>
-                <div className="commute-line">
-                  <span>🚇</span>
-                  <span>{commute.transitTimeString}</span>
-                </div>
-                <div className="commute-line">
-                  <span>🚶</span>
-                  <span>{commute.walkingTimeString}</span>
+          {user?.idx ? (
+            commute ? (
+              <div className="commute-section">
+                <div className="commute-title">🚩 {commute.destination}</div>
+                <div className="commute-all">
+                  <div className="commute-line">
+                    <span>🚗</span>
+                    <span>{commute.drivingTimeString}</span>
+                  </div>
+                  <div className="commute-line">
+                    <span>🚇</span>
+                    <span>{commute.transitTimeString}</span>
+                  </div>
+                  <div className="commute-line">
+                    <span>🚶</span>
+                    <span>{commute.walkingTimeString}</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="commute-section">
+                <div className="commute-title">
+                  <span className="spinner" /> 기준지와의 이동 시간 계산 중...
+                </div>
+              </div>
+            )
           ) : (
             <div className="commute-section">
-              <div className="commute-title">
-                <span className="spinner" /> 기준지와의 이동 시간 계산 중...
+              <div className="commute-title" style={{ fontWeight: "bold", color: "#666" }}>
+                로그인을 하면 예상 이동 시간을 확인할 수 있습니다.
               </div>
             </div>
           )}
@@ -127,7 +135,7 @@ const RoomDetail = ({ propertyId }) => {
               <AiGraphPanel room={detail} values={filterValues} />
             </>
           )}
-          
+
           <hr />
 
           <div className="detail-line">
