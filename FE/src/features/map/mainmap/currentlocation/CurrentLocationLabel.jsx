@@ -29,6 +29,10 @@ function CurrentLocationLabel({ map }) {
     window.updateCurrentLocationLabel = () => {
       const center = map.getCenter();
       const level = map.getLevel();
+      if (level >= 9) {
+        setLocationName("서울특별시");
+        return;
+      }
       const geocoder = new window.kakao.maps.services.Geocoder();
 
       geocoder.coord2RegionCode(
@@ -105,6 +109,11 @@ function CurrentLocationLabel({ map }) {
       // console.log("✅ idle 이벤트 발생!", map.getCenter());
       const center = map.getCenter();
       const level = map.getLevel();
+
+      if (level >= 9) {
+        setLocationName("서울시");
+        return;
+      }
 
       geocoder.coord2RegionCode(
         center.getLng(),
