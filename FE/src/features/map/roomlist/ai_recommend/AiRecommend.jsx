@@ -17,6 +17,8 @@ import {
   setAiRecommendedList,
   setFilterValues,
 } from "../../../../store/slices/roomListSlice";
+import Slider from "rc-slider";
+import "rc-slider/assets/index.css";
 
 const AiRecommend = () => {
   const [roomType, setRoomType] = useState("원룸");
@@ -345,6 +347,18 @@ const AiRecommend = () => {
     setSelectedRoom(item);
   };
 
+  const priceRangeLimits = {
+    월세: { min: 10, max: 300 },
+    전세: { min: 500, max: 10000 },
+    매매: { min: 1000, max: 20000 },
+  };
+  
+  useEffect(() => {
+    const { min, max } = priceRangeLimits[contractType];
+    setPriceRange([min, max]);
+  }, [contractType]);
+  
+
   return (
     <div className="ai-filter-container">
       <DongNameMarkers map={window.map} />
@@ -400,34 +414,46 @@ const AiRecommend = () => {
               </div>
             </div>
 
-            <div className="price-range-group">
-            {priceError && <p className="price-error">{priceError}</p>}
-              <label>가격 범위 (단위: 만원)</label>
-              <div style={{ display: "flex", gap: "1rem" }}>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  value={priceRange[0]}
-                  onChange={(e) =>
-                    setPriceRange([Number(e.target.value), priceRange[1]])
-                  }
-                  placeholder="최소"
-                  // min={0}
-                />
-                <p>~</p>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  value={priceRange[1]}
-                  onChange={(e) =>
-                    setPriceRange([priceRange[0], e.target.value])
-                  }
-                  placeholder="최대"
-                  // min={priceRange[0]}
-                />
-                <span>만원</span>
+            <div
+              className="slider-block slider-가격"
+              style={{ paddingLeft: "0.3rem", paddingRight: "0.3rem" }}  // 또는 margin으로도 가능
+            >
+              <div className="slider-label-row">
+                <label>가격 범위 (단위: 만원)</label>
+                <span>{priceRange[0]} ~ {priceRange[1]}만원</span>
               </div>
+              <Slider
+                range
+                min={priceRangeLimits[contractType].min}
+                max={priceRangeLimits[contractType].max}
+                step={10}
+                value={priceRange}
+                onChange={(value) => setPriceRange(value)}
+                trackStyle={[{ backgroundColor: "#A3E7AA", height: 12 }]}
+                handleStyle={[
+                  {
+                    backgroundColor: "white",
+                    borderColor: "#89C572",
+                    width: 20,
+                    height: 20,
+                    borderRadius: "50%",
+                    marginTop: -4,
+                    boxShadow: "0 0 2px rgba(0,0,0,0.2)",
+                  },
+                  {
+                    backgroundColor: "white",
+                    borderColor: "#89C572",
+                    width: 20,
+                    height: 20,
+                    borderRadius: "50%",
+                    marginTop: -4,
+                    boxShadow: "0 0 2px rgba(0,0,0,0.2)",
+                  },
+                ]}
+                railStyle={{ backgroundColor: "#e0e0e0", height: 12 }}
+              />
             </div>
+
           </div>
           {/* <hr /> */}
           <p className="filter-title">내 집 근처에는?</p>
