@@ -122,7 +122,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         // ★ 추가: zzimService를 통해 사용자가 찜한 property 목록을 가져와서 Set으로 변환
         // userSelectPropertyList는 int 타입의 userId를 인자로 받으므로 적절히 변환해줍니다.
         List<PropertyZzimDoc> zzimDocs = zzimService.userSelectPropertyList((int) requestDto.getUserId().longValue());
-        logger.info("ai 추천 유저 찜 리스트: {}", zzimDocs);
+        System.out.println("zzimDocs: " + zzimDocs);
 
         Set<Integer> likedPropertyIds = zzimDocs.stream()
                 .map(PropertyZzimDoc::getPropertyId)
