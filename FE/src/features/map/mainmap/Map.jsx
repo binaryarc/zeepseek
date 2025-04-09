@@ -222,15 +222,7 @@ const Map = () => {
             }
           }
 
-          // 지도 레벨이 너무 높거나 낮으면, 모든 폴리곤 숨김 처리
-          if (currentLevel > 6 || currentLevel <= 3) {
-            Object.values(polygonCacheRef.current).forEach((polygon) => {
-              polygon.setMap(null);
-            });
-            return;
-          }
-
-          // ✅ 서울 외 지역 경고 체크 (📌 여기에 추가)
+          // ✅ 서울 외 지역 경고 체크
           const center = mapInstance.getCenter();
           const geocoder = new window.kakao.maps.services.Geocoder();
           geocoder.coord2RegionCode(center.getLng(), center.getLat(), (result, status) => {
@@ -239,6 +231,14 @@ const Map = () => {
               setLocationWarning(city !== "서울특별시");
             }
           });
+
+          // 지도 레벨이 너무 높거나 낮으면, 모든 폴리곤 숨김 처리
+          if (currentLevel > 6 || currentLevel <= 3) {
+            Object.values(polygonCacheRef.current).forEach((polygon) => {
+              polygon.setMap(null);
+            });
+            return;
+          }
 
           // GeoJSON의 각 feature에 대해 폴리곤 캐싱/재사용 처리
           geoDataRef.current.features.forEach((feature) => {
