@@ -31,16 +31,28 @@ PROPERTY_VECTORS_CACHE = None
 PROPERTY_IDS_CACHE = None
 PROPERTY_CACHE_TIMESTAMP = 0
 
-def fetch_logs_from_es(days: int = 30, size: int = 10000):
+# ===== 변경 1: fetch_logs_from_es() 함수에 target_age와 target_gender 매개변수를 추가 =====
+def fetch_logs_from_es(days: int = 30, size: int = 10000, target_age: int = None, age_delta: int = 5, target_gender: int = None):
     """
     Elasticsearch에서 최근 'days' 일간 로그를 가져와
     [userId, propertyId, action, dongId, computedRoomType, age, gender] -> ACTION_SCORE 매핑 후 DataFrame 반환.
     propertyId가 -1인 데이터는 제거합니다.
+    (만약 target_age와 target_gender가 주어지면, 해당 조건을 만족하는 로그만 조회합니다.)
     """
+    must_clauses = [
+        {"range": {"time": {"gte": f"now-{days}d/d"}}}
+    ]
+    # 나이 필터링 (target_age가 주어졌으면 ±age_delta 범위 조건 추가)
+    if target_age is not None:
+        must_clauses.append({"range": {"age": {"gte": target_age - age_delta, "lte": target_age + age_delta}}})
+    # 성별 필터링 (target_gender가 주어졌으면)
+    if target_gender is not None:
+        must_clauses.append({"term": {"gender": target_gender}})
+        
     query = {
         "query": {
-            "range": {
-                "time": {"gte": f"now-{days}d/d"}
+            "bool": {
+                "must": must_clauses
             }
         },
         "_source": ["userId", "propertyId", "action", "dongId", "computedRoomType", "age", "gender"]
@@ -53,7 +65,7 @@ def fetch_logs_from_es(days: int = 30, size: int = 10000):
     )
     docs = [doc["_source"] for doc in result["hits"]["hits"]]
     df = pd.DataFrame(docs)
-    # [수정] 만약 특정 컬럼이 누락되면 기본값 None으로 추가
+    # 누락된 컬럼 기본값 처리
     for col in ["computedRoomType", "age", "gender"]:
         if col not in df.columns:
             df[col] = None
@@ -66,17 +78,18 @@ def fetch_logs_from_es(days: int = 30, size: int = 10000):
     logger.info("[fetch_logs_from_es] Retrieved %d logs after filtering propertyId=-1", len(df))
     return df[["userId", "propertyId", "score", "dongId", "computedRoomType", "age", "gender"]]
 
-def train_model():
+# ===== 변경 2: train_model() 함수를 대상 사용자 인구통계 정보로 로그를 필터링하여 학습하도록 수정 =====
+def train_model(target_age: int = None, target_gender: int = None):
     """
     ES 로그 데이터를 가져와 SVD 모델 학습
     - 학습 시 userId, propertyId가 -1인 데이터는 제거합니다.
+    - target_age와 target_gender가 주어지면, 해당 조건에 맞는 로그만 학습합니다.
     """
     logger.info("Starting model training...")
-    df = fetch_logs_from_es(days=30)
+    df = fetch_logs_from_es(days=30, target_age=target_age, target_gender=target_gender)
     if df.empty:
         logger.warning("No training data found. Skipping SVD model training.")
         return
-    # -1 필터링 (추가로 userId도 -1인 경우 제거)
     df = df[(df["userId"] != -1) & (df["propertyId"] != -1)]
     logger.info("Data after filtering -1 => %d logs remain", len(df))
     if df.empty:
