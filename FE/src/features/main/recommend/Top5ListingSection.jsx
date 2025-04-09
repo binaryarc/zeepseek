@@ -73,9 +73,13 @@ const Top5ListingSection = () => {
   return (
     <section className="main-listing-section">
       <h1>
-        {user
-          ? `"${dongName}"의 인기매물!!!!🔥`
-          : `로그인이 필요한 서비스 입니다!`}
+        {user ? (
+          <>
+            방금 보신 <span className="highlight-ai">{dongName}</span>의 인기 매물
+          </>
+        ) : (
+          "로그인이 필요한 서비스 입니다!"
+        )}
       </h1>
 
       <div className="listing-container-wrapper">
