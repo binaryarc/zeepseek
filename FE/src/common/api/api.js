@@ -1,6 +1,7 @@
 // src/api/zeepApi.js
 import axios from "axios";
 import store from "../../store/store";
+import { setAccessToken } from "../../store/slices/authSlice";
 
 const zeepApi = axios.create({
   baseURL: `https://j12e203.p.ssafy.io/api/v1`, // ✅ API 서버 주소
@@ -41,19 +42,18 @@ const processQueue = (error, token = null) => {
 // 응답 인터셉터 - 403 혹은 인증 관련 에러 발생시 refresh 후 재시도
 zeepApi.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     const originalRequest = error.config;
 
     // refresh 요청이 여러 번 반복되지 않도록 플래그를 사용
     if (error.response && error.response.status === 403 && !originalRequest._retry) {
       if (isRefreshing) {
         // 이미 refresh 요청 진행 중이면 큐에 넣어두고, refresh 완료 후 재시도
-        return new Promise(function (resolve, reject) {
+        const token = await new Promise(function (resolve, reject) {
           failedQueue.push({ resolve, reject });
-        }).then((token) => {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          return zeepApi(originalRequest);
         });
+        originalRequest.headers.Authorization = `Bearer ${token}`;
+        return await zeepApi(originalRequest);
       }
 
       originalRequest._retry = true;
