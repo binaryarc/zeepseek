@@ -130,7 +130,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         // 6) 추천 리스트 반복: 각 property에 대해 상세정보 및 평점 조회 후 dto 생성
         for (RecommendationDto rec : recList) {
             try {
-                Property property = propertyService.getPropertyDetail(rec.getPropertyId());
+                Property property = propertyService.getPropertyDetail((long) rec.getPropertyId());
                 PropertyScore score = propertyService.getPropertyScoreByPropertyId(Math.toIntExact(rec.getPropertyId()));
 
                 DetailedRecommendationWithLikedDto dto = new DetailedRecommendationWithLikedDto();
