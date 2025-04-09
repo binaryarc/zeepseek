@@ -2,6 +2,8 @@ package com.zeepseek.backend.domain.ranking.controller;
 
 import com.zeepseek.backend.domain.ranking.dto.RankingResponse;
 import com.zeepseek.backend.domain.ranking.service.RankingService;
+import com.zeepseek.backend.domain.search.document.LogDocument;
+import com.zeepseek.backend.domain.search.service.LogSearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,15 +21,19 @@ import java.util.stream.Collectors;
 public class RankingController {
 
     private final RankingService rankingService;
-
+    private final LogSearchService logSearchService;
     /**
      * 특정 dongId에 대해 ranking score가 높은 상위 5개 propertyId와 score를 조회합니다.
      *
      * @param dongId 동 아이디
      * @return 상위 5개 property의 랭킹 정보
      */
-    @GetMapping("/{dongId}")
-    public ResponseEntity<List<RankingResponse>> getTop5Ranking(@PathVariable String dongId) {
+    @GetMapping("/{userId}")
+    public ResponseEntity<List<RankingResponse>> getTop5Ranking(@PathVariable int userId) {
+        LogDocument logDocument = logSearchService.getLatestUserLog(userId);
+        String dongId = "11410555";
+        if(logDocument != null) dongId = logDocument.getDongId();
+
         Set<org.springframework.data.redis.core.ZSetOperations.TypedTuple<Object>> topProperties =
                 rankingService.getTop5PropertiesByDongId(dongId);
         // DTO 매핑: propertyId(문자열을 Long으로 변환)와 score를 포함
