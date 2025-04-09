@@ -122,8 +122,8 @@ const ZzimList = () => {
       strokeWeight: 2,
       strokeColor: "#00a0e9",
       strokeOpacity: 0.8,
-      fillColor: "#00a0e9",
-      fillOpacity: 0.1,
+      // fillColor: "#00a0e9",
+      // fillOpacity: 0.1,
     });
     circle.setMap(map);
     circleRef.current = circle; // ✅ 이걸로 교체
