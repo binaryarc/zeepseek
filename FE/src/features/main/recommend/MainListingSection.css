@@ -1,10 +1,17 @@
+.main-listing-subtitle {
+  font-size: 16px;
+  margin-top: 8px;
+  color: #333;
+  line-height: 1.6;
+}
+
 .main-listing-section {
   /* max-width: 1200px; */
   position: relative;
   margin: 0 auto;
-  padding: 40px 250px;
+  padding: 5px 250px;
   font-family: sans-serif;
-  background-color: #f9f9f9; /* 원하는 배경색으로 변경 가능 */
+  background-color: #ffffff; /* 원하는 배경색으로 변경 가능 */
   font-family: KOROAD_Bold;
 }
 
@@ -30,16 +37,16 @@
 .main-listing-container {
   display: flex;
   overflow-x: auto;
-  gap: 16px;           /* 카드 간 간격 */
+  gap: 16px; /* 카드 간 간격 */
   padding: 16px;
-  scroll-snap-type: x mandatory;  /* 스크롤 스냅 효과 (선택 사항) */
-  list-style: none;    /* 기본 ul 스타일 제거 */
+  scroll-snap-type: x mandatory; /* 스크롤 스냅 효과 (선택 사항) */
+  list-style: none; /* 기본 ul 스타일 제거 */
   margin: 0;
   background-color: #f9f2f2;
 }
 
 .main-listing-container li {
-  flex: 0 0 auto;      /* 항목들이 자동으로 크기가 조정되지 않고 고정됨 */
+  flex: 0 0 auto; /* 항목들이 자동으로 크기가 조정되지 않고 고정됨 */
   scroll-snap-align: start; /* 스크롤 스냅 위치 지정 (선택 사항) */
 }
 
@@ -77,8 +84,23 @@
   align-items: center;
   font-size: 1.2rem;
   font-weight: bold;
-  color: #333; 
+  color: #333;
   z-index: 20;
   text-align: center;
   padding: 20px;
+}
+
+.user-tag {
+  color: #2f833d;
+  font-weight: 600;
+}
+
+.highlight-ai {
+  color: #2f833d;
+  font-weight: 1000;
+}
+
+.zeepai-main {
+  width: 50px;
+  margin-right: 10px;
 }
