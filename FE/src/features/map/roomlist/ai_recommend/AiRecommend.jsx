@@ -309,8 +309,8 @@ const AiRecommend = () => {
       strokeColor: "#00a0e9",
       strokeOpacity: 0.8,
       strokeStyle: "solid",
-      fillColor: "#00a0e9",
-      fillOpacity: 0.1,
+      // fillColor: "#00a0e9",
+      // fillOpacity: 0.1,
     });
     circle.setMap(window.map);
     circleOverlayRef.current = circle;
@@ -483,7 +483,7 @@ const AiRecommend = () => {
             className="recommend-search-btn"
             onClick={handleRecommendClick}
           >
-            AI 추천 받기
+            나에게 맞는 추천 받기
           </button>
         </div>
       )}
@@ -491,7 +491,7 @@ const AiRecommend = () => {
       {isLoading && (
         <div className="loader-container">
           <img src={zeepai} alt="ai_image" className="zeepai_image" />
-          <p>AI가 매물을 추천 중이에요...</p>
+          <p>ZEEPSEEK가 매물을 추천 중이에요...</p>
           <div className="spinner"></div>
         </div>
       )}

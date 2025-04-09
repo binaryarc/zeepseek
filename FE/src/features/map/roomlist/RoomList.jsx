@@ -128,7 +128,7 @@ const RoomList = () => {
   const handleTabClick = (tab) => {
 
     // 로그인 필요 탭일 경우 확인
-    const isAuthRequired = tab === "ZEEPSEEK 추천" || tab === "찜";
+    const isAuthRequired = tab === "ZEEPSEEK추천" || tab === "찜";
     if (isAuthRequired && !user?.idx) {
       alert("로그인이 필요합니다.");
       return;
@@ -194,7 +194,7 @@ const RoomList = () => {
   return (
     <div className="room-list" ref={roomListRef}>
       <nav className="room-type">
-        {["원룸/투룸", "오피스텔", "주택/빌라", "ZEEPSEEK 추천", "찜"].map((tab) => (
+        {["원룸/투룸", "오피스텔", "주택/빌라", "ZEEPSEEK추천", "찜"].map((tab) => (
           <span
             key={tab}
             className={selectedTab === tab ? "active-tab" : ""}
@@ -205,7 +205,7 @@ const RoomList = () => {
         ))}
       </nav>
 
-      {selectedTab === "ZEEPSEEK 추천" ? (
+      {selectedTab === "ZEEPSEEK추천" ? (
         <AiRecommend />
       ) : selectedTab === "찜" ? (
         <ZzimList />
