@@ -17,6 +17,7 @@ import MainListingSection from "./recommend/MainListingSection";
 import SurveyPopup from "../../common/component/SurveyPopup";
 import { useEffect, useState } from "react";
 import { FaChevronDown } from "react-icons/fa"; // 위에서 import 추가
+import Top5ListingSection from "./recommend/Top5ListingSection";
 
 function MainPage() {
   const navigate = useNavigate();
@@ -151,6 +152,12 @@ function MainPage() {
       <div id="listing-section">
         <MainListingSection />
       </div>
+
+      {/* Top5 매물 섹션 */}
+      <div id="listing-section">
+        <Top5ListingSection />
+      </div>
+
       {showArrow && (
         <div className="double-arrow" onClick={handleScrollToBottom}>
           <FaChevronDown className="arrow-icon" />
