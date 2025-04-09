@@ -134,7 +134,6 @@ const RoomList = () => {
     if (currentGuName && (currentDongName || currentDongName === "")) {
       console.log(tab);
       if (level < 6 && level > 3) {
-        console.log("아아아아아아", user.idx);
         dispatch(
           fetchRoomListByBounds({
             guName: currentGuName,
