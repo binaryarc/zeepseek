@@ -15,6 +15,7 @@ import com.zeepseek.backend.domain.zzim.document.PropertyZzimDoc;
 import com.zeepseek.backend.domain.zzim.service.ZzimService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.log4j.Log4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
@@ -120,7 +121,9 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         // ★ 추가: zzimService를 통해 사용자가 찜한 property 목록을 가져와서 Set으로 변환
         // userSelectPropertyList는 int 타입의 userId를 인자로 받으므로 적절히 변환해줍니다.
-        List<PropertyZzimDoc> zzimDocs = zzimService.userSelectPropertyList(requestDto.getUserId().intValue());
+        List<PropertyZzimDoc> zzimDocs = zzimService.userSelectPropertyList((int) requestDto.getUserId().longValue());
+        logger.info("ai 추천 유저 찜 리스트: {}", zzimDocs);
+
         Set<Integer> likedPropertyIds = zzimDocs.stream()
                 .map(PropertyZzimDoc::getPropertyId)
                 .collect(Collectors.toSet());

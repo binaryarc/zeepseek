@@ -18,4 +18,12 @@ public class PropertyZzimDoc {
     int userId;
 
     int propertyId;
+
+    @Override
+    public String toString() {
+        return "PropertyZzimDoc{" +
+                "userId=" + userId +
+                ", propertyId=" + propertyId +
+                '}';
+    }
 }
