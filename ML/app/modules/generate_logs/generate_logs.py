@@ -17,9 +17,9 @@ ES_PASS = "e203@Password!"
 def get_property_list():
     session = SessionLocal()
     try:
-        # property 테이블에서 필요한 컬럼들을 조회합니다.
+        # property 테이블에서 필요한 컬럼들을 조회합니다. (contract_type 컬럼 추가)
         query = text("""
-            SELECT property_id, room_bath_count, room_type, dong_id, price 
+            SELECT property_id, room_bath_count, room_type, dong_id, price, contract_type
             FROM property
         """)
         results = session.execute(query).fetchall()
@@ -30,7 +30,8 @@ def get_property_list():
                 "room_bath_count": row._mapping["room_bath_count"],
                 "room_type": row._mapping["room_type"],
                 "dong_id": row._mapping["dong_id"],
-                "price": row._mapping["price"]
+                "price": row._mapping["price"],
+                "contract_type": row._mapping["contract_type"]  # 추가: 계약 유형 정보
             }
             properties.append(prop)
         return properties
@@ -60,7 +61,7 @@ def compute_computed_room_type(room_bath_count: str, room_type: str):
         elif room_count == 3:
             return "쓰리룸"
         else:
-            return room_type  # 4 이상인 경우 등
+            return room_type
     except Exception as e:
         logging.warning("computed_room_type 계산 실패 (%s): %s", room_bath_count, e)
         return room_type
@@ -69,7 +70,7 @@ def compute_computed_room_type(room_bath_count: str, room_type: str):
 def generate_activity_logs(n=1000):
     """
     n개의 액티비티 로그를 실제 property 테이블의 데이터를 활용하여 생성.
-      - propertyId와 dongId는 DB에서 조회한 실제 매물 데이터를 사용
+      - propertyId, dongId, contractType 등은 DB의 실제 데이터를 사용
       - computedRoomType은 room_bath_count와 room_type을 바탕으로 결정
       - 성별, 연령, action은 랜덤하게 생성 (성별에 따라 view/zzim 확률 차등 적용)
     """
@@ -80,25 +81,23 @@ def generate_activity_logs(n=1000):
         return logs
 
     for _ in range(n):
-        # 0=male, 1=female (여기서 gender 선택)
+        # 0=male, 1=female
         gender = random.choice([0, 1])
-        # 성별에 따른 action 확률
+        # 성별에 따른 action 확률: 남성은 70% view, 30% zzim; 여성은 40% view, 60% zzim
         if gender == 0:
-            # 남성: 70% view, 30% zzim
             action = random.choices(["view", "zzim"], weights=[0.7, 0.3], k=1)[0]
         else:
-            # 여성: 40% view, 60% zzim
             action = random.choices(["view", "zzim"], weights=[0.4, 0.6], k=1)[0]
-        # 유저ID는 1~5000 사이의 랜덤값
         user_id = random.randint(1, 5000)
-        # 나이: 20 ~ 60
         age = random.randint(20, 60)
-        # 실제 property_list에서 무작위 매물을 선택
+        # 실제 property_list에서 무작위 매물 선택
         prop = random.choice(property_list)
         property_id = prop["property_id"]
         dong_id = prop["dong_id"]
         room_bath_count = prop["room_bath_count"]
         room_type = prop["room_type"]
+        price = prop["price"]
+        contract_type = prop["contract_type"]  # 추가: 계약 유형 정보
         # computedRoomType 산출 (# 수정됨)
         computed_room_type = compute_computed_room_type(room_bath_count, room_type)
         # 로그 생성: 시간은 최근 30일 범위에서 랜덤하게 선택
@@ -110,12 +109,13 @@ def generate_activity_logs(n=1000):
             "gender": gender,
             "dongId": dong_id,
             "computedRoomType": computed_room_type,  # 추가된 필드
+            "price": price,  # 매물 가격 정보
+            "contractType": contract_type,  # 추가: contract_type 정보
             "time": (datetime.utcnow() - timedelta(days=random.randint(0, 30))).isoformat() + "Z"
         }
         logs.append(log_entry)
     return logs
 
-# Bulk Insert 함수 (변경없음)
 def bulk_insert_es(logs, index_name="logs"):
     """ Bulk API로 logs를 ES에 넣는 함수 """
     bulk_data = []
@@ -125,7 +125,6 @@ def bulk_insert_es(logs, index_name="logs"):
         bulk_data.append(json.dumps(doc))
     body = "\n".join(bulk_data) + "\n"
     headers = {"Content-Type": "application/x-ndjson"}
-    # ES Basic Auth
     res = requests.post(
         f"{ES_URL}/_bulk",
         data=body,
