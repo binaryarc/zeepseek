@@ -20,6 +20,8 @@ import { debounce } from "lodash"; // debounce 임포트
 import centroidData from "../../../assets/data/seoul_dong_centroids_from_geojson.json";
 
 const Map = () => {
+  const [locationWarning, setLocationWarning] = useState(false);
+
   function getDongIdFromGeojsonDongName(admNm) {
     const clickedDongName = admNm.trim(); // 예: "가회동"
 
@@ -162,7 +164,6 @@ const Map = () => {
           selectedDongIdRef.current = null;
           isDongSelectedRef.current = false;
         });
-        
 
         // idle 이벤트 시 실행될 업데이트 함수: debounce로 호출 빈도 제한, 폴리곤 재사용 적용
         const updateMapElements = () => {
@@ -228,6 +229,16 @@ const Map = () => {
             });
             return;
           }
+
+          // ✅ 서울 외 지역 경고 체크 (📌 여기에 추가)
+          const center = mapInstance.getCenter();
+          const geocoder = new window.kakao.maps.services.Geocoder();
+          geocoder.coord2RegionCode(center.getLng(), center.getLat(), (result, status) => {
+            if (status === window.kakao.maps.services.Status.OK) {
+              const city = result[0].region_1depth_name;
+              setLocationWarning(city !== "서울특별시");
+            }
+          });
 
           // GeoJSON의 각 feature에 대해 폴리곤 캐싱/재사용 처리
           geoDataRef.current.features.forEach((feature) => {
@@ -413,6 +424,12 @@ const Map = () => {
 
   return (
     <div className="map-container" style={{ position: "relative" }}>
+      {/* ✅ 경고 박스 추가 */}
+      {locationWarning && (
+        <div className="location-warning-banner">
+          ⚠️ 서비스 이용 불가능 지역입니다.
+        </div>
+      )}
       <div id="map" className="map-box" />
       {map && (
         <>
