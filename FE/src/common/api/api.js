@@ -46,7 +46,7 @@ zeepApi.interceptors.response.use(
     const originalRequest = error.config;
 
     // refresh 요청이 여러 번 반복되지 않도록 플래그를 사용
-    if (error.response && error.response.status === 403 && !originalRequest._retry) {
+    if (error.response && error.response.status === 403 && error.response.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         // 이미 refresh 요청 진행 중이면 큐에 넣어두고, refresh 완료 후 재시도
         const token = await new Promise(function (resolve, reject) {
