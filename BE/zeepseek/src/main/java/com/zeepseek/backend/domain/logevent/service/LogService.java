@@ -51,7 +51,7 @@ public class LogService {
                     logData.put("roomType", propertyData.get("roomType"));
                 }
                 if (propertyData != null && propertyData.containsKey("contractType")) {
-                    logData.put("roomType", propertyData.get("contractType"));
+                    logData.put("contractType", propertyData.get("contractType"));
                 }
             } else {
                 System.out.println("properties 인덱스에 propertyId " + propertyId + "에 해당하는 문서가 없습니다.");
