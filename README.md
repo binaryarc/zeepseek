@@ -1,6 +1,8 @@
 # zeepseek (집 Seek)
 
 <img src="zeepseek_logo.png" alt="zeepseek logo" width="150"/>  
+
+
 - 사회초년생 및 서울 이사가 처음인 모든 사람을 위한 부동산 매물 빅데이터 기반 추천 웹 사이트  
 - 기간: 2025.02.24 ~ 2025.04.11
 
