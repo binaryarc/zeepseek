@@ -28,6 +28,7 @@ public class DetailedRecommendationDto {
     private Integer leisureCount;
     private Double latitude;
     private Double longitude;
+    private boolean liked;
 
     private Double similarity;  // FastAPI 추천 결과에 포함된 유사도
 }

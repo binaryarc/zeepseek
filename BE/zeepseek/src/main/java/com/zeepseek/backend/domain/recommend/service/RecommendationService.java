@@ -9,4 +9,6 @@ import jakarta.servlet.http.HttpServletRequest;
 public interface RecommendationService {
     DetailedRecommendationResponseDto getRecommendations(UserRecommendationRequestDto requestDto, HttpServletRequest request);
     AiRecommendationResponseDto getAiRecommendation(Integer userId);
+
+    DetailedRecommendationResponseDto getRecommendationsWithUpdatedLikes(UserRecommendationRequestDto requestDto, HttpServletRequest request);
 }

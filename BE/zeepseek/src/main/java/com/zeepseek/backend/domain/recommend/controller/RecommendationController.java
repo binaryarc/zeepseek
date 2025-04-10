@@ -38,7 +38,8 @@ public class RecommendationController {
             requestDto.setGender(info.get("gender"));
         });
 
-        DetailedRecommendationResponseDto responseDto = recommendationService.getRecommendations(requestDto,request);
+        // 캐싱된 추천 결과에 대해 후처리(찜 정보 업데이트) 후 반환
+        DetailedRecommendationResponseDto responseDto = recommendationService.getRecommendationsWithUpdatedLikes(requestDto, request);
         return ResponseEntity.ok(responseDto);
     }
     // AI 기반 추천 (GET /api/ai-recommend?user_id=123)

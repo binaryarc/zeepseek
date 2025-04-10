@@ -49,9 +49,9 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     @Override
-//    @Cacheable(value = "recommendations", key = "#requestDto.cacheKey", unless = "#result == null")
+    @Cacheable(value = "recommendations", unless = "#result == null")
     public DetailedRecommendationResponseDto getRecommendations(UserRecommendationRequestDto requestDto, HttpServletRequest request) {
-        // 1) 쿠키에서 age와 gender, userId 정보 추출
+        // 1) 쿠키에서 age, gender, userId 정보 추출 (생략 없이 기존 로직 사용)
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("age".equals(cookie.getName())) {
@@ -81,7 +81,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             logger.warn("쿠키가 없습니다. 기본 인구통계 정보를 사용합니다.");
         }
 
-        // 2) 먼저 raw JSON(String)으로 받아봄
+        // 2) 추천 API 호출 및 raw JSON String으로 받기
         String rawJson = recommendationWebClient.post()
                 .body(Mono.just(requestDto), UserRecommendationRequestDto.class)
                 .retrieve()
@@ -90,7 +90,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         logger.info("=== [FastAPI Raw JSON] ===\n{}", rawJson);
 
-        // 3) rawJson을 Map으로 한번 파싱 (디버깅용)
+        // 3) 디버깅용: rawJson을 Map으로 파싱
         try {
             ObjectMapper mapper = new ObjectMapper();
             @SuppressWarnings("unchecked")
@@ -100,7 +100,7 @@ public class RecommendationServiceImpl implements RecommendationService {
             logger.warn("rawJson -> Map 변환 실패", e);
         }
 
-        // 4) rawJson을 다시 RecommendationResponseDto로 파싱
+        // 4) rawJson을 RecommendationResponseDto로 파싱
         RecommendationResponseDto originalResponse;
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -119,18 +119,9 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         List<RecommendationDto> recList = originalResponse.getRecommendedProperties();
 
-        // ★ 추가: zzimService를 통해 사용자가 찜한 property 목록을 가져와서 Set으로 변환
-        // userSelectPropertyList는 int 타입의 userId를 인자로 받으므로 적절히 변환해줍니다.
-        List<PropertyZzimDoc> zzimDocs = zzimService.userSelectPropertyList((int) requestDto.getUserId().longValue());
-        System.out.println("zzimDocs: " + zzimDocs);
-
-        Set<Integer> likedPropertyIds = zzimDocs.stream()
-                .map(PropertyZzimDoc::getPropertyId)
-                .collect(Collectors.toSet());
-
+        // ★ 주의: 여기서는 찜 여부(liked)는 기본값(false)으로 설정(이후 후처리로 최신화)
         List<DetailedRecommendationDto> detailedList = new ArrayList<>();
 
-        // 6) 추천 리스트 반복: 각 property에 대해 상세정보 및 평점 조회 후 dto 생성
         for (RecommendationDto rec : recList) {
             try {
                 Property property = propertyService.getPropertyDetail((long) rec.getPropertyId());
@@ -163,8 +154,8 @@ public class RecommendationServiceImpl implements RecommendationService {
                 dto.setLongitude(property.getLongitude());
                 dto.setSimilarity(rec.getSimilarity());
 
-                // ★ 추가: 추천 property가 찜 목록에 있으면 liked를 true로 설정
-                dto.setLiked(likedPropertyIds.contains(rec.getPropertyId()));
+                // 찜 여부는 기본값(false)로 초기화(후처리 단계에서 별도로 업데이트)
+                dto.setLiked(false);
 
                 detailedList.add(dto);
             } catch (PropertyNotFoundException ex) {
@@ -176,6 +167,35 @@ public class RecommendationServiceImpl implements RecommendationService {
         detailedResponse.setRecommendedProperties(detailedList);
         detailedResponse.setMaxType(originalResponse.getMaxType());
         return detailedResponse;
+    }
+
+    /**
+     * 캐시된 추천 결과에 대해 찜(zzim) 여부를 최신 정보로 업데이트하는 후처리 메서드
+     */
+    private void updateLikedStatus(DetailedRecommendationResponseDto recommendations, Long userId) {
+        // 최신 찜 목록을 조회 (여기서는 zzimService를 호출)
+        List<PropertyZzimDoc> zzimDocs = zzimService.userSelectPropertyList(userId.intValue());
+        Set<Integer> likedPropertyIds = zzimDocs.stream()
+                .map(PropertyZzimDoc::getPropertyId)
+                .collect(Collectors.toSet());
+
+        if (recommendations != null && recommendations.getRecommendedProperties() != null) {
+            for (DetailedRecommendationDto dto : recommendations.getRecommendedProperties()) {
+                dto.setLiked(likedPropertyIds.contains(dto.getPropertyId()));
+            }
+        }
+    }
+
+    /**
+     * 캐싱된 추천 결과를 받아온 뒤, 찜 여부를 후처리하여 반환하는 wrapper 메서드
+     * (이 메서드를 컨트롤러에서 호출할 경우, 캐싱된 추천 결과에 대해 최신 찜 정보를 업데이트할 수 있습니다.)
+     */
+    public DetailedRecommendationResponseDto getRecommendationsWithUpdatedLikes(UserRecommendationRequestDto requestDto, HttpServletRequest request) {
+        // 캐시된 추천 결과 조회
+        DetailedRecommendationResponseDto cachedResponse = getRecommendations(requestDto, request);
+        // 후처리: 찜 여부 업데이트
+        updateLikedStatus(cachedResponse, requestDto.getUserId());
+        return cachedResponse;
     }
 
     @Override
