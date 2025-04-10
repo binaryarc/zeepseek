@@ -52,6 +52,7 @@
 <img src="https://img.shields.io/badge/Loki-F46800?style=for-the-badge&logo=grafana&logoColor=white" alt="Loki">  
 <img src="https://img.shields.io/badge/Promtail-F46800?style=for-the-badge&logo=grafana&logoColor=white" alt="Promtail">  
 <img src="https://img.shields.io/badge/Jenkins-D24939?style=for-the-badge&logo=jenkins&logoColor=white" alt="Jenkins">
+<img src="https://img.shields.io/badge/Kibana-005571?style=for-the-badge&logo=elasticsearch&logoColor=white">
 
 ### Collaboration Tools
 
