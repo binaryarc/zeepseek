@@ -22,8 +22,8 @@ const AuthInitializer = () => {
           // ✅ user는 없음 → setUser 생략
 
           // ✅ 찜한 동네 정보 가져오기
-          // const likedDongRes = await fetchLikedRegions(user.idx);
-          // dispatch(setDongLikes(likedDongRes.data));
+          const likedDongRes = await fetchLikedRegions(user.idx);
+          dispatch(setDongLikes(likedDongRes.data));
         })
         .catch((err) => {
           console.error("refresh 실패:", err);
