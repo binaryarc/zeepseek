@@ -94,7 +94,6 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
       if (response.success) {
         dispatch(setUser(response.data));
         setShowAlert(true)
-        // onClose();
       } else {
         alert("설문 제출에 실패했습니다.");
       }

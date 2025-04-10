@@ -5,6 +5,7 @@ import { postDongComment } from "../../../common/api/api";
 import back from "../../../assets/images/back.png";
 import "./Community.css";
 import { deleteDongComment } from "../../../common/api/api";
+import AlertModal from "../../../common/component/AlertModal";
 
 const Community = ({ dongId, dongName, guName, onClose }) => {
   const [comments, setComments] = useState([]);
@@ -20,7 +21,8 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
     commentId: null,
   });
   const [isChanged, setIsChanged] = useState(false);
-
+  const [alertMessage, setAlertMessage] = useState("");
+  
   useEffect(() => {
     const loadComments = async () => {
       const res = await fetchDongComments(dongId);
@@ -38,10 +40,10 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
   const handlePost = async () => {
     if (!newComment.trim()) return;
     if (!accessToken || !nickname) {
-      alert("로그인이 필요합니다.");
+      setAlertMessage("로그인이 필요합니다.");
       return;
     }
-
+    
     try {
       setLoading(true);
       await postDongComment(dongId, nickname, newComment, accessToken);
@@ -50,7 +52,7 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
       setNewComment("");
       setIsChanged(true);
     } catch {
-      alert("댓글 작성에 실패했어요 😢");
+      setAlertMessage("댓글 작성에 실패했어요 😢");
     } finally {
       setLoading(false);
     }
@@ -68,7 +70,7 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
       setComments(updated);
       setIsChanged(true);
     } catch {
-      alert("삭제에 실패했어요 😢");
+      setAlertMessage("삭제에 실패했어요 😢");
     }
   };
 
@@ -209,7 +211,15 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
           등록
         </button>
       </div>
+      {alertMessage && (
+        <AlertModal
+          message={alertMessage}
+          buttonText="확인"
+          onClose={() => setAlertMessage("")}
+        />
+      )}
     </div>
+    
   );
 };
 
