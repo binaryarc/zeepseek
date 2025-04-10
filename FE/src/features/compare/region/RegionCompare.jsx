@@ -37,14 +37,8 @@ function RegionCompare() {
   useEffect(() => {
     const loadLikedRegions = async () => {
       if (!user?.idx) return;
-
-      try {
-        const res = await fetchLikedRegions(user.idx);
-        setLikedRegions(res?.data || []);
-        console.log(likedRegions);
-      } catch (err) {
-        console.error("찜한 동네 불러오기 실패:", err);
-      }
+      const res = await fetchLikedRegions(user.idx);
+      setLikedRegions(res?.data || []);
     };
     loadLikedRegions();
   }, [user?.idx]);
@@ -58,8 +52,7 @@ function RegionCompare() {
       try {
         const res = await searchDongByName(searchText);
         setSearchResults(res?.data || []);
-      } catch (err) {
-        console.error("검색 실패:", err);
+      } catch {
         setSearchResults([]);
       }
     };
@@ -95,9 +88,6 @@ function RegionCompare() {
           selectedRegion2.dongId
         );
         setSummary(summaryResult?.data?.compareSummary);
-        console.log("region1", selectedRegion1);
-        console.log("region2", selectedRegion2);
-        console.log("summaryResult", summaryResult?.data?.compareSummary);
       } catch (err) {
         console.error("비교 데이터 로딩 실패:", err);
       } finally {

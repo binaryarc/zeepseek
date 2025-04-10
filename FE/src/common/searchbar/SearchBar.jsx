@@ -30,7 +30,6 @@ function Searchbar() {
   useEffect(() => {
     if (keywordFromRedux) {
       if (!mapReady) return;
-      console.log("🔍 키워드 변경 감지:", keywordFromRedux);
       setSearchText(keywordFromRedux);
       handleSearch(keywordFromRedux);
     }
@@ -53,13 +52,9 @@ function Searchbar() {
   };
 
   const handleLogout = async () => {
-    try {
-      await logoutOAuth(accessToken);
-      dispatch(logout());
-      navigate("/main");
-    } catch (err) {
-      console.error("로그아웃 실패", err);
-    }
+    await logoutOAuth(accessToken);
+    dispatch(logout());
+    navigate("/main");
   };
 
   const handleSearch = async (externalKeyword) => {
@@ -68,42 +63,38 @@ function Searchbar() {
     const actualKeyword = keywordInput && keywordInput.trim() !== "" ? keywordInput : currentDongName || "";
     if (!actualKeyword.trim()) return;
 
-    try {
-      const result = await dispatch(
-        fetchRoomList({ keyword: actualKeyword, filter: roomType, userId: user?.idx ?? null })
-      );
-      const properties = result.payload;
-      if (!properties || properties.length === 0) {
-        alert(`"${actualKeyword}"에 대한 검색 결과가 없습니다.`);
-        // Modified: 검색 결과가 없으면 Redux에 저장된 keyword 초기화
-        dispatch(setKeyword(""));
-        return;
-      }
-
-      const first = properties[0];
-      const geocoder = new window.kakao.maps.services.Geocoder();
-      geocoder.addressSearch(first.address, (result, status) => {
-        if (status !== window.kakao.maps.services.Status.OK) return;
-        const { x, y } = result[0];
-        const latLng = new window.kakao.maps.LatLng(y, x);
-        const map = window.map;
-        if (!map) return;
-        window.isMovingBySearch = true;
-        const isGuOnlySearch = actualKeyword.trim().endsWith("구");
-        const level = isGuOnlySearch ? 6 : 4;
-        dispatch(
-          setCurrentGuAndDongName({
-            guName: first.guName,
-            dongName: isGuOnlySearch ? "" : first.dongName,
-          })
-        );
-        dispatch(setCurrentDongId(first.dongId));
-        map.setLevel(level);
-        map.setCenter(latLng);
-      });
-    } catch (err) {
-      console.error("검색 실패:", err);
+    const result = await dispatch(
+      fetchRoomList({ keyword: actualKeyword, filter: roomType, userId: user?.idx ?? null })
+    );
+    const properties = result.payload;
+    if (!properties || properties.length === 0) {
+      alert(`"${actualKeyword}"에 대한 검색 결과가 없습니다.`);
+      // Modified: 검색 결과가 없으면 Redux에 저장된 keyword 초기화
+      dispatch(setKeyword(""));
+      return;
     }
+
+    const first = properties[0];
+    const geocoder = new window.kakao.maps.services.Geocoder();
+    geocoder.addressSearch(first.address, (result, status) => {
+      if (status !== window.kakao.maps.services.Status.OK) return;
+      const { x, y } = result[0];
+      const latLng = new window.kakao.maps.LatLng(y, x);
+      const map = window.map;
+      if (!map) return;
+      window.isMovingBySearch = true;
+      const isGuOnlySearch = actualKeyword.trim().endsWith("구");
+      const level = isGuOnlySearch ? 6 : 4;
+      dispatch(
+        setCurrentGuAndDongName({
+          guName: first.guName,
+          dongName: isGuOnlySearch ? "" : first.dongName,
+        })
+      );
+      dispatch(setCurrentDongId(first.dongId));
+      map.setLevel(level);
+      map.setCenter(latLng);
+    });
   };
 
   return (

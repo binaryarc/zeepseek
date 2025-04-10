@@ -36,12 +36,8 @@ const EstateCompare = () => {
   useEffect(() => {
     if (!user?.idx) return;
     const loadLiked = async () => {
-      try {
-        const res = await fetchLikedProperties(user.idx);
-        setLikedProperties(res);
-      } catch (err) {
-        console.error("찜한 매물 불러오기 실패:", err);
-      }
+      const res = await fetchLikedProperties(user.idx);
+      setLikedProperties(res);
     };
     loadLiked();
   }, [user?.idx]);
@@ -66,10 +62,6 @@ const EstateCompare = () => {
 
         const summaryResult = await fetchPropertyCompare(user.idx, selected1.propertyId, selected2.propertyId);
         setProPertyCompareData(summaryResult?.data?.compareSummary);
-
-        console.log("estate1", selected1)
-        console.log("estate2", selected2)
-        console.log("summaryResult", summaryResult?.data?.compareSummary)
       } catch (err) {
         console.error('비교 데이터 로딩 실패:', err);
       } finally {
@@ -96,12 +88,6 @@ const EstateCompare = () => {
     [lastCompared2?.propertyId]: estateScores[lastCompared2?.propertyId]?.[key] || 0,
     fullMark: 100,
   }));
-
-
-  useEffect(() => {
-    console.log(chartData)
-    console.log("estatescore: ", estateScores)
-  }, [chartData])
 
   return (
     <div className="region-compare-total-container">

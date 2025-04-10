@@ -38,14 +38,11 @@ function AIRecommendModal({ onClose }) {
       leisureScore: filterValues["여가"] / 100,
       // safety: filterValues["안전"] / 100,
     };
-    
-    console.log("request data: ", preferenceData)
 
     setIsLoading(true); // 로딩 시작
     try {
       const result = await fetchAIRecommendedProperties(preferenceData);
       if (result) {
-        console.log("추천 매물 목록:", result.recommendedProperties);
         setRecommendedList(result.recommendedProperties);
       }
     } catch (error) {

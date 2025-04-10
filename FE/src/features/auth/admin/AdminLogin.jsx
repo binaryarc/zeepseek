@@ -16,7 +16,6 @@ const AdminLogin = () => {
   const handleLoginSubmit = (e) => {
     e.preventDefault();
     // 로그인 처리 로직 (예: API 호출)
-    console.log("로그인 시도:", { username, password });
     // 필요하다면 로그인 성공/실패에 따른 추가 처리를 추가합니다.
     handleNaverLogin();
   };
@@ -24,8 +23,6 @@ const AdminLogin = () => {
   const handleNaverLogin = async () => {
       try {
         const userInfo = await adminLogin(username, password); // 응답이 사용자 객체 자체
-        console.log(userInfo.data);
-        console.log(userInfo.data.user.idx)
         const { accessToken, user: userInfoData } = userInfo.data;
 
         
@@ -45,8 +42,7 @@ const AdminLogin = () => {
           navigate("/main");
         }
         
-      } catch (error) {
-        console.error("네이버 로그인 처리 실패:", error);
+      } catch {
         navigate("/login");
       }
     }

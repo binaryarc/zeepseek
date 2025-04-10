@@ -71,7 +71,6 @@ const roomListSlice = createSlice({
     },
     setSearchLock: (state, action) => {
       state.searchLock = action.payload;
-      console.log("searchLock", state.searchLock);
     },
     setSelectedPropertyId: (state, action) => {
       state.selectedPropertyId = action.payload;
@@ -84,7 +83,7 @@ const roomListSlice = createSlice({
       state.currentDongName = action.payload.dongName;
     },
     setRoomsFromGridResult: (state, action) => {
-      const allProperties = action.payload.flatMap(item => item.properties);
+      const allProperties = action.payload.flatMap((item) => item.properties);
       state.rooms = allProperties;
       state.currentPage = 1;
     },

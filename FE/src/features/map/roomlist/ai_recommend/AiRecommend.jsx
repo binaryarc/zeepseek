@@ -182,8 +182,6 @@ const AiRecommend = () => {
       leisureScore: filterValues["여가"] / 100,
     };
 
-    console.log("request data: ", preferenceData);
-
     setIsLoading(true); // 로딩 시작
 
     try {
@@ -202,19 +200,12 @@ const AiRecommend = () => {
           })
         );
 
-        
-
-        console.log("전체 추천 결과: ", result);
-        console.log("추천 매물 목록:", result.recommendedProperties);
-        console.log("detailedList: ", detailedList)
-
         dispatch(setAiRecommendedList(detailedList));
         dispatch(setFilterValues({ ...filterValues }));
 
         // setRecommendedList(detailedList);
         setIsRecoDone(true);
         setMaxType(result.maxType);
-        console.log("user정보: ", user);
       }
     } catch (error) {
       console.error("추천 실패:", error);
@@ -239,32 +230,29 @@ const AiRecommend = () => {
     const effectiveFacilityType = selectedFacilityType || maxType;
     const emoji = emojiMap[effectiveFacilityType] || "📍";
   
-    try {
-      const response = await fetchNearbyPlaces(
-        effectiveFacilityType,
-        room.longitude,
-        room.latitude
-      );
-  
-      nearbyMarkersRef.current.forEach((marker) => marker.setMap(null));
-  
-      const newMarkers = (response.data || []).map(({ latitude, longitude }) => {
-        const content = `
-          <div style="font-size: 24px; transform: translate(-50%, -100%)">
-            ${emoji}
-          </div>`;
-        return new window.kakao.maps.CustomOverlay({
-          position: new window.kakao.maps.LatLng(latitude, longitude),
-          content,
-          yAnchor: 1,
-        });
+    const response = await fetchNearbyPlaces(
+      effectiveFacilityType,
+      room.longitude,
+      room.latitude
+    );
+
+    nearbyMarkersRef.current.forEach((marker) => marker.setMap(null));
+
+    const newMarkers = (response.data || []).map(({ latitude, longitude }) => {
+      const content = `
+        <div style="font-size: 24px; transform: translate(-50%, -100%)">
+          ${emoji}
+        </div>`;
+      return new window.kakao.maps.CustomOverlay({
+        position: new window.kakao.maps.LatLng(latitude, longitude),
+        content,
+        yAnchor: 1,
       });
-  
-      newMarkers.forEach((marker) => marker.setMap(window.map));
-      nearbyMarkersRef.current = newMarkers;
-    } catch (err) {
-      console.error("시설 마커 갱신 에러:", err);
-    }
+    });
+
+    newMarkers.forEach((marker) => marker.setMap(window.map));
+    nearbyMarkersRef.current = newMarkers;
+
   };
   
   // 시설 타입 변경 시 마커만 갱신
@@ -315,37 +303,32 @@ const AiRecommend = () => {
     });
     circle.setMap(window.map);
     circleOverlayRef.current = circle;
+    const effectiveFacilityType = selectedFacilityType || maxType;
+    const emoji = emojiMap[effectiveFacilityType] || "📍";
 
-    try {
-      const effectiveFacilityType = selectedFacilityType || maxType;
-      const emoji = emojiMap[effectiveFacilityType] || "📍";
+    const response = await fetchNearbyPlaces(
+      effectiveFacilityType,
+      item.longitude,
+      item.latitude
+    );
 
-      const response = await fetchNearbyPlaces(
-        effectiveFacilityType,
-        item.longitude,
-        item.latitude
-      );
+    // const imageSrc = `/images/icons/${maxType}.png`;
+    // const imageSize = new window.kakao.maps.Size(30, 30);
+    // const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize);
 
-      // const imageSrc = `/images/icons/${maxType}.png`;
-      // const imageSize = new window.kakao.maps.Size(30, 30);
-      // const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize);
-
-      const newMarkers = (response.data || []).map(({ latitude, longitude }) => {
-        const content = `
-          <div style="font-size: 24px; transform: translate(-50%, -100%)">
-            ${emoji}
-          </div>`;
-        return new window.kakao.maps.CustomOverlay({
-          position: new window.kakao.maps.LatLng(latitude, longitude),
-          content,
-          yAnchor: 1,
-        });
+    const newMarkers = (response.data || []).map(({ latitude, longitude }) => {
+      const content = `
+        <div style="font-size: 24px; transform: translate(-50%, -100%)">
+          ${emoji}
+        </div>`;
+      return new window.kakao.maps.CustomOverlay({
+        position: new window.kakao.maps.LatLng(latitude, longitude),
+        content,
+        yAnchor: 1,
       });
-      newMarkers.forEach((marker) => marker.setMap(window.map));
-      nearbyMarkersRef.current = newMarkers;
-    } catch (err) {
-      console.error("시설 마커 에러:", err);
-    }
+    });
+    newMarkers.forEach((marker) => marker.setMap(window.map));
+    nearbyMarkersRef.current = newMarkers;
 
     setSelectedRoom(item);
   };
@@ -363,20 +346,20 @@ const AiRecommend = () => {
   
 
   return (
-    <ProtectedPage
-        message={
-          <>
-            로그인 후<br />
-            이용하실 수 <br />
-            있습니다
-          </>
-        }
-      >
     <div className="ai-filter-container">
       <DongNameMarkers map={window.map} />
       <GuNameMarkers map={window.map} />
       {!isRecoDone && !isLoading && (
         <div className="slider-section">
+              <ProtectedPage
+            message={
+              <>
+                로그인 후
+                이용하실 수
+                있습니다
+              </>
+            }
+          >
           <h3 className="recommend-title">나랑 딱 맞는 매물 찾기</h3>
           <div className="option-section">
           <div className="button-select-group">
@@ -488,6 +471,7 @@ const AiRecommend = () => {
                 }}
               />
             </div>
+            
           ))}
           <button
             className="recommend-search-btn"
@@ -495,7 +479,9 @@ const AiRecommend = () => {
           >
             나에게 맞는 추천 받기
           </button>
+          </ProtectedPage>
         </div>
+        
       )}
 
       {isLoading && (
@@ -585,7 +571,7 @@ const AiRecommend = () => {
         </div>
       )}
     </div>
-    </ProtectedPage>
+   
   );
 };
 
