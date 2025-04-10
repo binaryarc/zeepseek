@@ -130,7 +130,7 @@ const MainListingSection = () => {
               {dongName}
             </span>
             &ensp;매물 
-          </> : <span>로그인이 필요한 기능 입니다</span>}
+          </> : null}
           
         </>
     </p>
