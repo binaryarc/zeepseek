@@ -15,7 +15,6 @@ import com.zeepseek.backend.domain.zzim.document.PropertyZzimDoc;
 import com.zeepseek.backend.domain.zzim.service.ZzimService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.log4j.Log4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
@@ -81,6 +80,9 @@ public class RecommendationServiceImpl implements RecommendationService {
             logger.warn("쿠키가 없습니다. 기본 인구통계 정보를 사용합니다.");
         }
 
+        // 캐시 키 로깅 - getCacheKey() 호출
+        logger.info("생성된 캐시 키: {}", requestDto.getCacheKey());
+
         // 2) 추천 API 호출 및 raw JSON String으로 받기
         String rawJson = recommendationWebClient.post()
                 .body(Mono.just(requestDto), UserRecommendationRequestDto.class)
@@ -119,7 +121,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         List<RecommendationDto> recList = originalResponse.getRecommendedProperties();
 
-        // ★ 주의: 여기서는 찜 여부(liked)는 기본값(false)으로 설정(이후 후처리로 최신화)
+        // ★ 주의: 여기서는 찜 여부(liked)는 기본값(false)으로 설정 (후처리로 최신화)
         List<DetailedRecommendationDto> detailedList = new ArrayList<>();
 
         for (RecommendationDto rec : recList) {
@@ -154,7 +156,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 dto.setLongitude(property.getLongitude());
                 dto.setSimilarity(rec.getSimilarity());
 
-                // 찜 여부는 기본값(false)로 초기화(후처리 단계에서 별도로 업데이트)
+                // 찜 여부는 기본값(false)로 초기화 (후처리 단계에서 별도로 업데이트)
                 dto.setLiked(false);
 
                 detailedList.add(dto);
@@ -187,7 +189,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     /**
-     * 캐싱된 추천 결과를 받아온 뒤, 찜 여부를 후처리하여 반환하는 wrapper 메서드
+     * 캐시된 추천 결과를 받아온 뒤, 찜 여부를 후처리하여 반환하는 wrapper 메서드
      * (이 메서드를 컨트롤러에서 호출할 경우, 캐싱된 추천 결과에 대해 최신 찜 정보를 업데이트할 수 있습니다.)
      */
     public DetailedRecommendationResponseDto getRecommendationsWithUpdatedLikes(UserRecommendationRequestDto requestDto, HttpServletRequest request) {
