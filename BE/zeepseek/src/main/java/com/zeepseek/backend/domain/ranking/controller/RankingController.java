@@ -9,6 +9,8 @@ import com.zeepseek.backend.domain.ranking.dto.RankingResponse;
 import com.zeepseek.backend.domain.ranking.service.RankingService;
 import com.zeepseek.backend.domain.search.document.LogDocument;
 import com.zeepseek.backend.domain.search.service.LogSearchService;
+import com.zeepseek.backend.domain.user.entity.UserPreferences;
+import com.zeepseek.backend.domain.user.service.UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +30,7 @@ public class RankingController {
     private final LogSearchService logSearchService;
     private final DongService dongService;
     private final PropertyService propertyService;
+    private final UserServiceImpl userService;
     /**
      * 특정 dongId에 대해 ranking score가 높은 상위 5개 propertyId와 score를 조회합니다.
      *
@@ -38,6 +41,8 @@ public class RankingController {
     public ResponseEntity<?> getTop5Ranking(@PathVariable int userId) {
         LogDocument logDocument = logSearchService.getLatestUserLog(userId);
         String dongId = "11410555";
+        UserPreferences userPreferences = userService.findByUserId(userId);
+        if(userPreferences != null) dongId = String.valueOf(userPreferences.getDongId());
         if(logDocument != null) dongId = logDocument.getDongId();
 
         DongInfoDocs dongInfo = dongService.getDongDetail(Integer.parseInt(dongId));

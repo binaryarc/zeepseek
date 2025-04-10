@@ -366,4 +366,8 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(id)
                 .map(u -> u.getIsFirst() == 0).orElse(false);
     }
+
+    public UserPreferences findByUserId(Integer userId) {
+        return userPreferencesRepository.findById(userId).orElse(null);
+    }
 }

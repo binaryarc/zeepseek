@@ -2,6 +2,7 @@ package com.zeepseek.backend.domain.user.service;
 
 import com.zeepseek.backend.domain.user.dto.UserDto;
 import com.zeepseek.backend.domain.user.dto.UserProfileDto;
+import com.zeepseek.backend.domain.user.entity.UserPreferences;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -35,4 +36,6 @@ public interface UserService {
      * 프로필 완료 여부 확인 (첫 로그인 여부)
      */
     boolean isProfileComplete(Integer userId);
+
+    UserPreferences findByUserId(Integer userId);
 }
