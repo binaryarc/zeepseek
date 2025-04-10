@@ -47,7 +47,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/auth/redirect").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/auth/random-nickname").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/refresh").permitAll()
-
+                        
                         // property 하위 모든 엔드포인트 허용
                         .requestMatchers("/api/v1/property/**").permitAll()
 

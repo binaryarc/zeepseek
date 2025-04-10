@@ -30,7 +30,7 @@ public class NicknameServiceImpl implements NicknameService {
         String wordB = GROUP_B.get(random.nextInt(GROUP_B.size()));
 
         // 두 단어 조합
-        String nickname = wordA + " " + wordB;
+        String nickname = wordA + wordB;
         log.info("Generated random nickname: {}", nickname);
 
         return nickname;
