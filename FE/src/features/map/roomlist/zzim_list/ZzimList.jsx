@@ -16,6 +16,7 @@ import { useLayoutEffect } from "react";
 import DongNameMarkers from "../../mainmap/salecountmarkers/DongNameMarkers/DongNameMarkers";
 import GuNameMarkers from "../../mainmap/salecountmarkers/GuNameMarkers/GuNameMarkers";
 import { useRef } from "react";
+import ProtectedPage from "../../../../common/component/ProtectedPage";
 
 const ZzimList = () => {
   const [rooms, setRooms] = useState([]);
@@ -229,10 +230,11 @@ const ZzimList = () => {
 
   return (
     <>
+
       {/* 지도 위 동/구 이름 오버레이 */}
       <DongNameMarkers map={window.map} />
       <GuNameMarkers map={window.map} />
-
+      
       <div className="facility-type-sidebar">
         {[
           { key: "leisure", label: "여가" },
@@ -254,6 +256,15 @@ const ZzimList = () => {
           </button>
         ))}
       </div>
+      <ProtectedPage
+        message={
+          <>
+            로그인 후<br />
+            이용하실 수 <br />
+            있습니다
+          </>
+        }
+      >
       {rooms.length === 0 ? (
         <div className="no-result-message">💔 찜한 매물이 없습니다.</div>
       ) : (
@@ -287,8 +298,9 @@ const ZzimList = () => {
                 </button>
               </div>
             </div>
+            
           ))}
-
+          
           {/* ✅ 페이지네이션 전체를 포함하는 fragment 닫힘 필요 */}
           {rooms.length > pageSize && (
             <div className="pagination">
@@ -329,8 +341,9 @@ const ZzimList = () => {
             </div>
           )}
         </>
+        
       )}
-
+     </ProtectedPage>
       {/* {selectedPropertyId && <RoomDetail propertyId={selectedPropertyId} />} */}
     </>
   );
