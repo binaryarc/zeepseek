@@ -84,6 +84,12 @@ public class UserServiceImpl implements UserService {
         if (dto.getGender() != null) u.setGender(dto.getGender());
         if (dto.getAge()    != null) u.setAge(dto.getAge());
 
+        // 닉네임 업데이트 로직 추가 - survey 엔드포인트와 동일하게 처리
+        if (dto.getNickname() != null && !dto.getNickname().trim().isEmpty()) {
+            u.setNickname(dto.getNickname());
+            log.info("Nickname updated for user {}: {}", userId, dto.getNickname());
+        }
+
         User savedUser = userRepository.save(u);
 
         UserPreferences pref = userPreferencesRepository.findById(userId)
@@ -99,7 +105,7 @@ public class UserServiceImpl implements UserService {
         // 반환 DTO 구성
         UserProfileDto profile = UserProfileDto.builder()
                 .gender(savedUser.getGender()).age(savedUser.getAge())
-                .location(pref.getDestination()).build();
+                .location(pref.getDestination()).nickname(savedUser.getNickname()).build(); // 닉네임 추가
 
         List<String> sel = new ArrayList<>();
         if (pref.getSafe()        > 0) sel.add("safe");
