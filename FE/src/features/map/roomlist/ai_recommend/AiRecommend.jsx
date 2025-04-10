@@ -21,6 +21,7 @@ import {
 } from "../../../../store/slices/roomListSlice";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
+import ProtectedPage from "../../../../common/component/ProtectedPage";
 
 const AiRecommend = () => {
   const [roomType, setRoomType] = useState("원룸");
@@ -362,6 +363,15 @@ const AiRecommend = () => {
   
 
   return (
+    <ProtectedPage
+        message={
+          <>
+            로그인 후<br />
+            이용하실 수 <br />
+            있습니다
+          </>
+        }
+      >
     <div className="ai-filter-container">
       <DongNameMarkers map={window.map} />
       <GuNameMarkers map={window.map} />
@@ -575,6 +585,7 @@ const AiRecommend = () => {
         </div>
       )}
     </div>
+    </ProtectedPage>
   );
 };
 

@@ -154,9 +154,12 @@ function MainPage() {
       </div>
 
       {/* Top5 매물 섹션 */}
-      <div id="listing-section">
-        <Top5ListingSection />
-      </div>
+      {user ? 
+        <div id="listing-section">
+          <Top5ListingSection />
+        </div> : null}
+      
+      
 
       {showArrow && (
         <div className="double-arrow" onClick={handleScrollToBottom}>
