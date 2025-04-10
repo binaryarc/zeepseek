@@ -116,22 +116,23 @@ const MainListingSection = () => {
   return (
     <section className="main-listing-section">
     <p className="main-listing-subtitle">
-      {user ? (
+      
         <>
           <h1><img className="zeepai-main" src= {zeepai} alt="zeepai" />ZEEPSEEK <span className="highlight-ai">AI</span>가 추천하는 매물</h1>
-          <strong> {user.nickname}</strong> 님과 같은&ensp;
-          <span className="user-tag">
-            {Math.floor(user.age / 10) * 10}대  {user.gender === 1 ? "남성" : "여성"}
-          </span>
-          이 많이 본&ensp;
-          <span className="user-tag">
-            {dongName}
-          </span>
-          &ensp;매물
+          {user ?
+          <>
+            <strong> {user.nickname}</strong> 님과 같은&ensp;
+            <span className="user-tag">
+              {Math.floor(user.age / 10) * 10}대  {user.gender === 1 ? "남성" : "여성"}
+            </span>
+            이 많이 본&ensp;
+            <span className="user-tag">
+              {dongName}
+            </span>
+            &ensp;매물 
+          </> : <span>로그인이 필요한 기능 입니다</span>}
+          
         </>
-      ) : (
-        "로그인이 필요한 서비스입니다!"
-      )}
     </p>
       <div className="listing-container-wrapper">
         <button className="scroll-button left" onClick={handleScrollLeft}>
