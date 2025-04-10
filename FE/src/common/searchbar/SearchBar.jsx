@@ -130,7 +130,6 @@ function Searchbar() {
               <div className="nav-dropdown">
                 <div onClick={() => handleMenuClick("/mypage")}>마이페이지</div>
                 <div onClick={() => handleMenuClick("/zzim")}>찜한 매물</div>
-                <div onClick={() => handleMenuClick("/profile")}>내 정보 수정</div>
                 <div onClick={handleLogout}>로그아웃</div>
               </div>
             )}

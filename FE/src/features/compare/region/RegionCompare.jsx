@@ -130,7 +130,7 @@ function RegionCompare() {
             <div className="region-input-wrapper">
               <input
                 type="text"
-                placeholder="첫 번째 동네 입력"
+                placeholder="동네 ①"
                 value={
                   selectedRegion1
                     ? `${selectedRegion1.guName} ${selectedRegion1.name}`
@@ -150,7 +150,7 @@ function RegionCompare() {
             <div className="region-input-wrapper">
               <input
                 type="text"
-                placeholder="두 번째 동네 입력"
+                placeholder="동네 ②"
                 value={
                   selectedRegion2
                     ? `${selectedRegion2.guName} ${selectedRegion2.name}`

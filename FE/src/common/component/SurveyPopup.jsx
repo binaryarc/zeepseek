@@ -88,7 +88,6 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
     try {
       const random = await fetchRandomNickname();
       setNickname(random);
-      dispatch(setUser({ ...user, nickname: random })); // 🧠 Redux에도 반영
     } catch {
       alert("랜덤 닉네임을 가져오지 못했어요.");
     }
@@ -143,8 +142,7 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
 
       if (response.success) {
         dispatch(setUser(response.data));
-        setShowAlert(true);
-        // onClose();
+        setShowAlert(true)
       } else {
         alert("설문 제출에 실패했습니다.");
       }

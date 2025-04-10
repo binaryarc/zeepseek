@@ -103,7 +103,7 @@ const EstateCompare = () => {
             <div className="region-input-wrapper">
               <input
                 type="text"
-                placeholder="매물 ① 선택"
+                placeholder="매물 ①"
                 value={selected1 ? selected1.address : ""}
                 readOnly
               />
@@ -119,7 +119,7 @@ const EstateCompare = () => {
             <div className="region-input-wrapper">
               <input
                 type="text"
-                placeholder="매물 ② 선택"
+                placeholder="매물 ②"
                 value={selected2 ? selected2.address : ""}
                 readOnly
               />

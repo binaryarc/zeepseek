@@ -84,6 +84,13 @@ const DetailRegion = ({dongId}) => {
 
   const topScores = getTop3Scores(dongData);
 
+  const lastComment = comments[comments.length - 1];
+  const maxPreviewLength = 10; // 글자 수 제한
+  const previewContent =
+    lastComment?.content?.length > maxPreviewLength
+      ? lastComment.content.slice(0, maxPreviewLength) + "..."
+      : lastComment?.content || "";
+
   return (
     <div className="detail-region-box">
       {!showCommunity ? (
@@ -120,8 +127,9 @@ const DetailRegion = ({dongId}) => {
            
             {comments.length > 0 ? (
               <>
-                <p className="comment-content">{comments[comments.length - 1].nickname}: {comments[comments.length - 1].content}</p>
-                {/* <p className="comment-meta">- C</p> */}
+                <p className="comment-content">
+                  {lastComment.nickname}: {previewContent}
+                </p>
               </>
             ) : (
               <p className="comment-content">아직 댓글이 없어요.</p>
