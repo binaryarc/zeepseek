@@ -140,7 +140,7 @@ function MainPage() {
           className="main-button-bottom"
           onClick={() => handleProtectedMove("/compare")}
         >
-          <p className="main-button-text">동네 비교</p>
+          <p className="main-button-text">동네/매물 비교</p>
           <img
             src={compare_estate}
             alt="동네 비교"

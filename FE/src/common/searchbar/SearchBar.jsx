@@ -108,7 +108,7 @@ function Searchbar() {
       <div className="nav-searchbox">
         <input
           type="text"
-          placeholder="서울 내 지역, 매물번호를 검색하세요!"
+          placeholder="서울 내 지역을 검색하세요!"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -122,8 +122,7 @@ function Searchbar() {
         <div className="nav-right">
           <div className="nav-menu">
             <span onClick={() => navigate("/map")}>지도</span>
-            <span onClick={() => navigate("/zzim")}>찜</span>
-            <span onClick={() => navigate("/compare")}>동네비교</span>
+            <span onClick={() => navigate("/compare")}>동네/매물 비교</span>
           </div>
           <div className="nav-user-area" onClick={handleToggleDropdown}>
             <FaRegUserCircle size={22} style={{ marginRight: "6px" }} />
