@@ -49,7 +49,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     @Override
-    @Cacheable(value = "recommendations", unless = "#result == null")
+    @Cacheable(value = "recommendations", key = "#requestDto.getCacheKey()", unless = "#result == null")
     public DetailedRecommendationResponseDto getRecommendations(UserRecommendationRequestDto requestDto, HttpServletRequest request) {
         // 1) 쿠키에서 age, gender, userId 정보 추출 (생략 없이 기존 로직 사용)
         if (request.getCookies() != null) {
