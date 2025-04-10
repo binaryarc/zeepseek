@@ -7,17 +7,36 @@ import "./SurveyPopup.css";
 import AlertModal from "./AlertModal";
 import { fetchRandomNickname } from "../../common/api/api";
 const GENDERS = ["남자", "여자"];
-const CONSIDERATIONS = ["안전", "편의", "여가", "대중교통", "식당", "카페", "보건", "치킨집"];
+const CONSIDERATIONS = [
+  "안전",
+  "편의",
+  "여가",
+  "대중교통",
+  "식당",
+  "카페",
+  "보건",
+  "치킨집",
+];
 
 const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
-    const [gender, setGender] = useState(initialData.gender === 1 ? "남자" : initialData.gender === 0 ? "여자" : "");
-    const [age, setAge] = useState(initialData.age ? String(initialData.age) : "");
-    const [location, setLocation] = useState(initialData.location || "");
-    const [selectedConsiders, setSelectedConsiders] = useState(
+  const [gender, setGender] = useState(
+    initialData.gender === 1 ? "남자" : initialData.gender === 0 ? "여자" : ""
+  );
+  const [age, setAge] = useState(
+    initialData.age ? String(initialData.age) : ""
+  );
+  const [location, setLocation] = useState(initialData.location || "");
+  const [selectedConsiders, setSelectedConsiders] = useState(
     initialData.preferences?.map((pref) => {
       const map = {
-        safe: "안전", convenience: "편의", leisure: "여가", transport: "대중교통",
-        restaurant: "식당", cafe: "카페", health: "보건", chicken: "치킨집"
+        safe: "안전",
+        convenience: "편의",
+        leisure: "여가",
+        transport: "대중교통",
+        restaurant: "식당",
+        cafe: "카페",
+        health: "보건",
+        chicken: "치킨집",
       };
       return map[pref];
     }) || []
@@ -52,7 +71,6 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
       alert("랜덤 닉네임을 가져오지 못했어요.");
     }
   };
-  
 
   const handleSubmit = async () => {
     if (!gender || !age || !location) {
@@ -64,24 +82,31 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
     if (!location.startsWith("서울")) {
       return alert("서울지역만 입력 가능합니다.");
     }
-  
+
     const genderValue = gender === "남자" ? 1 : 0;
     const ageValue = parseInt(age);
     const preferenceMap = {
-      안전: "safe", 편의: "convenience", 여가: "leisure", 대중교통: "transport",
-      식당: "restaurant", 카페: "cafe", 보건: "health", 치킨집: "chicken",
+      안전: "safe",
+      편의: "convenience",
+      여가: "leisure",
+      대중교통: "transport",
+      식당: "restaurant",
+      카페: "cafe",
+      보건: "health",
+      치킨집: "chicken",
     };
-      
+
     const surveyData = {
       gender: genderValue,
       age: ageValue,
       location,
-      preferences: selectedConsiders.map((item) => preferenceMap[item]).filter(Boolean),
+      preferences: selectedConsiders
+        .map((item) => preferenceMap[item])
+        .filter(Boolean),
       nickname: nickname,
     };
-  
+
     try {
-  
       let response;
       if (mode === "edit") {
         // 수정일 때는 patch 요청 (auth/{user.idx})
@@ -90,7 +115,7 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
         // 최초 입력일 때는 post 요청
         response = await postSurvey(surveyData, accessToken);
       }
-  
+
       if (response.success) {
         dispatch(setUser(response.data));
         setShowAlert(true)
@@ -105,47 +130,41 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
   return (
     <div className="survey-overlay">
       <div className="survey-box">
-      <h2>{mode === "edit" ? "정보를 수정해볼까요?" : "반가워요!"}</h2>
+        <h2>{mode === "edit" ? "정보를 수정해볼까요?" : "반가워요!"}</h2>
         <p>
-        {mode === "edit"
+          {mode === "edit"
             ? "회원님의 정보에 맞게 집을 추천해드릴게요!"
             : "정보를 입력하면 딱 맞는 매물을 추천해드릴게요😉"}
         </p>
-          <label>닉네임</label>
+        <label>닉네임</label>
         <div style={{ display: "flex", gap: "0.5rem" }}>
-        <input
-          type="text"
-          value={nickname}
-          onChange={(e) => {
-            setNickname(e.target.value);
-            dispatch(setUser({ ...user, nickname: e.target.value }));
-          }}
-          placeholder="닉네임을 입력하세요"
-          className="nickname-input"
-          readOnly={mode === "edit"} // 👈 수정 모드에서는 읽기 전용
-        />
+          <input
+            type="text"
+            value={nickname}
+            onChange={(e) => {
+              setNickname(e.target.value);
+              dispatch(setUser({ ...user, nickname: e.target.value }));
+            }}
+            placeholder="닉네임을 입력하세요"
+            className="nickname-input"
+          />
 
-        <button
-          type="button"
-          onClick={handleRandomNickname}
-          className="surveyserachbtn"
-          disabled={mode === "edit"} // 👈 수정 모드일 땐 버튼 비활성화
-        >
-          랜덤 생성
-        </button>
+          <button
+            type="button"
+            onClick={handleRandomNickname}
+            className="surveyserachbtn"
+          >
+            랜덤 생성
+          </button>
         </div>
-        
-        {mode === "edit" && (
-          <p style={{ fontSize: "0.9rem", color: "gray", marginTop: "0.2rem" }}>
-            닉네임은 수정할 수 없어요.
-          </p>
-        )}
 
         <label>성별</label>
         <select value={gender} onChange={(e) => setGender(e.target.value)}>
           <option value="">선택</option>
           {GENDERS.map((g, i) => (
-            <option key={i} value={g}>{g}</option>
+            <option key={i} value={g}>
+              {g}
+            </option>
           ))}
         </select>
 
@@ -153,7 +172,9 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
         <select value={age} onChange={(e) => setAge(e.target.value)}>
           <option value="">선택</option>
           {[...Array(40)].map((_, i) => (
-            <option key={i} value={i + 18}>{i + 18}세</option>
+            <option key={i} value={i + 18}>
+              {i + 18}세
+            </option>
           ))}
         </select>
 
@@ -170,10 +191,15 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
               border: "1px solid #ccc",
               borderRadius: "0.5rem",
               fontFamily: "KOROAD",
-              fontSize: '1.1rem',
+              fontSize: "1.1rem",
             }}
           />
-          <button onClick={() => setIsPostcodeOpen(true)} className="surveyserachbtn">검색</button>
+          <button
+            onClick={() => setIsPostcodeOpen(true)}
+            className="surveyserachbtn"
+          >
+            검색
+          </button>
         </div>
 
         {isPostcodeOpen && (
@@ -182,8 +208,6 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
             <button onClick={() => setIsPostcodeOpen(false)}>닫기</button>
           </div>
         )}
-
-
 
         <label>매물 고려사항 (최대 3개)</label>
         <div className="consideration-grid">
@@ -200,23 +224,26 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
         </div>
 
         <button
-          className={`start-button ${!isFormValid ? 'disabled' : ''}`}
+          className={`start-button ${!isFormValid ? "disabled" : ""}`}
           onClick={handleSubmit}
           disabled={!isFormValid}
         >
           {mode === "edit" ? "수정하기" : "시작하기"}
         </button>
 
-
-
         {mode === "edit" && (
-          <button className="survey-close-btn" onClick={onClose}>✖</button>
+          <button className="survey-close-btn" onClick={onClose}>
+            ✖
+          </button>
         )}
-
       </div>
       {showAlert && (
         <AlertModal
-          message={mode === "edit" ? "정보 수정이 완료되었습니다!" : "설문이 완료되었습니다"}
+          message={
+            mode === "edit"
+              ? "정보 수정이 완료되었습니다!"
+              : "설문이 완료되었습니다"
+          }
           buttonText="확인"
           onClose={() => {
             setShowAlert(false);
@@ -224,7 +251,7 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
           }}
         />
       )}
-    </div>    
+    </div>
   );
 };
 
