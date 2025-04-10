@@ -8,7 +8,9 @@ import { deleteOAuth } from "../../common/api/authApi";
 import naverlogo from '../../assets/logo/naver.png'
 import kakaologo from '../../assets/logo/kakao.png'
 import SurveyPopup from "../../common/component/SurveyPopup";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import AlertModal from "../../common/component/AlertModal";
+import ConfirmModal from "../../common/component/ConfirmModal";
 
 const MyPage = () => {
   const navigate = useNavigate();
@@ -18,6 +20,9 @@ const MyPage = () => {
   const nickname = user?.nickname || '로그인 유저';
   const [showSurvey, setShowSurvey] = useState(false);
   const dispatch = useDispatch()
+  const [alertMessage, setAlertMessage] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false);
+
   const getSocialLogo = (provider) => {
     switch (provider) {
       case 'naver':
@@ -35,15 +40,20 @@ const MyPage = () => {
 
   };
 
-  const handleUserDelete = async () => {
-    const confirmDelete = window.confirm("정말 탈퇴하시겠습니까? 😢");
-  
-    if (!confirmDelete) return; // ❌ 취소하면 함수 종료
-  
-    await deleteOAuth(user.idx, accessToken);
-    dispatch(logout());
-    navigate("/main");
+  const handleUserDelete = () => {
+    setShowConfirm(true); // 👉 모달 열기
+  };
 
+  const handleConfirmDelete = async () => {
+    try {
+      await deleteOAuth(user.idx, accessToken);
+      dispatch(logout());
+      setAlertMessage("회원 탈퇴가 완료되었습니다.");
+    } catch {
+      setAlertMessage("탈퇴 중 문제가 발생했습니다.");
+    } finally {
+      setShowConfirm(false); // 모달 닫기
+    }
   };
 
   return (
@@ -90,6 +100,25 @@ const MyPage = () => {
         <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
         <button className="withdraw-btn" onClick={handleUserDelete}>회원 탈퇴</button>
       </div>
+
+      {showConfirm && (
+        <ConfirmModal
+          message="정말 탈퇴하시겠습니까? 😢"
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setShowConfirm(false)}
+        />
+      )}
+      
+      {alertMessage && (
+        <AlertModal
+          message={alertMessage}
+          buttonText="확인"
+          onClose={() => {
+            setAlertMessage("");
+            navigate("/main");
+          }}
+        />
+      )}
     </div>
   );
 };
