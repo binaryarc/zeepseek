@@ -48,8 +48,7 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
       const random = await fetchRandomNickname();
       setNickname(random);
       dispatch(setUser({ ...user, nickname: random })); // 🧠 Redux에도 반영
-    } catch (err) {
-      console.error("랜덤 닉네임 오류:", err);
+    } catch {
       alert("랜덤 닉네임을 가져오지 못했어요.");
     }
   };
@@ -82,7 +81,6 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
     };
   
     try {
-      console.log("보낼 surveyData:", surveyData);
   
       let response;
       if (mode === "edit") {
@@ -100,8 +98,7 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
       } else {
         alert("설문 제출에 실패했습니다.");
       }
-    } catch (err) {
-      console.error("설문 오류:", err);
+    } catch {
       alert("서버와의 연결에 실패했습니다.");
     }
   };

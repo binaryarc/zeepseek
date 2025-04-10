@@ -24,9 +24,7 @@ const RoomDetail = ({ propertyId }) => {
   );
 
   useEffect(() => {
-    console.log("받은 propertyId:", propertyId);
     const fetchDetail = async () => {
-      console.log("RoomDetail에서 받은 propertyId:", propertyId);
 
       // AI 추천 탭에서 받은 매물일 경우
       if (aiRecommendedRoom) {
@@ -44,13 +42,10 @@ const RoomDetail = ({ propertyId }) => {
 
 
       const data = await getPropertyDetail(propertyId);
-      console.log("받은 상세 데이터:", data);
       if (data) setDetail(data);
-      console.log("요청 보낼 정보:", user?.idx, data?.latitude, data?.longitude);
 
       // ✅ 통근 시간 요청 (userId + 매물 좌표)
-      if (user.idx && data.latitude && data.longitude) {
-        console.log('여기옴?')
+      if (user?.idx && data.latitude && data.longitude) {
 
         const commuteData = await fetchCommuteTime({
           userId: user.idx,

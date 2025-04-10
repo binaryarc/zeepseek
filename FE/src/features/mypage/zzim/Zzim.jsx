@@ -41,7 +41,6 @@ const Zzim = () => {
         return acc;
       }, {});
       setGroupedZzims(grouped);
-      console.log(groupedZzims);
     });
   }, [user?.idx, flag]);
 
@@ -78,12 +77,9 @@ const Zzim = () => {
     const { propertyId } = room;
     if (user === null) return alert("로그인이 필요합니다.");
 
-    try {
-      await unlikeProperty(propertyId, user.idx);
-      setFlag((prevFlag) => !prevFlag);
-    } catch (err) {
-      console.error("찜 취소 실패:", err);
-    }
+    await unlikeProperty(propertyId, user.idx);
+    setFlag((prevFlag) => !prevFlag);
+
   };
 
   // 카드 클릭 시: Redux에 선택된 매물 정보 및 검색 키워드(주소) 업데이트 후 map 페이지로 이동

@@ -7,6 +7,7 @@ import { TfiArrowCircleLeft, TfiArrowCircleRight } from "react-icons/tfi";
 import defaultImg from "../../../assets/logo/512image.png"
 import { useNavigate } from "react-router-dom";
 import zeepai from "../../../assets/images/zeepai.png"
+import ProtectedPage from "../../../common/component/ProtectedPage";
 
 const MainListingSection = () => {
   const user = useSelector((state) => state.auth.user);
@@ -85,13 +86,9 @@ const MainListingSection = () => {
   useEffect(() => {
     if (!user) return;
     const fetchRecommendations = async () => {
-      try {
-        const res = await aiRecommendByUserId(user.idx);
-        setDongName(res.data.dongName);
-        setRecommendList(res.data.recommendedProperties);
-      } catch (error) {
-        console.error("추천 매물 정보를 불러오는데 실패했습니다:", error);
-      }
+      const res = await aiRecommendByUserId(user.idx);
+      setDongName(res.data.dongName);
+      setRecommendList(res.data.recommendedProperties);
     };
 
     fetchRecommendations();
@@ -115,7 +112,7 @@ const MainListingSection = () => {
 
   return (
     <section className="main-listing-section">
-    <p className="main-listing-subtitle">
+    <div className="main-listing-subtitle">
       
         <>
           <h1><img className="zeepai-main" src= {zeepai} alt="zeepai" />ZEEPSEEK <span className="highlight-ai">AI</span>가 추천하는 매물</h1>
@@ -133,11 +130,12 @@ const MainListingSection = () => {
           </> : null}
           
         </>
-    </p>
+    </div>
       <div className="listing-container-wrapper">
         <button className="scroll-button left" onClick={handleScrollLeft}>
           <TfiArrowCircleLeft size={32} color="#333" />
         </button>
+        <ProtectedPage className="protect-mainlist">
         {/* 로그인 안했을 경우 블러 효과 적용 */}
         <ul
           className="main-listing-container"
@@ -171,16 +169,11 @@ const MainListingSection = () => {
             />
           ))}
         </ul>
+        </ProtectedPage>
         <button className="scroll-button right" onClick={handleScrollRight}>
           <TfiArrowCircleRight size={32} color="#333" />
         </button>
-        {/* 로그인하지 않은 경우 오버레이 메시지 표시 */}
-        {!user && (
-          <div className="login-overlay">
-            로그인을 해주세요!!<br />
-            로그인을 하시면 추천을 받아보실 수 있습니다!
-          </div>
-        )}
+        
       </div>
     </section>
   );

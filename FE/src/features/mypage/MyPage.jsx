@@ -29,13 +29,10 @@ const MyPage = () => {
     }
   };
   const handleLogout = async () => {
-    try {
-      await logoutOAuth(accessToken);      // 백엔드에 로그아웃 요청
-      dispatch(logout());                  // Redux 상태 초기화
-      navigate("/main");                 // 로그인 페이지로 이동 (선택)
-    } catch (err) {
-      console.error("로그아웃 실패", err);
-    }
+    await logoutOAuth(accessToken);      // 백엔드에 로그아웃 요청
+    dispatch(logout());                  // Redux 상태 초기화
+    navigate("/main");                 // 로그인 페이지로 이동 (선택)
+
   };
 
   const handleUserDelete = async () => {
@@ -43,19 +40,11 @@ const MyPage = () => {
   
     if (!confirmDelete) return; // ❌ 취소하면 함수 종료
   
-    try {
-      await deleteOAuth(user.idx, accessToken);
-      dispatch(logout());
-      navigate("/main");
-    } catch (err) {
-      console.error("회원탈퇴 실패", err);
-    }
+    await deleteOAuth(user.idx, accessToken);
+    dispatch(logout());
+    navigate("/main");
+
   };
-  
-  
-  useEffect(() => {
-    console.log('user:', user)
-  })
 
   return (
     <div className="mypage-container">

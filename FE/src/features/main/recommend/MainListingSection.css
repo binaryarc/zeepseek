@@ -23,7 +23,7 @@
   color: #333;
 }
 
-.main-listing-section > p {
+.main-listing-section > div {
   text-align: left;
   font-size: 20px;
   margin-bottom: 30px;
@@ -116,4 +116,8 @@
 .zeepai-main {
   width: 50px;
   margin-right: 10px;
+}
+
+.protect-mainlist {
+  width: 300px !important;
 }

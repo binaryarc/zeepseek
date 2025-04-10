@@ -33,13 +33,6 @@ const getTop3Scores = (dongData) => {
 };
 
 const DetailRegion = ({dongId}) => {
-  // const dongId = useSelector((state) => state.roomList.currentDongId); // Redux에서 가져오기
-  // const liked = useSelector((state) => {
-  //   const result = state.dongLike?.dongId;
-  //   console.log("💚 현재 동 ID:", dongId, "찜 여부:", result);
-  //   console.log('아아', state)
-  //   return result === true;
-  // });
   const liked = useSelector((state) => state.dongLike[dongId] || false)
   const user = useSelector((state) => state.auth.user);
   const [dongData, setDongData] = useState(null);
@@ -70,18 +63,12 @@ const DetailRegion = ({dongId}) => {
   const handleToggleZzim = async () => {
     if (!user) return alert("로그인이 필요합니다!");
 
-    try {
-      if (liked) {
-        await unlikeDongApi(dongId, user.idx);
-        dispatch(unlikeDong(dongId));
-        console.log("하트 눌러졌으요");
-      } else {
-        await likeDongApi(dongId, user.idx);
-        dispatch(likeDong(dongId));
-        console.log(liked);
-      }
-    } catch (err) {
-      console.error("찜 토글 실패:", err);
+    if (liked) {
+      await unlikeDongApi(dongId, user.idx);
+      dispatch(unlikeDong(dongId));
+    } else {
+      await likeDongApi(dongId, user.idx);
+      dispatch(likeDong(dongId));
     }
   };
 

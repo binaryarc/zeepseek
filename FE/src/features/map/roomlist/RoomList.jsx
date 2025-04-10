@@ -31,11 +31,10 @@ const RoomList = () => {
   //   if (window.clearHoverMarker) {
   //     window.clearHoverMarker();
   //   }
-  
+
   //   // 다른 컴포넌트에서 만든 circle/marker ref는 접근 불가 → 전역에서 관리하거나,
   //   // 각 컴포넌트 언마운트 시 자동 정리되도록 해야 함
   // };
-  
 
   useEffect(() => {
     setSelectedTab(reduxSelectedRoomType);
@@ -80,7 +79,7 @@ const RoomList = () => {
   useEffect(() => {
     const handleClickOutside = (e) => {
       const clickedElement = e.target;
-    
+
       // RoomList 영역도 아니고, RoomDetail도 아닌 경우에만 닫기
       if (
         roomListRef.current &&
@@ -102,38 +101,33 @@ const RoomList = () => {
   let level = 5;
   if (window.isMapReady && typeof window.map?.getLevel === "function") {
     level = window.map.getLevel();
-  } 
+  }
   const user = useSelector((state) => state.auth.user);
 
   const toggleLike = async (room) => {
     const { propertyId } = room;
     if (user === null) return alert("로그인이 필요합니다.");
 
-    try {
-      if (room.liked) {
-        await unlikeProperty(propertyId, user.idx);
-      } else {
-        await likeProperty(propertyId, user.idx);
-      }
-      // ✅ rooms 배열 업데이트
-      const updatedRooms = rooms.map((r) =>
-        r.propertyId === propertyId ? { ...r, liked: !r.liked } : r
-      );
-      dispatch(setRoomList(updatedRooms));
-    } catch (err) {
-      console.error("찜 토글 실패:", err);
+    if (room.liked) {
+      await unlikeProperty(propertyId, user.idx);
+    } else {
+      await likeProperty(propertyId, user.idx);
     }
+    // ✅ rooms 배열 업데이트
+    const updatedRooms = rooms.map((r) =>
+      r.propertyId === propertyId ? { ...r, liked: !r.liked } : r
+    );
+    dispatch(setRoomList(updatedRooms));
   };
 
   const handleTabClick = (tab) => {
-
     // 로그인 필요 탭일 경우 확인
     // const isAuthRequired = tab === "ZEEPSEEK추천" || tab === "찜";
     // if (isAuthRequired && !user?.idx) {
     //   alert("로그인이 필요합니다.");
     //   return;
     // }
-    
+
     // 🔥 탭 바뀌면 지도 마커 정리!
     if (window.clearHoverMarker) window.clearHoverMarker();
     dispatch(setSelectedPropertyId(null));
@@ -141,9 +135,7 @@ const RoomList = () => {
     dispatch(setSelectedRoomType(tab));
 
     if (currentGuName && (currentDongName || currentDongName === "")) {
-      console.log(tab);
       if (level < 6 && level > 3) {
-        console.log("아아아아아아", user.idx);
         dispatch(
           fetchRoomListByBounds({
             guName: currentGuName,
@@ -162,7 +154,6 @@ const RoomList = () => {
           })
         );
       }
-      console.log(currentDongName, currentGuName, "실행돼썽용용");
     }
   };
 
@@ -194,118 +185,117 @@ const RoomList = () => {
   return (
     <div className="room-list" ref={roomListRef}>
       <nav className="room-type">
-        {["원룸/투룸", "오피스텔", "주택/빌라", "ZEEPSEEK추천", "찜"].map((tab) => (
-          <span
-            key={tab}
-            className={selectedTab === tab ? "active-tab" : ""}
-            onClick={() => handleTabClick(tab)}
-          >
-            {tab}
-          </span>
-        ))}
+        {["원룸/투룸", "오피스텔", "주택/빌라", "ZEEPSEEK추천", "찜"].map(
+          (tab) => (
+            <span
+              key={tab}
+              className={selectedTab === tab ? "active-tab" : ""}
+              onClick={() => handleTabClick(tab)}
+            >
+              {tab}
+            </span>
+          )
+        )}
       </nav>
 
       <div className="room-scroll-container">
-      {selectedTab === "ZEEPSEEK추천" ? (
-        <AiRecommend />
-      ) : selectedTab === "찜" ? (
-        <ZzimList />
-      ) : loading ? (
-        <div className="loading-message">
-          <span className="room-spinner" /> 매물 로딩 중...
-        </div>
-      ) : currentRooms.length === 0 ? (
-        <div className="no-result-message">
-          ❗ "{displayKeyword}"에 대한 매물이 없습니다.
-        </div>
-      ) : (
-        <>
-          {currentRooms.map((room) => (
-            <div
-              key={room.propertyId}
-              data-id={room.propertyId} // ✅ 여기!
-              className={`room-item ${
-                selectedPropertyId === room.propertyId ? "selected" : ""
-              }`}
-              onClick={() => {
-                if (room.latitude && room.longitude) {
-                  window.setHoverMarker(room.latitude, room.longitude);
-                }
-                if (selectedPropertyId === room.propertyId) {
-                  console.log("끕니다");
-                  dispatch(setSelectedPropertyId(null)); // 다시 클릭 → 닫기
-                  window.clearHoverMarker();
-                } else {
-                  console.log(selectedPropertyId, room.propertyId);
-                  console.log("켜요요");
-                  dispatch(setSelectedPropertyId(room.propertyId)); // 다른 매물 → 열기
-                }
-              }}
-              // onMouseEnter={() => {
-              //   if (room.latitude && room.longitude) {
-              //     window.setHoverMarker(room.latitude, room.longitude);
-              //   }
-              // }}
-              // onMouseLeave={() => {
-              //   window.clearHoverMarker();
-              // }}
-            >
-              <img src={room.imageUrl || defaultImage} alt="매물 이미지" />
-              <div className="room-info">
-                <p className="room-title">
-                  {room.contractType} {room.price}
-                </p>
-                <p className="room-description">{room.description}</p>
-                <p className="room-address">{room.address}</p>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleLike(room);
-                  }}
-                  className={`like-btn ${room.liked ? "liked" : ""}`} // liked 상태에 따라 클래스를 추가
-                >
-                  {room.liked ? "❤️" : "🤍"}
-                </button>
-              </div>
-            </div>
-          ))}
-          <div className="pagination">
-            <button onClick={() => goToPage(1)} disabled={currentPage === 1}>
-              &laquo;
-            </button>
-            <button
-              onClick={() => goToPage(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              &lsaquo;
-            </button>
-            {Array.from(
-              { length: endPage - startPage + 1 },
-              (_, i) => startPage + i
-            ).map((num) => (
-              <button
-                key={num}
-                className={num === currentPage ? "active" : ""}
-                onClick={() => goToPage(num)}
-              >
-                {num}
-              </button>
-            ))}
-            <button
-              onClick={() => goToPage(currentPage + 1)}
-              disabled={currentPage === totalPages}
-            >
-              &rsaquo;
-            </button>
-            <button
-              onClick={() => goToPage(totalPages)}
-              disabled={currentPage === totalPages}
-            >
-              &raquo;
-            </button>
+        {selectedTab === "ZEEPSEEK추천" ? (
+          <AiRecommend />
+        ) : selectedTab === "찜" ? (
+          <ZzimList />
+        ) : loading ? (
+          <div className="loading-message">
+            <span className="room-spinner" /> 매물 로딩 중...
           </div>
-        </>
-      )}
+        ) : currentRooms.length === 0 ? (
+          <div className="no-result-message">
+            ❗ "{displayKeyword}"에 대한 매물이 없습니다.
+          </div>
+        ) : (
+          <>
+            {currentRooms.map((room) => (
+              <div
+                key={room.propertyId}
+                data-id={room.propertyId} // ✅ 여기!
+                className={`room-item ${
+                  selectedPropertyId === room.propertyId ? "selected" : ""
+                }`}
+                onClick={() => {
+                  if (room.latitude && room.longitude) {
+                    window.setHoverMarker(room.latitude, room.longitude);
+                  }
+                  if (selectedPropertyId === room.propertyId) {
+                    dispatch(setSelectedPropertyId(null)); // 다시 클릭 → 닫기
+                    window.clearHoverMarker();
+                  } else {
+                    dispatch(setSelectedPropertyId(room.propertyId)); // 다른 매물 → 열기
+                  }
+                }}
+                // onMouseEnter={() => {
+                //   if (room.latitude && room.longitude) {
+                //     window.setHoverMarker(room.latitude, room.longitude);
+                //   }
+                // }}
+                // onMouseLeave={() => {
+                //   window.clearHoverMarker();
+                // }}
+              >
+                <img src={room.imageUrl || defaultImage} alt="매물 이미지" />
+                <div className="room-info">
+                  <p className="room-title">
+                    {room.contractType} {room.price}
+                  </p>
+                  <p className="room-description">{room.description}</p>
+                  <p className="room-address">{room.address}</p>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleLike(room);
+                    }}
+                    className={`like-btn ${room.liked ? "liked" : ""}`} // liked 상태에 따라 클래스를 추가
+                  >
+                    {room.liked ? "❤️" : "🤍"}
+                  </button>
+                </div>
+              </div>
+            ))}
+            <div className="pagination">
+              <button onClick={() => goToPage(1)} disabled={currentPage === 1}>
+                &laquo;
+              </button>
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                &lsaquo;
+              </button>
+              {Array.from(
+                { length: endPage - startPage + 1 },
+                (_, i) => startPage + i
+              ).map((num) => (
+                <button
+                  key={num}
+                  className={num === currentPage ? "active" : ""}
+                  onClick={() => goToPage(num)}
+                >
+                  {num}
+                </button>
+              ))}
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                &rsaquo;
+              </button>
+              <button
+                onClick={() => goToPage(totalPages)}
+                disabled={currentPage === totalPages}
+              >
+                &raquo;
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -81,10 +81,6 @@ function SaleCountMarkers({ map }) {
 
       const targetData = currentLevel >= 6 ? guData : dongData;
 
-      // 📌 API 요청
-      // const countData = (currentLevel >= 6)
-      //   ? await fetchGuPropertyCounts()
-      //   : await fetchDongPropertyCounts();
       let countData = [];
 
       if (currentLevel >= 6) {
@@ -92,18 +88,15 @@ function SaleCountMarkers({ map }) {
         countData = await fetchGuPropertyCounts(filterKey);
       } else if (currentLevel < 6 && currentLevel >= 3) {
         if (!filterKey) return;
-        // console.log("dhsl?");
         countData = await fetchDongPropertyCounts(filterKey); // ✅ 파라미터 전달
       }
 
       // 📌 데이터 매핑
       const countMap = {};
       countData.forEach((item) => {
-        // console.log('11',countData)
         if (currentLevel >= 6) {
           countMap[item.guName] = item.propertyCount;
         } else if (currentLevel > 3) {
-          // console.log(item.dongId)
           countMap[String(item.dongId)] = item.propertyCount;
         }
       });
@@ -156,7 +149,6 @@ function SaleCountMarkers({ map }) {
 
         // 🔥 클릭 이벤트는 DOM에 직접 바인딩
         contentDiv.addEventListener("click", () => {
-          console.log("클릭했습니꺼꺼");
           map.setCenter(position);
           map.setLevel(5);
         });

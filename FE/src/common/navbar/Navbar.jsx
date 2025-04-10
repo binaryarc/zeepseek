@@ -29,13 +29,9 @@ function Navbar() {
   };
 
   const handleLogout = async () => {
-    try {
-      await logoutOAuth(accessToken);      // 백엔드에 로그아웃 요청
-      dispatch(logout());                  // Redux 상태 초기화
-      navigate("/main");                 // 로그인 페이지로 이동 (선택)
-    } catch (err) {
-      console.error("로그아웃 실패", err);
-    }
+    await logoutOAuth(accessToken);      // 백엔드에 로그아웃 요청
+    dispatch(logout());                  // Redux 상태 초기화
+    navigate("/main");                 // 로그인 페이지로 이동 (선택)
   };
 
 
@@ -47,10 +43,6 @@ function Navbar() {
     dispatch(setSelectedRoomType("AI 추천")); // ✅ Redux에 탭 상태 저장
     navigate("/map");
   };
-
-  useEffect(() => {
-    // console.log("accessToken:", accessToken);
-  })
 
   return (
     <nav className="nav-navbar">
@@ -65,9 +57,7 @@ function Navbar() {
         <div className="nav-right">
           <div className="nav-menu">
             <span onClick={() => navigate("/map")}>지도</span>
-            <span onClick={() => navigate("/zzim")}>찜</span>
             <span onClick={() => navigate("/compare")}>동네비교</span>
-            <span onClick={() => handleClickRecommendButton()}>추천받기</span>
           </div>
           <div className="nav-user-area" onClick={handleToggleDropdown}>
             <FaRegUserCircle size={22} style={{ marginRight: "6px" }} />

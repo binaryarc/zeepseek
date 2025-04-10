@@ -24,7 +24,6 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
   useEffect(() => {
     const loadComments = async () => {
       const res = await fetchDongComments(dongId);
-      console.log("🧾 댓글 확인:", res); // 👈 이거 찍어보세요!
       setComments(res);
     };
     loadComments();
@@ -58,7 +57,6 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
   };
 
   const handleDelete = async (commentId) => {
-    console.log("🗑 삭제 시도", commentId);
     
     if (!accessToken) return alert("로그인이 필요합니다!");
     const confirmDelete = window.confirm("댓글을 삭제하시겠습니까?");
@@ -171,7 +169,6 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
                     className="bubble-delete"
                     onClick={(e) => {
                       e.stopPropagation(); 
-                      console.log("🧹 삭제 클릭됨!", c.commentId);
                       handleDelete(c.commentId);
                       handleClickOutside();
                     }}
