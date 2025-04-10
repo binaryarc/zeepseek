@@ -46,6 +46,7 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
   const accessToken = useSelector((state) => state.auth.accessToken);
   const user = useSelector((state) => state.auth.user);
   const [nickname, setNickname] = useState(user?.nickname || "");
+  const [nicknameError, setNicknameError] = useState("");
 
   const isFormValid = gender && age && location && selectedConsiders.length > 0;
   const [showAlert, setShowAlert] = useState(false);
@@ -59,6 +60,27 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
       setSelectedConsiders((prev) => prev.filter((c) => c !== item));
     } else if (selectedConsiders.length < 3) {
       setSelectedConsiders((prev) => [...prev, item]);
+    }
+  };
+
+  const isValidNickname = (name) => {
+    const regex = /^[가-힣a-zA-Z0-9]*$/;
+    return name.length <= 8 && regex.test(name);
+  };
+
+  const handleNicknameChange = (e) => {
+    setNickname(e.target.value);
+  };
+
+  const handleNicknameBlur = () => {
+    if (!isValidNickname(nickname)) {
+      if (nickname.length > 8) {
+        setNicknameError("닉네임은 최대 8자까지 입력할 수 있어요.");
+      } else {
+        setNicknameError("닉네임에는 특수문자를 사용할 수 없어요.");
+      }
+    } else {
+      setNicknameError("");
     }
   };
 
@@ -81,6 +103,9 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
     }
     if (!location.startsWith("서울")) {
       return alert("서울지역만 입력 가능합니다.");
+    }
+    if (!isValidNickname(nickname)) {
+      return alert("닉네임은 최대 8자, 특수문자 없이 입력해주세요.");
     }
 
     const genderValue = gender === "남자" ? 1 : 0;
@@ -141,11 +166,9 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
           <input
             type="text"
             value={nickname}
-            onChange={(e) => {
-              setNickname(e.target.value);
-              dispatch(setUser({ ...user, nickname: e.target.value }));
-            }}
-            placeholder="닉네임을 입력하세요"
+            onChange={handleNicknameChange}
+            onBlur={handleNicknameBlur}
+            placeholder="닉네임을 입력하세요(최대 8자, 특수문자 불가)"
             className="nickname-input"
           />
 
@@ -157,6 +180,9 @@ const SurveyPopup = ({ onClose, initialData = {}, mode = "first" }) => {
             랜덤 생성
           </button>
         </div>
+        {nicknameError && (
+          <div className="nickname-error-message">{nicknameError}</div>
+        )}
 
         <label>성별</label>
         <select value={gender} onChange={(e) => setGender(e.target.value)}>

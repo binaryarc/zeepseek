@@ -124,3 +124,10 @@
   cursor: pointer;
   color: #333;
 }
+
+.nickname-error-message {
+  color: red;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  font-family: KOROAD;
+}
