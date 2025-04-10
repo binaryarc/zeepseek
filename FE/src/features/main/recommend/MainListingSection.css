@@ -43,6 +43,7 @@
   list-style: none; /* 기본 ul 스타일 제거 */
   margin: 0;
   background-color: #f9f2f2;
+  /* background-color: #FBF9F2; */
 }
 
 .main-listing-container li {

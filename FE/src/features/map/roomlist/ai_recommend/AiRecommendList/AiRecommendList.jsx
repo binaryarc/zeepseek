@@ -19,6 +19,7 @@ import size from "../../../../../assets/images/detail_png/size.png";
 import direction from "../../../../../assets/images/detail_png/direction.png";
 // import close from "../../../assets/images/detail_png/close.png";
 
+
 const AiRecommendList = ({ room, values, onClose }) => {
   if (!room && !values) return null;
 
@@ -44,6 +45,7 @@ const AiRecommendList = ({ room, values, onClose }) => {
     
 
   return (
+    <ProtectedPage>
     <div className="recommend-modal-overlay">
       <div className="recommend-modal">
         <button className="recommend-modal-close-btn" onClick={onClose}>
@@ -145,6 +147,7 @@ const AiRecommendList = ({ room, values, onClose }) => {
         </div>
       </div>
     </div>
+    </ProtectedPage>
   );
 };
 
