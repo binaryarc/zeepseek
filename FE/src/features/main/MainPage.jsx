@@ -83,7 +83,7 @@ function MainPage() {
       alert("로그인 후 이용해주세요.");
       return;
     }
-    dispatch(setSelectedRoomType("AI 추천")); // ✅ Redux에 탭 상태 저장
+    dispatch(setSelectedRoomType("ZEEPSEEK추천")); // ✅ Redux에 탭 상태 저장
     navigate("/map");
   };
 
@@ -135,6 +135,7 @@ function MainPage() {
             className="main-png-bottom"
           />
         </div>
+
         <div
           className="main-button-bottom"
           onClick={() => handleProtectedMove("/compare")}
