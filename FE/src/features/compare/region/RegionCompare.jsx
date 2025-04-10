@@ -1,7 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import './RegionCompare.css';
-import { fetchDongDetail, fetchRegionSummary, fetchLikedRegions, searchDongByName } from '../../../common/api/api';
-import { useSelector } from 'react-redux';
+import React, { useEffect, useState } from "react";
+import "./RegionCompare.css";
+import {
+  fetchDongDetail,
+  fetchRegionSummary,
+  fetchLikedRegions,
+  searchDongByName,
+} from "../../../common/api/api";
+import { useSelector } from "react-redux";
 import {
   RadarChart,
   PolarGrid,
@@ -10,16 +15,16 @@ import {
   Radar,
   Legend,
   ResponsiveContainer,
-} from 'recharts';
-import zeepai from "../../../assets/images/zeepai.png"
+} from "recharts";
+import zeepai from "../../../assets/images/zeepai.png";
 
 function RegionCompare() {
   const [selectedRegion1, setSelectedRegion1] = useState(null);
   const [selectedRegion2, setSelectedRegion2] = useState(null);
   const [regionScores, setRegionScores] = useState({});
-  const [summary, setSummary] = useState('');
+  const [summary, setSummary] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState("");
   const [likedRegions, setLikedRegions] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
 
@@ -27,19 +32,18 @@ function RegionCompare() {
   const [lastComparedRegion1, setLastComparedRegion1] = useState(null);
   const [lastComparedRegion2, setLastComparedRegion2] = useState(null);
 
-
-  const user = useSelector((state) => state.auth.user)
+  const user = useSelector((state) => state.auth.user);
 
   useEffect(() => {
     const loadLikedRegions = async () => {
       if (!user?.idx) return;
-      
+
       try {
         const res = await fetchLikedRegions(user.idx);
         setLikedRegions(res?.data || []);
-        console.log(likedRegions)
+        console.log(likedRegions);
       } catch (err) {
-        console.error('찜한 동네 불러오기 실패:', err);
+        console.error("찜한 동네 불러오기 실패:", err);
       }
     };
     loadLikedRegions();
@@ -47,7 +51,7 @@ function RegionCompare() {
 
   useEffect(() => {
     const search = async () => {
-      if (searchText.trim() === '') {
+      if (searchText.trim() === "") {
         setSearchResults([]);
         return;
       }
@@ -55,16 +59,16 @@ function RegionCompare() {
         const res = await searchDongByName(searchText);
         setSearchResults(res?.data || []);
       } catch (err) {
-        console.error('검색 실패:', err);
+        console.error("검색 실패:", err);
         setSearchResults([]);
       }
     };
     search();
   }, [searchText]);
 
-  const filteredRegions = likedRegions.filter((region) =>
-    `${region.guName} ${region.name}`.includes(searchText)
-  );
+  // const filteredRegions = likedRegions.filter((region) =>
+  //   `${region.guName} ${region.name}`.includes(searchText)
+  // );
 
   useEffect(() => {
     const fetchCompareData = async () => {
@@ -77,18 +81,25 @@ function RegionCompare() {
           fetchDongDetail(selectedRegion1.dongId),
           fetchDongDetail(selectedRegion2.dongId),
         ]);
-        setRegionScores({ [selectedRegion1.dongId]: data1, [selectedRegion2.dongId]: data2 });
+        setRegionScores({
+          [selectedRegion1.dongId]: data1,
+          [selectedRegion2.dongId]: data2,
+        });
 
         setLastComparedRegion1(selectedRegion1);
         setLastComparedRegion2(selectedRegion2);
 
-        const summaryResult = await fetchRegionSummary(user.idx, selectedRegion1.dongId, selectedRegion2.dongId);
+        const summaryResult = await fetchRegionSummary(
+          user.idx,
+          selectedRegion1.dongId,
+          selectedRegion2.dongId
+        );
         setSummary(summaryResult?.data?.compareSummary);
-        console.log("region1", selectedRegion1)
-        console.log("region2", selectedRegion2)
-        console.log("summaryResult", summaryResult?.data?.compareSummary)
+        console.log("region1", selectedRegion1);
+        console.log("region2", selectedRegion2);
+        console.log("summaryResult", summaryResult?.data?.compareSummary);
       } catch (err) {
-        console.error('비교 데이터 로딩 실패:', err);
+        console.error("비교 데이터 로딩 실패:", err);
       } finally {
         setIsLoading(false);
       }
@@ -97,26 +108,26 @@ function RegionCompare() {
   }, [selectedRegion1, selectedRegion2]);
 
   const scoreLabels = [
-    { label: '편의', key: 'convenience' },
-    { label: '보건', key: 'health' },
-    { label: '여가', key: 'leisure' },
-    { label: '안전', key: 'safe' },
-    { label: '마트', key: 'mart' },
-    { label: '대중교통', key: 'transport' },
-    { label: '식당', key: 'restaurant' },
+    { label: "편의", key: "convenience" },
+    { label: "보건", key: "health" },
+    { label: "여가", key: "leisure" },
+    { label: "안전", key: "safe" },
+    { label: "마트", key: "mart" },
+    { label: "대중교통", key: "transport" },
+    { label: "식당", key: "restaurant" },
   ];
 
   const chartData = scoreLabels.map(({ label, key }) => ({
     subject: label,
-    [lastComparedRegion1?.dongId]: regionScores[lastComparedRegion1?.dongId]?.[key] || 0,
-    [lastComparedRegion2?.dongId]: regionScores[lastComparedRegion2?.dongId]?.[key] || 0,
+    [lastComparedRegion1?.dongId]:
+      regionScores[lastComparedRegion1?.dongId]?.[key] || 0,
+    [lastComparedRegion2?.dongId]:
+      regionScores[lastComparedRegion2?.dongId]?.[key] || 0,
     fullMark: 100,
   }));
-  
 
   return (
     <div className="region-compare-total-container">
-
       <div className="region-compare-wrapper">
         <div className="region-compare-container">
           {isLoading && (
@@ -130,27 +141,43 @@ function RegionCompare() {
               <input
                 type="text"
                 placeholder="첫 번째 동네 입력"
-                value={selectedRegion1 ? `${selectedRegion1.guName} ${selectedRegion1.name}` : ''}
+                value={
+                  selectedRegion1
+                    ? `${selectedRegion1.guName} ${selectedRegion1.name}`
+                    : ""
+                }
                 readOnly
               />
               {selectedRegion1 && (
-                <button className="region-clear-button" onClick={() => setSelectedRegion1(null)}>❌</button>
+                <button
+                  className="region-clear-button"
+                  onClick={() => setSelectedRegion1(null)}
+                >
+                  ❌
+                </button>
               )}
             </div>
             <div className="region-input-wrapper">
               <input
                 type="text"
                 placeholder="두 번째 동네 입력"
-                value={selectedRegion2 ? `${selectedRegion2.guName} ${selectedRegion2.name}` : ''}
+                value={
+                  selectedRegion2
+                    ? `${selectedRegion2.guName} ${selectedRegion2.name}`
+                    : ""
+                }
                 readOnly
               />
               {selectedRegion2 && (
-                <button className="region-clear-button" onClick={() => setSelectedRegion2(null)}>❌</button>
+                <button
+                  className="region-clear-button"
+                  onClick={() => setSelectedRegion2(null)}
+                >
+                  ❌
+                </button>
               )}
             </div>
           </div>
-
-          
 
           {!isLoading && lastComparedRegion1 && lastComparedRegion2 && (
             <div className="compare-table">
@@ -160,7 +187,12 @@ function RegionCompare() {
                   <PolarAngleAxis
                     dataKey="subject"
                     tickSize={20}
-                    tick={{ fontweight: "KOROAD_Bold", fontSize: '1.2rem', fill: '#555', dy: 8 }}
+                    tick={{
+                      fontweight: "KOROAD_Bold",
+                      fontSize: "1.2rem",
+                      fill: "#555",
+                      dy: 8,
+                    }}
                   />
                   <PolarRadiusAxis angle={70} domain={[0, 100]} />
                   <Radar
@@ -181,9 +213,8 @@ function RegionCompare() {
                     verticalAlign="top"
                     align="center"
                     iconType="circle"
-                    wrapperStyle={{ fontSize: '14px', marginTop: '-10px' }}
+                    wrapperStyle={{ fontSize: "14px", marginTop: "-10px" }}
                   />
-
                 </RadarChart>
               </ResponsiveContainer>
             </div>
@@ -192,7 +223,7 @@ function RegionCompare() {
 
         <div className="liked-region-box">
           <div className="liked-search-box">
-            <h4>동네 검색</h4>
+            <h3>🔎 동네 검색</h3>
             <input
               className="search-input"
               type="text"
@@ -200,14 +231,15 @@ function RegionCompare() {
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
             />
-            {searchResults.length > 0 && (
+            {searchText && searchResults.length > 0 && (
               <ul className="search-results scrollable-results">
                 {searchResults.map((region) => (
                   <li
                     key={region.dongId}
-                    onClick={() => {
+                    onMouseDown={() => {
                       const isSelected =
-                        selectedRegion1?.dongId === region.dongId || selectedRegion2?.dongId === region.dongId;
+                        selectedRegion1?.dongId === region.dongId ||
+                        selectedRegion2?.dongId === region.dongId;
                       if (isSelected) return;
                       if (!selectedRegion1) setSelectedRegion1(region);
                       else if (!selectedRegion2) setSelectedRegion2(region);
@@ -215,7 +247,7 @@ function RegionCompare() {
                         setSelectedRegion1(region);
                         setSelectedRegion2(null);
                       }
-                      setSearchText('');
+                      setSearchText("");
                       setSearchResults([]);
                     }}
                   >
@@ -227,17 +259,18 @@ function RegionCompare() {
           </div>
 
           <div className="liked-list-area">
-            <h4>찜한 동네</h4>
+            <h3>❤️ 찜한 동네</h3>
             <ul>
-              {filteredRegions.length > 0 ? (
-                filteredRegions.map((region) => {
+              {likedRegions.length > 0 ? (
+                likedRegions.map((region) => {
                   const fullName = `${region.guName} ${region.name}`;
                   const isSelected =
-                    selectedRegion1?.dongId === region.dongId || selectedRegion2?.dongId === region.dongId;
+                    selectedRegion1?.dongId === region.dongId ||
+                    selectedRegion2?.dongId === region.dongId;
                   return (
                     <li
                       key={region.dongId}
-                      className={isSelected ? 'selected-region' : ''}
+                      className={isSelected ? "selected-region" : ""}
                       onClick={() => {
                         if (isSelected) return;
                         if (!selectedRegion1) setSelectedRegion1(region);
@@ -248,12 +281,12 @@ function RegionCompare() {
                         }
                       }}
                     >
-                      {fullName}{' '}
+                      {fullName}{" "}
                       {selectedRegion1?.dongId === region.dongId
-                        ? '①'
+                        ? "①"
                         : selectedRegion2?.dongId === region.dongId
-                        ? '②'
-                        : ''}
+                        ? "②"
+                        : ""}
                     </li>
                   );
                 })
@@ -268,7 +301,11 @@ function RegionCompare() {
         {lastComparedRegion1 && lastComparedRegion2 && summary && (
           <div className="summary-box">
             <div className="summary-box-header">
-              <img src={zeepai} alt="ai_image" className="zeepai_summary_image" />
+              <img
+                src={zeepai}
+                alt="ai_image"
+                className="zeepai_summary_image"
+              />
               <p className="summary-box-title">ZEEPSEEK AI의 동네 비교 요약</p>
             </div>
             <p>{summary}</p>
@@ -276,7 +313,6 @@ function RegionCompare() {
         )}
       </div>
     </div>
-
   );
 }
 
