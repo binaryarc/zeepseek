@@ -3,7 +3,7 @@
 from typing import Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from app.modules.property_scoring.normalization_service import normalize_scores_and_update
+from app.modules.property_scoring.normalization_service import normalize_scores_and_update, normalize_scores_yeojohnson_and_update
 # 배치 처리 로직 (scoring_batch.py)
 from app.modules.property_scoring.scoring_batch import (
     recalculate_all_scores_no_batch,
@@ -90,3 +90,9 @@ def normalize_all_property_scores():
     """
     normalize_scores_and_update()
     return {"message": "All property scores normalized successfully (0~100 scale)."}
+
+
+@router.post("/normalize/yeojohnson", summary="Normalize property scores using Yeo-Johnson transformation")
+def normalize_all_property_scores_yeojohnson():
+    normalize_scores_yeojohnson_and_update()
+    return {"message": "All property scores updated using Yeo-Johnson transformation (0-100 scale)."}
