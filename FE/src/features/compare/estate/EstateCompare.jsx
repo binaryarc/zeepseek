@@ -184,9 +184,9 @@ const EstateCompare = () => {
           )}
         </div>
 
-        <div className="liked-region-box">
-          <h4>찜한 매물</h4>
-          <div className="liked-list-area">
+        <div className="liked-region-box-estate">
+          <h3>❤️ 찜한 매물</h3>
+          <div className="liked-list-area-estate">
             <ul>
               {likedProperties.length > 0 ? (
                 likedProperties.map((property) => {

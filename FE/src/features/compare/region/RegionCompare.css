@@ -75,7 +75,7 @@
   display: flex;
   flex-direction: column;
   justify-content: start;
-  align-items: center;
+  /* align-items: center; */
 }
 
 .liked-list-area {
@@ -83,6 +83,7 @@
   flex: 1; /* 나머지 공간을 전부 차지 */
   padding-right: 6px;
   width: 80%;
+  margin-left: 1.5rem;
 }
 
 .liked-region-box h4 {
@@ -91,6 +92,7 @@
 
 .liked-search-box {
   margin-bottom: 1.2rem;
+  margin-left: 1.5rem;
 }
 
 .liked-list-box {
@@ -138,7 +140,7 @@ input::placeholder {
 }
 
 .liked-region-box li.selected-region {
-  background-color: #d4f9c5;
+  background-color: #cce9cc;
   font-weight: bold;
   margin-bottom: 0.8rem;
 }
