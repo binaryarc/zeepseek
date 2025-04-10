@@ -108,6 +108,15 @@ const Community = ({ dongId, dongName, guName, onClose }) => {
     return () => window.removeEventListener("mousedown", handleMouseDown);
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const latest = await fetchDongComments(dongId);
+      setComments(latest);
+    }, 3000); // 3초마다 새로 불러오기
+  
+    return () => clearInterval(interval); // 컴포넌트 언마운트 시 정리
+  }, [dongId]);
+
   return (
     <div className="community-box" onWheel={(e) => e.stopPropagation()}>
       <div className="community-header">
