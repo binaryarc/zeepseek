@@ -94,14 +94,6 @@
 
 ---
 
-## 링크
-
-- **사이트:** [https://j12e203.p.ssafy.io/](https://j12e203.p.ssafy.io/)
-- **특화 프로젝트 공유 노션:** [https://www.notion.so/1ad3e02603998064b5b4e0ffd79cb0b2?pvs=21](https://www.notion.so/1ad3e02603998064b5b4e0ffd79cb0b2?pvs=21)
-- **Figma 디자인:** [https://www.figma.com/design/LRVMjnXpOMbfpjHkvVqWkV/%ED%8A%B9%ED%99%94-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-E203(%EC%A7%91%EC%8B%9C%ED%81%AC)?node-id=0-1&t=Y1JF9QsjmRCaGPrI-1](https://www.figma.com/design/LRVMjnXpOMbfpjHkvVqWkV/%ED%8A%B9%ED%99%94-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-E203(%EC%A7%91%EC%8B%9C%ED%81%AC)?node-id=0-1&t=Y1JF9QsjmRCaGPrI-1)
-
----
-
 ## ERD
 
 ![mysql_erd.png](mysql_erd.png)
@@ -149,3 +141,12 @@
 
 ![추천 화면 예시](recommend_1.png)
 ![추천 화면 예시](recommend_2.png)
+![추천 화면 예시](recommend_3.png)
+
+---
+
+## 링크
+
+- **사이트:** [https://j12e203.p.ssafy.io/](https://j12e203.p.ssafy.io/)
+- **특화 프로젝트 공유 노션:** [https://www.notion.so/1ad3e02603998064b5b4e0ffd79cb0b2?pvs=21](https://www.notion.so/1ad3e02603998064b5b4e0ffd79cb0b2?pvs=21)
+- **Figma 디자인:** [https://www.figma.com/design/LRVMjnXpOMbfpjHkvVqWkV/%ED%8A%B9%ED%99%94-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-E203(%EC%A7%91%EC%8B%9C%ED%81%AC)?node-id=0-1&t=Y1JF9QsjmRCaGPrI-1](https://www.figma.com/design/LRVMjnXpOMbfpjHkvVqWkV/%ED%8A%B9%ED%99%94-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-E203(%EC%A7%91%EC%8B%9C%ED%81%AC)?node-id=0-1&t=Y1JF9QsjmRCaGPrI-1)
