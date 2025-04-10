@@ -156,6 +156,7 @@
 ![추천 화면 예시](recommend_1.png)
 ![추천 화면 예시](recommend_2.png)
 ![추천 화면 예시](recommend_3.png)
+![추천 결과 예시](recoomend_result_4.png)
 
 ---
 
