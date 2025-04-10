@@ -190,7 +190,7 @@ public class PropertyServiceImpl implements PropertyService {
     }
 
     @Override
-    @Cacheable(value = "dongOneRoomCounts", key = "'all'", cacheManager = "propertyCacheManager")
+//    @Cacheable(value = "dongOneRoomCounts", key = "'all'", cacheManager = "propertyCacheManager")
     public List<DongPropertyCountDto> countOneRoomPropertiesByDong() {
         List<DongPropertyCountDto> counts = propertyRepository.countOneRoomPropertiesByDong();
         logger.info("Found one-room property counts for {} dong records", counts.size());
@@ -200,7 +200,7 @@ public class PropertyServiceImpl implements PropertyService {
     }
 
     @Override
-    @Cacheable(value = "dongHouseCounts", key = "'all'", cacheManager = "propertyCacheManager")
+//    @Cacheable(value = "dongHouseCounts", key = "'all'", cacheManager = "propertyCacheManager")
     public List<DongPropertyCountDto> countHousePropertiesByDong() {
         List<DongPropertyCountDto> counts = propertyRepository.countHousePropertiesByDong();
         logger.info("Found house property counts for {} dong records", counts.size());
@@ -210,7 +210,7 @@ public class PropertyServiceImpl implements PropertyService {
     }
 
     @Override
-    @Cacheable(value = "dongOfficeCounts", key = "'all'", cacheManager = "propertyCacheManager")
+//    @Cacheable(value = "dongOfficeCounts", key = "'all'", cacheManager = "propertyCacheManager")
     public List<DongPropertyCountDto> countOfficePropertiesByDong() {
         List<DongPropertyCountDto> counts = propertyRepository.countOfficePropertiesByDong();
         logger.info("Found office property counts for {} dong records", counts.size());
@@ -220,7 +220,7 @@ public class PropertyServiceImpl implements PropertyService {
     }
 
     @Override
-    @Cacheable(value = "guOneRoomCounts", key = "'all'", cacheManager = "propertyCacheManager")
+//    @Cacheable(value = "guOneRoomCounts", key = "'all'", cacheManager = "propertyCacheManager")
     public List<GuPropertyCountDto> countOneRoomPropertiesByGu() {
         List<GuPropertyCountDto> counts = propertyRepository.countOneRoomPropertiesByGu();
         logger.info("Found one-room property counts for {} gu records", counts.size());
@@ -230,7 +230,7 @@ public class PropertyServiceImpl implements PropertyService {
     }
 
     @Override
-    @Cacheable(value = "guHouseCounts", key = "'all'", cacheManager = "propertyCacheManager")
+//    @Cacheable(value = "guHouseCounts", key = "'all'", cacheManager = "propertyCacheManager")
     public List<GuPropertyCountDto> countHousePropertiesByGu() {
         List<GuPropertyCountDto> counts = propertyRepository.countHousePropertiesByGu();
         logger.info("Found house property counts for {} gu records", counts.size());
@@ -240,7 +240,7 @@ public class PropertyServiceImpl implements PropertyService {
     }
 
     @Override
-    @Cacheable(value = "guOfficeCounts", key = "'all'", cacheManager = "propertyCacheManager")
+//    @Cacheable(value = "guOfficeCounts", key = "'all'", cacheManager = "propertyCacheManager")
     public List<GuPropertyCountDto> countOfficePropertiesByGu() {
         List<GuPropertyCountDto> counts = propertyRepository.countOfficePropertiesByGu();
         logger.info("Found office property counts for {} gu records", counts.size());
