@@ -30,7 +30,6 @@ const FirstLoginSurvey = () => {
   const user = useSelector((state) => state.auth.user);
   const nickname = user?.nickname || "로그인 유저";
   const handleAddressSelect = (data) => {
-    console.log(data);
     // Modified: 주소가 "서울"로 시작하지 않으면 경고 메시지를 띄웁니다.
     if (!data.address.startsWith("서울")) {
       alert("서울지역만 서비스 중입니다!");
@@ -89,17 +88,14 @@ const FirstLoginSurvey = () => {
     };
   
     try {
-      console.log("보낼 surveyData:", JSON.stringify(surveyData));
       const response = await postSurvey(surveyData, accessToken);
-      console.log("설문 응답 response", response);
       if (response.success) {
         dispatch(setUser(response.data)); // 유저 정보 업데이트
         navigate("/main");
       } else {
         alert("서베이 제출에 실패했습니다.");
       }
-    } catch (error) {
-      console.error("서베이 제출 실패:", error);
+    } catch {
       alert("서버와의 통신에 실패했습니다.");
     }
   };

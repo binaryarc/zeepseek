@@ -29,7 +29,6 @@ const Map = () => {
       const nameDong = item.name.trim().split(" ").pop(); // 예: "서울특별시 종로구 가회동" → "가회동"
       return nameDong === clickedDongName;
     });
-    console.log(match.dongId);
 
     return match?.dongId ?? null;
   }
@@ -60,14 +59,12 @@ const Map = () => {
       dispatch(setSelectedRoomType(location.state.roomType));
     }
     if (location.state?.selectedPropertyId) {
-      console.log(location.state?.selectedPropertyId);
       dispatch(setSelectedPropertyId(location.state.selectedPropertyId));
     }
   }, []);
 
   // window 객체에 hover 마커 관련 함수 등록
   window.setHoverMarker = (lat, lng) => {
-    console.log("마커실행", lat, lng);
     const map = window.map;
     if (!map) return;
 
@@ -169,7 +166,6 @@ const Map = () => {
         const updateMapElements = () => {
           // 맵 최초 준비 체크
           if (!window.isMapReady) {
-            console.log("✅ 지도 준비 완료!");
             window.isMapReady = true;
           }
 
@@ -329,7 +325,6 @@ const Map = () => {
 
                   const root = ReactDOM.createRoot(content);
                   if (dongId) {
-                    console.log(dongId);
                     root.render(
                       <Provider store={store}>
                         <DetailRegion dongId={dongId} />

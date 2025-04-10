@@ -17,10 +17,8 @@ const NaverRedirectHandler = () => {
     const handleNaverLogin = async () => {
       if (code && state) {
         try {
-          console.log("네이버 로그인 처리 중...", code.substring(0, 5) + "...");
 
           const userInfo = await oauthLogin(code, "naver"); // 응답이 사용자 객체 자체
-          console.log(userInfo.data);
           const { accessToken, user: userInfoData } = userInfo.data;
 
           dispatch(setAccessToken(accessToken));
@@ -38,12 +36,10 @@ const NaverRedirectHandler = () => {
             navigate("/main");
           }
           
-        } catch (error) {
-          console.error("네이버 로그인 처리 실패:", error);
+        } catch {
           navigate("/login");
         }
       } else {
-        console.error("인증 코드 또는 상태값이 없습니다.");
         navigate("/login");
       }
     };

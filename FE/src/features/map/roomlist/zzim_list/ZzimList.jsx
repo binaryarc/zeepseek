@@ -87,8 +87,6 @@ const ZzimList = () => {
         const targetCard = document.querySelector(`[data-property-id="${id}"]`);
         if (targetCard) {
           targetCard.click();
-        } else {
-          console.log("🔴 targetCard not found yet");
         }
       });
     }, 300);
@@ -129,31 +127,27 @@ const ZzimList = () => {
     circle.setMap(map);
     circleRef.current = circle; // ✅ 이걸로 교체
 
-    try {
-      const response = await fetchNearbyPlaces(
-        selectedFacilityType,
-        room.longitude,
-        room.latitude
-      );
-      const places = response?.data || [];
-      const emoji = facilityEmojiMap[selectedFacilityType] || "📍";
+    const response = await fetchNearbyPlaces(
+      selectedFacilityType,
+      room.longitude,
+      room.latitude
+    );
+    const places = response?.data || [];
+    const emoji = facilityEmojiMap[selectedFacilityType] || "📍";
 
-      nearbyMarkerRef.current.forEach((m) => m.setMap(null));
+    nearbyMarkerRef.current.forEach((m) => m.setMap(null));
 
-      const markers = places.map(({ latitude, longitude }) => {
-        const content = `<div class="custom-facility-marker">${emoji}</div>`;
-        return new window.kakao.maps.CustomOverlay({
-          position: new window.kakao.maps.LatLng(latitude, longitude),
-          content,
-          yAnchor: 1,
-        });
+    const markers = places.map(({ latitude, longitude }) => {
+      const content = `<div class="custom-facility-marker">${emoji}</div>`;
+      return new window.kakao.maps.CustomOverlay({
+        position: new window.kakao.maps.LatLng(latitude, longitude),
+        content,
+        yAnchor: 1,
       });
+    });
 
-      markers.forEach((m) => m.setMap(map));
-      nearbyMarkerRef.current = markers;
-    } catch (error) {
-      console.error("주변 시설 가져오기 실패:", error);
-    }
+    markers.forEach((m) => m.setMap(map));
+    nearbyMarkerRef.current = markers;
   };
 
   useEffect(() => {
@@ -208,8 +202,7 @@ const ZzimList = () => {
 
       // 백엔드 요청 (실패 시 복구 로직을 넣어도 됨)
       await unlikeProperty(propertyId, user.idx);
-    } catch (err) {
-      console.error("찜 해제 실패:", err);
+    } catch {
       alert("찜 해제에 실패했습니다.");
 
       // 실패 시 복구
@@ -259,8 +252,8 @@ const ZzimList = () => {
       <ProtectedPage
         message={
           <>
-            로그인 후<br />
-            이용하실 수 <br />
+            로그인 후
+            이용하실 수
             있습니다
           </>
         }

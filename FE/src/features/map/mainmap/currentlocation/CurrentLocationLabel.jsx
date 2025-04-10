@@ -58,7 +58,6 @@ function CurrentLocationLabel({ map }) {
 
   useEffect(() => {
     if (location?.state?.selectedPropertyId) {
-      console.log('여기들어옴?')
       idleSkipRef.current = true;
 
       setTimeout(() => {
@@ -105,8 +104,6 @@ function CurrentLocationLabel({ map }) {
         idleSkipRef.current = false;
         return;
       }
-
-      // console.log("✅ idle 이벤트 발생!", map.getCenter());
       const center = map.getCenter();
       const level = map.getLevel();
 
@@ -119,7 +116,6 @@ function CurrentLocationLabel({ map }) {
         center.getLng(),
         center.getLat(),
         (result, status) => {
-          // console.log("📍역지오코딩 결과", result, status); // 이거 추가!
           if (status !== window.kakao.maps.services.Status.OK) return;
 
           const regionData = result[1];
@@ -135,7 +131,6 @@ function CurrentLocationLabel({ map }) {
 
           // ✅ 검색 이동이면 fetchRoomListByBounds 하지 않고 넘김
           if (window.isMovingBySearch) {
-            console.log("🔒 검색 이동 중 → fetchRoomListByBounds 스킵");
             // ✅ 라벨은 업데이트해야 하니까 여기서 setLocationName은 계속 실행
             window.isMovingBySearch = false;
             return;

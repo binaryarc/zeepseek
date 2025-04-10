@@ -33,8 +33,7 @@ const KakaoRedirectHandler = () => {
           } else {
             navigate("/main");
           }
-        } catch (error) {
-          console.error("카카오 로그인 실패:", error);
+        } catch {
           navigate("/login");
         }
       }

@@ -27,12 +27,13 @@
     padding: 2rem 3rem;
     border-radius: 1rem;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    width: 240px;
   }
   
   .login-prompt p {
     font-size: 1.2rem;
     margin-bottom: 1rem;
-    line-height: 130%;
+    line-height: 150%;
   }
   
   .login-btn {
