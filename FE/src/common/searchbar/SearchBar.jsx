@@ -121,7 +121,6 @@ function Searchbar() {
       {isLoggedIn ? (
         <div className="nav-right">
           <div className="nav-menu">
-            <span onClick={() => navigate("/map")}>지도</span>
             <span onClick={() => navigate("/compare")}>동네/매물 비교</span>
           </div>
           <div className="nav-user-area" onClick={handleToggleDropdown}>
