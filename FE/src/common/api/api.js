@@ -8,10 +8,10 @@ const zeepApi = axios.create({
   withCredentials: true, // ✅ 쿠키 포함 요청
 });
 
-const authApi = axios.create({
-  baseURL: `http://localhost:8082/api/v1`, // ✅ API 서버 주소
-  withCredentials: false,
-});
+// const authApi = axios.create({
+//   baseURL: `http://localhost:8082/api/v1`, // ✅ API 서버 주소
+//   withCredentials: false,
+// });
 
 // 요청 인터셉터 - accessToken이 있으면 Authorization 헤더에 추가
 zeepApi.interceptors.request.use((config) => {
@@ -313,7 +313,7 @@ export const unlikeDongApi = async (dongId, userId) => {
 };
 
 export const postSurvey = async (surveyData, accessToken) => {
-  const response = await authApi.post("/auth/survey", surveyData, {
+  const response = await zeepApi.post("/auth/survey", surveyData, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },

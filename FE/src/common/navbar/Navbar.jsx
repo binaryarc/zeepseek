@@ -5,10 +5,10 @@ import "./Navbar.css";
 import { FaRegUserCircle } from "react-icons/fa"; // 사람 아이콘
 import { logoutOAuth } from "../api/authApi";
 import { useSelector } from "react-redux";
-import { useEffect } from "react";
+// import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { logout } from "../../store/slices/authSlice";
-import { setSelectedRoomType } from "../../store/slices/roomListSlice";
+// import { setSelectedRoomType } from "../../store/slices/roomListSlice";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -35,14 +35,14 @@ function Navbar() {
   };
 
 
-  const handleClickRecommendButton = () => {
-    if (!user) {
-      alert("로그인 후 이용해주세요.");
-      return;
-    }
-    dispatch(setSelectedRoomType("AI 추천")); // ✅ Redux에 탭 상태 저장
-    navigate("/map");
-  };
+  // const handleClickRecommendButton = () => {
+  //   if (!user) {
+  //     alert("로그인 후 이용해주세요.");
+  //     return;
+  //   }
+  //   dispatch(setSelectedRoomType("AI 추천")); // ✅ Redux에 탭 상태 저장
+  //   navigate("/map");
+  // };
 
   return (
     <nav className="nav-navbar">
