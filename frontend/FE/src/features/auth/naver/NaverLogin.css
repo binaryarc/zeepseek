@@ -1,0 +1,13 @@
+.naver-button{
+    border: none;
+    padding: 0 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+.naver {
+    width: 250px;
+}

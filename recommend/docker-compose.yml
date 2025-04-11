@@ -1,0 +1,21 @@
+version: '3'
+services:
+
+  recommend:
+    build: ./ML
+    container_name: recommend_container
+    ports:
+      - "8000:8000"
+    environment:
+      - MYSQL_HOST=host.docker.internal
+      - MONGO_HOST=host.docker.internal
+      - ES_HOST=host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: always
+    networks:
+      - e203
+
+networks:
+  e203:
+    external: true

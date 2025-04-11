@@ -1,0 +1,53 @@
+.protected-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    font-family: KOROAD;
+  }
+  
+  .protected-content {
+    width: 100%;
+    height: 100%;
+  }
+  
+  .protected-content.blur {
+    filter: blur(5px);
+    pointer-events: none; /* 클릭 방지 */
+    user-select: none;     /* 텍스트 선택 방지 */
+  }
+  
+  .login-prompt {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    text-align: center;
+    background-color: white;
+    padding: 2rem 3rem;
+    border-radius: 1rem;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    width: 240px;
+  }
+  
+  .login-prompt p {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    line-height: 150%;
+  }
+  
+  .login-btn {
+    background-color: #89c572;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 0.6rem;
+    cursor: pointer;
+    transition: 0.3s ease;
+  }
+  
+  .login-btn:hover {
+    background-color: #75ad60;
+  }
+  
