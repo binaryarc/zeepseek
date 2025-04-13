@@ -1,0 +1,15 @@
+version: '3'
+services:
+  fe:
+    build: ./FE
+    container_name: frontend_container
+    # fe 서비스는 내부에서 5173 포트를 사용 (Vite 빌드 결과물을 serve 명령으로 서빙)
+    expose:
+      - "5173"
+    restart: always
+    networks:
+      - e203
+
+networks:
+  e203:
+    external: true
