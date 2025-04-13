@@ -1,0 +1,162 @@
+/* map/detailregion/DetailRegion.css */
+.detail-region-box {
+  position: relative;
+  background-color: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  width: 250px;
+  font-family: KOROAD;
+  z-index: 1000;
+  transform: translateY(-120px) translateX(90px);
+}
+
+.dong-score-bars {
+  margin-bottom: 12px;
+  z-index: 1000;
+}
+
+.dong-score-item {
+  display: flex;
+  align-items: center;
+  margin: 15px 0;
+  z-index: 1000;
+}
+
+.dong-score-label {
+  font-size: 16px;
+  width: 50px;
+  font-weight: 500;
+  z-index: 1000;
+}
+
+.dong-score-bar-wrapper {
+  flex: 1;
+  height: 8px;
+  background-color: #eee;
+  border-radius: 4px;
+  margin-left: 22px;
+  z-index: 1000;
+}
+
+.dong-score-bar {
+  height: 120%;
+  background-color: #5cb85c;
+  border-radius: 4px;
+  /* transition: width 0.3s ease; */
+}
+.summary-title {
+  font-size: 17px;
+}
+.summary {
+  height: auto;
+  width: 240px;
+  font-size: 14px;
+  color: #444;
+  line-height: 1.4;
+  white-space: pre-line; /* 줄바꿈 유지 */
+  word-break: keep-all;
+}
+
+  .spinner-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 120px; /* 적당한 높이로 DetailRegion 박스 형태 유지 */
+  }
+  
+  .spinner {
+    border: 4px solid #ddd;
+    border-top: 4px solid #3cb371;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 0.8s linear infinite;
+  }
+  
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .detail-zzim-button {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 22px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 10;
+    transition: transform 0.3s ease;
+  }
+  
+  .detail-zzim-button.liked {
+    color: red;
+    animation: zzim-bounce 0.7s ease-out;
+  }
+
+  @keyframes zzim-bounce {
+    0% {
+      transform: scale(1) translateY(0);
+    }
+    30% {
+      transform: scale(1.3) translateY(-10px); /* 하트를 확장 */
+    }
+    50% {
+      transform: scale(1.6) translateY(-14px); /* 살짝 줄어들게 */
+    }
+    70% {
+      transform: scale(1.3) translateY(-10px); /* 다시 커짐 */
+    }
+    100% {
+      transform: scale(1) translateY(0px); /* 원래 크기로 돌아옴 */
+    }
+  }
+  
+
+  .comment-preview {
+    background-color: #f2f7fc;
+    height: 75px;
+    border-radius: 12px;
+    padding: 3px 16px;
+    font-size: 14px;
+    /* position: relative; */
+    text-align: center;
+  }
+  
+  .comment-preview-title {
+    font-size: 17px;
+  }
+  
+  .comment-content {
+    color: #333;
+    margin-bottom: 6%;
+  }
+  
+  .comment-meta {
+    color: #888;
+    font-size: 10px;
+  }
+  
+  .comment-more-btn {
+    text-align: center;
+    bottom: 12px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: #007bff;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  
+  .detail-zeepai-image {
+    width: 1.8rem;
+    margin-right: 1.5%
+  }
+
+  .detail-people-image{
+    width: 1.8rem;
+    margin-right: 3%
+  }

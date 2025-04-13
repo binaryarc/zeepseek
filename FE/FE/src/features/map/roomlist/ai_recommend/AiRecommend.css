@@ -1,0 +1,363 @@
+  .ai-filter-container {
+    /* padding: 1rem; */
+    padding-top: 0%;
+    height: 70vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .recommend-title {
+    /* font-family: KOROAD_Light; */
+    font-family: GangwonEdu_Bold;
+    font-size: 1.5rem;
+    text-align: center;
+    margin-top: 10px
+  }
+
+  .slider-block {
+    margin-top: 30px;
+    margin-bottom: 3.4vh;
+    font-family: KOROAD;
+  }
+  
+  .slider-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1vh;
+  }
+
+  /* 공통 슬라이더 초기화 */
+  .slider-block input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 0.5rem;
+    background: transparent; /* 트랙은 아래에서 설정 */
+    margin: 0;
+    padding: 0;
+  }
+
+  /* 채워진 트랙 색상 (Chrome/Safari) */
+  .slider-block input[type="range"]::-webkit-slider-runnable-track {
+    height: 1.1rem;
+    background: linear-gradient(to right, #89C572 var(--value), #ccc var(--value), #ccc 100%);
+    border-radius: 0.3rem;
+  }
+
+  /* 포인터(thumb) */
+  .slider-block input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 1rem;
+    height: 1rem;
+    background: rgb(163, 231, 170);
+    border-radius: 50%;
+    margin-top: -0.65rem;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Firefox 채워진 슬라이더 */
+  .slider-block input[type="range"]::-moz-range-track {
+    height: 0.5rem;
+    background: #ccc;
+    border-radius: 0.2rem;
+  }
+  .slider-block input[type="range"]::-moz-range-progress {
+    background: green;
+    height: 0.5rem;
+    border-radius: 0.2rem;
+  }
+  .slider-block input[type="range"]::-moz-range-thumb {
+    width: 1rem;
+    height: 1rem;
+    background: black;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+  }
+
+  .recommend-search-btn {
+    margin-top: 0.6rem;
+    padding: 0.6rem 1.2rem;
+    background-color: #ebce94;
+    width: 100%;
+    margin: auto;
+    /* border: none; */
+    border: 0.1px solid;
+    border-radius: 0.3rem;
+    color: rgb(60, 59, 59);
+    font-size: 1.2rem;
+    cursor: pointer;
+    font-family: KOROAD_Bold;
+  }
+
+  .re-recommend-search-btn {
+    margin-top: 1rem;
+    padding: 0.6rem 1.2rem;
+    background-color: #ebce94;
+    width: 90%;
+    /* border: none; */
+    border: 0.1px solid;
+    border-radius: 0.3rem;
+    color: rgb(60, 59, 59);
+    font-size: 1.2rem;
+    cursor: pointer;
+    font-family: KOROAD_Bold;
+  }
+
+  .result-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 버튼 가운데 정렬 */
+  }
+
+
+  .recommend-results {
+    /* margin-top: 2rem; */
+    font-family: KOROAD;
+  }
+  
+  .result-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-left: 1.2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .result-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    /* max-height: 20vh; */
+    overflow-y: auto;
+  }
+  
+  .result-item {
+    border: 1px solid #ddd;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: #f9f9f9;
+  }
+  
+  /* .item-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+  }
+  
+  .item-sub {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 0.5rem;
+  }
+  
+  .item-desc {
+    font-size: 0.95rem;
+    color: #333;
+  } */
+  
+  .loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2rem;
+    margin: auto;
+    font-family: KOROAD;
+    color: #333;
+  }
+
+  .zeepai_image {
+    width: 50%;
+    height: auto;
+    margin-bottom: 2rem;
+  }
+  
+  .spinner {
+    border: 6px solid #eee;
+    border-top: 6px solid #f7a500;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 0.8rem;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .slider-section {
+    padding: 1rem;
+  }
+
+
+  /* 🍗 치킨집 */
+.slider-치킨집 input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background-color: transparent;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🍗</text></svg>');
+  background-repeat: no-repeat;
+  background-size: contain;
+  border: none;
+  width: 2.4rem;
+  height: 2.4rem;
+  cursor: pointer;
+}
+
+/* ☕ 카페 */
+.slider-카페 input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background-color: transparent;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">☕</text></svg>');
+  background-repeat: no-repeat;
+  background-size: contain;
+  border: none;
+  width: 2.4rem;
+  height: 2.4rem;
+  cursor: pointer;
+}
+
+/* 🚌 대중교통 */
+.slider-대중교통 input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background-color: transparent;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🚌</text></svg>');
+  background-repeat: no-repeat;
+  background-size: contain;
+  border: none;
+  width: 2.4rem;
+  height: 2.4rem;
+  cursor: pointer;
+}
+
+/* 🏪 편의 */
+.slider-편의 input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background-color: transparent;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🏪</text></svg>');
+  background-repeat: no-repeat;
+  background-size: contain;
+  border: none;
+  width: 2.4rem;
+  height: 2.4rem;
+  cursor: pointer;
+}
+
+/* 🏥 의료 */
+.slider-의료 input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background-color: transparent;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🏥</text></svg>');
+  background-repeat: no-repeat;
+  background-size: contain;
+  border: none;
+  width: 2.4rem;
+  height: 2.4rem;
+  cursor: pointer;
+}
+
+/* 🍜 식당 */
+.slider-식당 input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background-color: transparent;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🍜</text></svg>');
+  background-repeat: no-repeat;
+  background-size: contain;
+  border: none;
+  width: 2.4rem;
+  height: 2.4rem;
+  cursor: pointer;
+}
+
+/* 🎮 여가 */
+.slider-여가 input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background-color: transparent;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🎮</text></svg>');
+  background-repeat: no-repeat;
+  background-size: contain;
+  border: none;
+  width: 2.4rem;
+  height: 2.4rem;
+  cursor: pointer;
+}
+
+.option-section {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  font-family: KOROAD;
+}
+
+
+.price-range-group {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+}
+
+
+.price-range-group input {
+  margin-top: 10px;
+  padding: 0.4rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.4rem;
+  width: fit-content;
+  margin-bottom: 30px;
+  font-family: KOROAD;
+}
+
+.button-select-group {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: KOROAD;
+}
+
+.button-row {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-start; /* 기존: space-between → 좌측 정렬로 변경 */
+  /* margin-bottom: 0.1rem; 줄 간 간격 추가 */
+}
+
+
+.toggle-button {
+  padding: 0.6rem 1.2rem;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  width: 200px;
+  font-family: KOROAD;
+}
+
+.toggle-button.active {
+  background-color: #cde7b0;
+  border-color: #87c13f;
+  font-weight: bold;
+}
+
+.filter-title {
+  font-size: 1.5rem;
+  font-family: GangwonEdu_Bold;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.price-error {
+  color: red;
+  font-size: 0.9rem;
+  margin-top: 4px;
+}

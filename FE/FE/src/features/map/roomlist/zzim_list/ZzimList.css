@@ -1,0 +1,33 @@
+.facility-type-sidebar {
+  position: absolute;
+  top: 230px; /* 헤더 밑으로 */
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 10;
+}
+
+.facility-button {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 3px solid #4caf50;
+  background-color: #ffffff;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  white-space: nowrap;
+  font-family: KOROAD;
+  font-size: 1.1rem;
+}
+
+.facility-button.active {
+  background-color: #19c985;
+  color: white;
+  border-color: #4caf50;
+}
+
+.custom-facility-marker {
+  font-size: 25px;
+  pointer-events: none;
+}

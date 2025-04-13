@@ -1,0 +1,111 @@
+.mypage-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #fdfcf7;
+    height: 100vh;
+    
+  }
+  .mypage-content {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 90%;
+    max-width: 900px;
+    margin-bottom: 20px;
+    font-family: GangwonEdu_Bold;
+  }
+
+  .mypage-card {
+    margin-top: 15vh;
+    background: rgb(253, 253, 253);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.07);
+    text-align: center;
+    width: 95%;
+    height: 280px;
+    max-width: 600px;
+    /* border: 3px solid #87cd6c; */
+    /* margin-bottom: 0.2rem; */
+    font-size: 20px;
+  
+  }
+  
+  .mypage-card p {
+    margin-top: 1.4em;
+    margin-bottom: 1px;
+  }
+
+  /* 새로 추가 */
+  .mypage-user-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.1rem;
+  }
+
+  .mypage-profile-img {
+    width: 250px;
+    height: 180px;
+    /* border-radius: 50%; */
+    background: url('../../assets/images/mypage.png') center/cover no-repeat;
+    margin-right: 30px;
+  }
+  
+  .mypage-buttons {
+    margin-top: 14vh;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 80%;
+    max-width: 600px;
+    /* padding: 20px; */
+    align-items: center;
+    
+  }
+  
+  .mypage-buttons button {
+    background: rgb(255, 255, 255);
+    box-shadow: 0 0 8px rgba(0,0,0,0.07);
+    border: 3px #87cd6c;
+    border-radius: 15px;
+    padding: 1rem;
+    width: 90%;
+    font-weight: bold;
+    font-size: 1.4rem;
+    cursor: pointer;
+    height: 160px;
+    font-family: GangwonEdu_Bold;
+  }
+  
+  .mypage-footer {
+    display: flex;
+    /* justify-content: space-between; */
+    width: 40%;
+    max-width: 600px;
+    margin-top: 1rem;
+    
+  }
+  
+  .logout-btn,
+  .withdraw-btn {
+    /* padding: 0; */
+    font-size: 20px;
+    font-family: GangwonEdu_Bold;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+    border: none;
+    background: #f9efd1;
+    font-weight: bold;
+    cursor: pointer;
+    flex: 1;
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    margin: 0 0.7rem;
+  }
+  
