@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+sqlalchemy
+pymysql
+pymongo
+python-dotenv
+numpy<2
+scikit-learn
+cryptography
+pandas
+elasticsearch
+scikit-surprise
+requests
